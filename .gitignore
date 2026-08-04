@@ -1,0 +1,16 @@
+# local data — the ledger never leaves this device
+data/
+recordings/
+*.wav
+*.webm
+
+# python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# editors
+.idea/
+.vscode/

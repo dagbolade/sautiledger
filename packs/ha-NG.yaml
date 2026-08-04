@@ -1,0 +1,80 @@
+# Hausa / English mix — NGN
+# VALIDATE AT VENUE: drafted by a non-native speaker; see normaliser_tests.json.
+name: ha-NG
+description: Hausa / English mix
+currency: NGN
+currency_words: [naira]
+connectives: [da]
+fillers: [don, allah]
+
+numbers:
+  daya: 1
+  biyu: 2
+  uku: 3
+  hudu: 4
+  biyar: 5
+  shida: 6
+  bakwai: 7
+  takwas: 8
+  tara: 9
+  goma: 10
+  ashirin: 20
+  talatin: 30
+  arbain: 40
+  hamsin: 50
+  sittin: 60
+  saba'in: 70
+  tamanin: 80
+  casa'in: 90
+  dari: 100
+  dubu: 1000
+  # code-switched English numbers
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  twenty: 20
+  fifty: 50
+  hundred: 100
+  thousand: 1000
+
+k_words: [k]
+each_words: [each, kowanne]
+hard_money_words: []
+
+units:
+  buhu: buhu
+  kwano: kwano
+  mudu: mudu
+  kg: kg
+  kilo: kg
+  bag: bag
+
+sale_triggers: [na sayar, sold, sell]
+expense_triggers: [na saya, bought, buy]
+log_triggers: [rubuta]
+
+queries:
+  - phrase: nawa na samu
+    query: profit_or_sales_total
+  - phrase: me na fi sayarwa
+    query: top_item
+
+summary_triggers: [rufe rana, summary]
+
+corrections: []
+correction_stop_words: [not, ba]
+
+periods:
+  yau: today
+  today: today
+  wannan mako: this_week
+  this week: this_week
+
+days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday, jumma'a]

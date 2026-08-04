@@ -1,0 +1,84 @@
+# Nigerian Pidgin / Yoruba / English mix — NGN
+# Declarative only: the normaliser has NO language knowledge of its own.
+name: pcm-yo-NG
+description: Nigerian Pidgin / Yoruba / English mix
+currency: NGN
+currency_words: [naira]
+connectives: [of]
+# discourse tokens that carry no transaction content
+fillers: [i, abeg, oya, am, make, hear, she, go, pay, on, the, a, please, give, me]
+
+numbers:
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  twenty: 20
+  thirty: 30
+  forty: 40
+  fifty: 50
+  sixty: 60
+  seventy: 70
+  eighty: 80
+  ninety: 90
+  hundred: 100
+  thousand: 1000
+  # Yoruba numerals
+  egberun: 1000     # 1000; "egberun meta" = 3000
+  meji: 2
+  meta: 3
+  merin: 4
+  marun: 5
+
+k_words: [k]
+each_words: [each]
+# Yoruba subtractive/vigesimal money phrases the grammar refuses to value.
+# Seeing one of these means: clarify, never guess (CLAUDE.md rule 3).
+hard_money_words: [egbeje, egbeta, egbewa, o, din, owo]
+
+units:
+  derica: derica
+  congo: congo
+  mudu: mudu
+  paint rubber: paint rubber
+  bag: bag
+  bags: bag
+  kg: kg
+  kilo: kg
+
+sale_triggers: [don sell, customer take, customer buy, sold, sell]
+expense_triggers: [i buy, bought, buy]
+log_triggers: [log am, log]
+
+queries:
+  - phrase: how much i don make
+    query: profit_or_sales_total
+  - phrase: how much i make
+    query: profit_or_sales_total
+  - phrase: wetin i sell pass
+    query: top_item
+  - phrase: who dey owe me
+    query: credit_outstanding
+
+summary_triggers: [close the day, summary]
+
+corrections:
+  - trigger: no no na
+    field: amount
+  - trigger: na credit
+    field: payment_status
+    value: credit
+correction_stop_words: [not]
+
+periods:
+  today: today
+  this week: this_week
+  yesterday: yesterday
+
+days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]

@@ -1,0 +1,79 @@
+# Swahili / English mix — KES
+# VALIDATE AT VENUE: drafted by a non-native speaker; see normaliser_tests.json.
+name: sw-KE
+description: Swahili / English mix
+currency: KES
+currency_words: [shilingi, bob]
+connectives: [ya, za]
+fillers: [nataka, tafadhali]
+
+numbers:
+  moja: 1
+  mbili: 2
+  tatu: 3
+  nne: 4
+  tano: 5
+  sita: 6
+  saba: 7
+  nane: 8
+  tisa: 9
+  kumi: 10
+  ishirini: 20
+  thelathini: 30
+  arobaini: 40
+  hamsini: 50
+  sitini: 60
+  sabini: 70
+  themanini: 80
+  tisini: 90
+  mia: 100
+  elfu: 1000
+  # code-switched English numbers
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  twenty: 20
+  fifty: 50
+  hundred: 100
+  thousand: 1000
+
+k_words: [k]
+each_words: [each, kila]
+hard_money_words: []
+
+units:
+  gunia: gunia
+  debe: debe
+  kg: kg
+  kilo: kg
+  bag: bag
+
+sale_triggers: [nimeuza, sold, sell]
+expense_triggers: [nimenunua, bought, buy]
+log_triggers: [andika]
+
+queries:
+  - phrase: nimepata pesa ngapi
+    query: profit_or_sales_total
+  - phrase: nimeuza nini zaidi
+    query: top_item
+
+summary_triggers: [funga siku, muhtasari, summary]
+
+corrections: []
+correction_stop_words: [not, si]
+
+periods:
+  leo: today
+  today: today
+  wiki hii: this_week
+  this week: this_week
+
+days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday, ijumaa]
