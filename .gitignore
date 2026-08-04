@@ -1,3 +1,6 @@
+# secrets — the API key never gets committed
+.env
+
 # local data — the ledger never leaves this device
 data/
 recordings/

@@ -44,7 +44,9 @@ class Ledger:
     def __init__(self, path: str = "data/ledger.db"):
         if path != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(path)
+        # check_same_thread=False: FastAPI serves requests from a threadpool;
+        # sqlite3 serialises access internally at this scale.
+        self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(SCHEMA)
 

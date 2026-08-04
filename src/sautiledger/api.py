@@ -1,0 +1,103 @@
+"""FastAPI app: POST /utterance (audio or text), GET /state, static UI.
+
+Run: python -m uvicorn sautiledger.api:app --port 8090
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+from fastapi import FastAPI, File, Form, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+
+from .agent import Agent
+from .asr import FakeAsr, NotConfigured, SaharaCloudAsr
+from .config import Settings, get_settings
+from .egress import EgressError, EgressRecorder
+from .ledger import Ledger
+from .llm_fallback import ollama_if_available
+from .packs import load_pack
+
+STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
+
+
+def create_app(settings: Settings | None = None) -> FastAPI:
+    settings = settings or get_settings()
+    pack = load_pack(settings.pack)
+    ledger = Ledger(settings.db_path)
+    recorder = EgressRecorder(ledger)
+    agent = Agent(pack, ledger, ollama_if_available())
+
+    if settings.mode == "cloud":
+        asr = SaharaCloudAsr(recorder, settings.sahara_api_key)
+    else:
+        # Offline: FakeAsr stands in until SaharaOfflineAsr lands (rule 6
+        # swap point) — nothing touches the network in this mode.
+        asr = FakeAsr()
+
+    app = FastAPI(title="SautiLedger")
+    app.state.settings = settings
+    app.state.agent = agent
+    app.state.ledger = ledger
+    app.state.recorder = recorder
+    app.state.asr = asr
+
+    @app.post("/utterance")
+    async def utterance(
+        text: str | None = Form(None),
+        audio: UploadFile | None = File(None),
+    ):
+        egress_before = recorder.total_bytes()
+        transcript_text = (text or "").strip()
+        if audio is not None:
+            blob = await audio.read()
+            try:
+                transcript_text = asr.transcribe(blob, language_hint=pack.name).text
+            except EgressError as exc:
+                return JSONResponse(
+                    status_code=502,
+                    content={
+                        "error": str(exc),
+                        "egress_delta": recorder.total_bytes() - egress_before,
+                        "egress_total": recorder.total_bytes(),
+                    },
+                )
+        if not transcript_text:
+            return JSONResponse(status_code=400, content={"error": "no text or audio provided"})
+
+        reply = agent.handle(transcript_text)
+        return {
+            "transcript": transcript_text,
+            "reply_text": reply,
+            "parse": (agent.pending.to_dict() if agent.pending else None),
+            "egress_delta": recorder.total_bytes() - egress_before,
+            "egress_total": recorder.total_bytes(),
+        }
+
+    @app.get("/state")
+    def state():
+        entries = [dict(row) for row in ledger.entries("today")]
+        sales_n, sales_total = ledger.sales_total("today")
+        return {
+            "mode": settings.mode,
+            "pack": pack.name,
+            "currency": pack.currency,
+            "entries": entries,
+            "sales_count": sales_n,
+            "sales_total": sales_total,
+            "egress_total": recorder.total_bytes(),
+            "egress_log": [dict(row) for row in recorder.log()],
+        }
+
+    if STATIC_DIR.exists():
+        @app.get("/")
+        def index():
+            return FileResponse(STATIC_DIR / "index.html")
+
+        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+    return app
+
+
+app = create_app()

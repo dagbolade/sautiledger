@@ -67,6 +67,16 @@ class OllamaLlmClient:
             return json.loads(resp.read())["response"]
 
 
+def ollama_if_available(timeout: float = 0.5) -> OllamaLlmClient | None:
+    """Local Ollama if running, else None (grammar-only). Localhost only —
+    never egress."""
+    try:
+        with urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=timeout):
+            return OllamaLlmClient()
+    except Exception:
+        return None
+
+
 def _literal_numbers(utterance: str, pack: Pack) -> set[int]:
     """Every number literally present in the utterance: digit tokens,
     digit+k tokens, and single pack number words."""
