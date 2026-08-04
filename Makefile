@@ -20,4 +20,10 @@ demo:
 bench:
 	$(PY) -m bench.run --confirm
 
-.PHONY: test chat run demo bench
+bench-dry:
+	$(PY) -m bench.run --fake
+
+test-live:
+	$(PY) -m pytest -m live -q
+
+.PHONY: test chat run demo bench bench-dry test-live

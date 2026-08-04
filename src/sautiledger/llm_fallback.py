@@ -133,7 +133,11 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
     elif result.intent == "daily_summary":
         result.period = result.period or "today"
     elif result.intent == "correct_last_entry":
-        if result.field is None:
+        # field must be real and new_value present — never NULL out a ledger column
+        if (
+            result.field not in {"amount", "amount_each", "item", "quantity", "unit", "payment_status"}
+            or result.new_value is None
+        ):
             return ParseResult(intent="clarify", question_about="missing_transaction_details")
     elif result.intent == "log_transaction":
         # rule 3, completeness side: no amount -> not a loggable entry

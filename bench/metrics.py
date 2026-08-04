@@ -83,6 +83,9 @@ def derivable_numbers(text: str, pack: Pack) -> set[int]:
 
 def expected_numbers(expected_parse: dict) -> list[int]:
     keys = ["amount", "amount_each", "quantity"]
+    if isinstance(expected_parse.get("amount_each"), int):
+        # per-unit pricing: the total is derived (each × qty), never spoken
+        keys.remove("amount")
     if expected_parse.get("field") == "amount":
         keys.append("new_value")
     return [expected_parse[k] for k in keys if isinstance(expected_parse.get(k), int)]

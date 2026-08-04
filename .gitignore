@@ -7,6 +7,13 @@ recordings/
 *.wav
 *.webm
 
+# benchmark: fetched datasets + raw outputs are never committed
+# (AfriSwitch is CC BY-NC-SA — fetched at run time, not redistributed;
+#  only REPORT.md is tracked)
+bench/corpus/afriswitch-sample/
+bench/results/*
+!bench/results/REPORT.md
+
 # python
 .venv/
 __pycache__/
