@@ -20,10 +20,11 @@ from .models import Transcript
 
 SAHARA_SYNC_URL = "https://infer.voice.intron.io/file/v1/upload/sync"
 
-# TODO(sahara): confirm Sahara's language codes for Pidgin/Yoruba/Hausa
-# with the Intron crew — until then everything ships as accented English,
-# which their Accented English model handles for code-switched speech.
-LANGUAGE_CODES = {"pcm-yo-NG": "en", "sw-KE": "sw", "ha-NG": "en"}
+# Sahara language codes (docs.voice.intron.io/docs/stt/supported-languages):
+# Pidgin-English=pcm, Yoruba-English=yo, Hausa-English=ha, Swahili-English=sw.
+# The mixed pcm-yo-NG pack maps to pcm (Sahara's strongest Pidgin model);
+# pass "yo" per-clip for Yoruba-dominant audio if it benchmarks better.
+LANGUAGE_CODES = {"pcm-yo-NG": "pcm", "sw-KE": "sw", "ha-NG": "ha"}
 
 
 class NotConfigured(RuntimeError):
