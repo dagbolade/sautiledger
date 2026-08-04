@@ -33,6 +33,8 @@ class EgressRecorder:
 
     @staticmethod
     def _urllib_open(url: str, data: bytes, headers: dict, timeout: float):
+        # the API's WAF rejects urllib's default Python-urllib user-agent
+        headers = {"User-Agent": "SautiLedger/0.1", **headers}
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return resp.status, resp.read()
