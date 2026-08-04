@@ -35,6 +35,11 @@ class Agent:
 
     def _dispatch(self, parse: ParseResult, raw: str) -> str:
         if parse.intent == "log_transaction":
+            if parse.amount is None and parse.amount_each is None:
+                # belt-and-braces on rule 3: nothing amountless is written
+                parse = replace(parse, intent="clarify", question_about="amount")
+                self.pending = parse
+                return self._clarify_question(parse)
             return tools.log_transaction(self.ledger, parse, raw)
         if parse.intent == "query_ledger":
             return tools.query_ledger(self.ledger, parse.query, parse.period, self.pack.currency)
@@ -59,8 +64,8 @@ class Agent:
                 f"{tools.spoken_number(total['amount'])} total?"
             )
         if parse.question_about == "amount":
-            thing = parse.item or "that one"
-            return f"I no catch the amount. How much for the {thing}?"
+            thing = f"the {parse.item}" if parse.item else "that one"
+            return f"I no catch the amount. How much for {thing}?"
         return "Wetin you want make I log? Tell me the item and the amount, abeg."
 
     # ------------------------------------------------------------ clarify flow

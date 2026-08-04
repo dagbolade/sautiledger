@@ -67,7 +67,8 @@ def log_transaction(ledger: Ledger, parse: ParseResult, raw_utterance: str) -> s
     return f"{verb}: {what}, {_money(parse.amount, parse.currency)}. Correct?"
 
 
-def query_ledger(ledger: Ledger, query: str, period: str, currency: str) -> str:
+def query_ledger(ledger: Ledger, query: str, period: str | None, currency: str) -> str:
+    period = period or "today"
     when = "this week" if period == "this_week" else period
     if query == "top_item":
         top = ledger.top_item(period)
@@ -101,7 +102,8 @@ def correct_last_entry(
     return f"Corrected: {field} now {new_value}."
 
 
-def daily_summary(ledger: Ledger, period: str, currency: str) -> str:
+def daily_summary(ledger: Ledger, period: str | None, currency: str) -> str:
+    period = period or "today"
     sales_n, sales_total = ledger.sales_total(period)
     exp_n, exp_total = ledger.expenses_total(period)
     credit = ledger.credit_outstanding()

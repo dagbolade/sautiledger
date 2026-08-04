@@ -50,3 +50,33 @@ def test_llm_query_without_amount_is_accepted():
 def test_no_llm_means_clarify_not_crash():
     result = normalise(GIBBERISH, PACK, llm=None)
     assert result.intent == "clarify"
+
+
+def test_placeholder_question_about_is_sanitised():
+    # small models echo the prompt's placeholder — never let junk downstream
+    llm = CannedLlm({"intent": "clarify", "question_about": "what is unclear"})
+    result = llm_parse(GIBBERISH, PACK, llm)
+    assert result.question_about == "missing_transaction_details"
+
+
+def test_query_with_missing_period_defaults_to_today():
+    llm = CannedLlm({"intent": "query_ledger", "query": "profit_or_sales_total"})
+    result = llm_parse(GIBBERISH, PACK, llm)
+    assert result.period == "today"
+
+
+def test_amountless_log_transaction_degrades_to_clarify():
+    llm = CannedLlm({"intent": "log_transaction", "type": "sale", "item": "rice"})
+    result = llm_parse(GIBBERISH, PACK, llm)
+    assert result.intent == "clarify" and result.question_about == "amount"
+    assert result.item == "rice"  # partial parse kept for the clarify round-trip
+
+
+def test_unknown_query_or_intent_degrades_to_clarify():
+    for payload in (
+        {"intent": "query_ledger", "query": "weather_forecast"},
+        {"intent": "delete_everything"},
+        {"intent": "correct_last_entry"},
+    ):
+        result = llm_parse(GIBBERISH, PACK, CannedLlm(payload))
+        assert result.intent == "clarify", payload

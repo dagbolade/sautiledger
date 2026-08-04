@@ -106,6 +106,19 @@ def test_empty_log_request_never_writes(agent):
     assert agent.ledger.last_transaction() is None
 
 
+def test_agent_refuses_amountless_log(agent):
+    """Belt-and-braces on rule 3: even if a parse reaches dispatch with no
+    amount, the agent asks instead of writing."""
+    from sautiledger.models import ParseResult
+
+    reply = agent._dispatch(
+        ParseResult(intent="log_transaction", type="sale", item="rice", currency="NGN"),
+        "raw",
+    )
+    assert "?" in reply
+    assert agent.ledger.last_transaction() is None
+
+
 def test_amount_clarify_then_answer(agent):
     """Case-6-style flow: unparseable Yoruba money -> ask -> answer -> log."""
     reply = agent.handle("oya log am one congo of crayfish egbeje o din owo")

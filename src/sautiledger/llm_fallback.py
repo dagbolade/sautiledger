@@ -28,7 +28,8 @@ query, period, field, new_value, question_about.
 STRICT RULES:
 - NEVER invent an amount, quantity, or item. Only use what the utterance states.
 - If any detail is unclear, missing, or ambiguous, respond exactly with
-  {"intent": "clarify", "question_about": "<what is unclear>"}.
+  {"intent": "clarify", "question_about": "missing_transaction_details"}
+  (question_about must be one of: amount, item, missing_transaction_details).
 - A wrong amount in a money ledger is worse than asking again. When in doubt: clarify.
 - Respond with the JSON object only, no prose.
 
@@ -120,6 +121,30 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
         result = ParseResult(**data)
     except TypeError:
         return None
-    if result.intent == "log_transaction":
+
+    # Sanitise small-model sloppiness so downstream tools never see junk.
+    if result.intent == "clarify":
+        if result.question_about not in {"amount", "item", "missing_transaction_details"}:
+            result.question_about = "missing_transaction_details"
+    elif result.intent == "query_ledger":
+        if result.query not in {"profit_or_sales_total", "top_item", "credit_outstanding"}:
+            return ParseResult(intent="clarify", question_about="missing_transaction_details")
+        result.period = result.period or "today"
+    elif result.intent == "daily_summary":
+        result.period = result.period or "today"
+    elif result.intent == "correct_last_entry":
+        if result.field is None:
+            return ParseResult(intent="clarify", question_about="missing_transaction_details")
+    elif result.intent == "log_transaction":
+        # rule 3, completeness side: no amount -> not a loggable entry
+        if result.amount is None and result.amount_each is None:
+            return ParseResult(
+                intent="clarify", question_about="amount",
+                type=result.type, item=result.item,
+                quantity=result.quantity, unit=result.unit,
+                currency=pack.currency,
+            )
         result.currency = pack.currency
+    else:
+        return ParseResult(intent="clarify", question_about="missing_transaction_details")
     return result
