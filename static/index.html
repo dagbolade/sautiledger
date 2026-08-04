@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SautiLedger</title>
+<style>
+  /* No frameworks, no CDN assets — this page must work with wifi off. */
+  :root {
+    --bg: #0b1220;
+    --panel: #131c2e;
+    --panel-2: #1a2540;
+    --text: #e8eefc;
+    --muted: #8b9bb8;
+    --accent: #34d399;      /* the one accent colour */
+    --warn: #fbbf24;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    display: flex; flex-direction: column;
+    max-width: 520px; margin: 0 auto; padding: 12px;
+    gap: 10px;
+  }
+
+  /* ---- egress meter: the headline of the whole app ---- */
+  #egress {
+    background: var(--panel); border-radius: var(--radius);
+    padding: 14px 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid #223052;
+  }
+  #egress .label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; }
+  #egress .value { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
+  #egress .value.nonzero { color: var(--warn); }
+  #egress .hint { font-size: 0.7rem; color: var(--muted); }
+  #mode {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+    padding: 6px 10px; border-radius: 999px;
+  }
+  #mode.offline { background: rgba(52, 211, 153, 0.15); color: var(--accent); }
+  #mode.cloud { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+
+  /* ---- chat ---- */
+  #chat {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+    gap: 8px; padding: 4px 2px;
+  }
+  .bubble {
+    max-width: 85%; padding: 10px 14px; border-radius: var(--radius);
+    font-size: 1.05rem; line-height: 1.35;
+  }
+  .you { align-self: flex-end; background: var(--panel-2); }
+  .sauti { align-self: flex-start; background: var(--panel); border: 1px solid #223052; }
+  .sauti.question { border-color: var(--accent); }
+
+  /* ---- ledger panel ---- */
+  #ledger {
+    background: var(--panel); border-radius: var(--radius);
+    padding: 12px 16px; border: 1px solid #223052;
+  }
+  #ledger h2 {
+    font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em;
+    display: flex; justify-content: space-between;
+  }
+  #ledger h2 span { color: var(--accent); font-size: 0.95rem; }
+  #entries { list-style: none; margin-top: 6px; max-height: 18vh; overflow-y: auto; }
+  #entries li {
+    display: flex; justify-content: space-between; padding: 4px 0;
+    font-size: 0.95rem; border-top: 1px solid #1c2946;
+  }
+  #entries li .amt { font-variant-numeric: tabular-nums; }
+  #entries li.expense .amt { color: var(--warn); }
+  #entries li .credit { font-size: 0.7rem; color: var(--warn); }
+
+  /* ---- input row ---- */
+  #controls { display: flex; gap: 8px; align-items: stretch; }
+  #talk {
+    flex: 0 0 92px; height: 92px; border-radius: 50%;
+    border: 3px solid var(--accent); background: var(--panel);
+    color: var(--accent); font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+    touch-action: none;
+  }
+  #talk.recording { background: var(--accent); color: #06281c; }
+  #textbox {
+    flex: 1; display: flex; gap: 8px;
+  }
+  #text {
+    flex: 1; background: var(--panel); color: var(--text);
+    border: 1px solid #223052; border-radius: var(--radius);
+    padding: 0 14px; font-size: 1rem;
+  }
+  #send {
+    background: var(--accent); color: #06281c; border: none;
+    border-radius: var(--radius); padding: 0 18px; font-weight: 700;
+    font-size: 1rem; cursor: pointer;
+  }
+
+  /* ---- egress ledger modal ---- */
+  #modal {
+    position: fixed; inset: 0; background: rgba(4, 8, 18, 0.9);
+    display: none; flex-direction: column; padding: 16px;
+    max-width: 520px; margin: 0 auto;
+  }
+  #modal.open { display: flex; }
+  #modal h2 { font-size: 1.1rem; margin-bottom: 4px; }
+  #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 12px; }
+  #egress-rows { flex: 1; overflow-y: auto; }
+  .erow {
+    background: var(--panel); border-radius: 10px; padding: 10px 12px;
+    margin-bottom: 8px; font-size: 0.85rem; border: 1px solid #223052;
+  }
+  .erow .top { display: flex; justify-content: space-between; color: var(--warn); font-weight: 600; }
+  .erow .purpose { margin: 4px 0; }
+  .erow .disp { color: var(--muted); font-size: 0.78rem; }
+  .empty { color: var(--accent); text-align: center; padding: 40px 0; font-size: 1.05rem; }
+  #close {
+    background: var(--panel-2); color: var(--text); border: 1px solid #223052;
+    border-radius: var(--radius); padding: 12px; font-size: 1rem; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div id="egress" title="Tap to see every transmission">
+    <div>
+      <div class="label">DATA SENT OFF THIS PHONE</div>
+      <div class="value" id="egress-total">0.00 KB</div>
+      <div class="hint">tap for the transmission ledger</div>
+    </div>
+    <div id="mode" class="offline">OFFLINE</div>
+  </div>
+
+  <div id="chat"></div>
+
+  <div id="ledger">
+    <h2>TODAY'S LEDGER <span id="total">&#8358;0</span></h2>
+    <ul id="entries"></ul>
+  </div>
+
+  <div id="controls">
+    <button id="talk">HOLD TO TALK</button>
+    <div id="textbox">
+      <input id="text" type="text" placeholder="or type the utterance..." autocomplete="off">
+      <button id="send">Send</button>
+    </div>
+  </div>
+
+  <div id="modal">
+    <h2>Transmission ledger</h2>
+    <p class="sub">Every byte that ever left this device. Your money records are not on this list.</p>
+    <div id="egress-rows"></div>
+    <button id="close">Close</button>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
