@@ -64,6 +64,8 @@ def log_transaction(ledger: Ledger, parse: ParseResult, raw_utterance: str) -> s
             f"{verb}: {what}, {_money(parse.amount_each, parse.currency)} each, "
             f"{_money(parse.amount, parse.currency)} total. Correct?"
         )
+    if parse.amount_each:  # per-unit price with unknown quantity
+        return f"{verb}: {what}, {_money(parse.amount_each, parse.currency)} each. Correct?"
     return f"{verb}: {what}, {_money(parse.amount, parse.currency)}. Correct?"
 
 

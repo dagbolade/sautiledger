@@ -53,13 +53,26 @@ def _resolve_config(dataset: str, lang: str, token: str | None) -> str | None:
     return None
 
 
+def _save_raw_audio(audio: dict, dest_stem: Path) -> str | None:
+    """Save the ORIGINAL audio bytes (no decode/re-encode — avoids the
+    datasets-4.x torchcodec requirement, and keeps the acoustic signal
+    exactly as published). Returns the filename written, or None."""
+    blob = audio.get("bytes")
+    if not blob:
+        return None
+    ext = Path(audio.get("path") or "clip.wav").suffix.lower() or ".wav"
+    dest = dest_stem.with_suffix(ext)
+    dest.write_bytes(blob)
+    return dest.name
+
+
 def fetch_afriswitch(dataset: str, max_clips: int) -> None:
-    import soundfile as sf
-    from datasets import load_dataset
+    from datasets import Audio, load_dataset
 
     token = _hf_token()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    manifest_lines: list[str] = []
+    manifest = OUT_DIR / "manifest.jsonl"
+    manifest.write_text("", encoding="utf-8")  # fresh manifest, appended per clip
     kept = 0
     scale = max_clips / sum(WEIGHTS.values())
 
@@ -71,6 +84,7 @@ def fetch_afriswitch(dataset: str, max_clips: int) -> None:
             continue
         print(f"[{config}] sampling {want} clips…")
         rows = load_dataset(dataset, config, split="test", streaming=True, token=token)
+        rows = rows.cast_column("audio", Audio(decode=False))
         taken = 0
         for i, row in enumerate(rows):
             if taken >= want:
@@ -80,10 +94,12 @@ def fetch_afriswitch(dataset: str, max_clips: int) -> None:
             if not text or not audio:
                 continue
             clip_id = f"afx{kept:03d}"
-            sf.write(OUT_DIR / f"{clip_id}.wav", audio["array"], audio["sampling_rate"])
-            manifest_lines.append(json.dumps({
+            filename = _save_raw_audio(audio, OUT_DIR / clip_id)
+            if filename is None:
+                continue
+            line = json.dumps({
                 "id": clip_id,
-                "audio": f"{clip_id}.wav",
+                "audio": filename,
                 "language": LANG_TO_PACK[lang],
                 "source_dataset": dataset,
                 "source_config": config,
@@ -94,20 +110,22 @@ def fetch_afriswitch(dataset: str, max_clips: int) -> None:
                 "duration": row.get("duration"),
                 "text": text,
                 "expected_parse": None,  # wild speech: scored on WER + numeric survival
-            }, ensure_ascii=False))
+            }, ensure_ascii=False)
+            with manifest.open("a", encoding="utf-8") as f:
+                f.write(line + "\n")  # incremental: a partial fetch is still usable
             kept += 1
             taken += 1
-            print(f"  {clip_id}: {text[:70]}")
+            # ascii-safe: Yoruba diacritics crash a cp1252 Windows console
+            preview = text[:70].encode("ascii", "replace").decode()
+            print(f"  {clip_id}: {preview}", flush=True)
 
-    (OUT_DIR / "manifest.jsonl").write_text("\n".join(manifest_lines) + "\n", encoding="utf-8")
     print(f"\nWrote {kept} clips + manifest to {OUT_DIR}")
 
 
 def fetch_generic(dataset: str, split: str, max_clips: int) -> None:
     """Fallback path for non-AfriSwitch datasets (e.g. afrivox-transcribe):
     probes common column names for language and transcript."""
-    import soundfile as sf
-    from datasets import load_dataset
+    from datasets import Audio, load_dataset
 
     lang_map = {
         "pidgin": "pcm-yo-NG", "naija": "pcm-yo-NG", "yoruba": "pcm-yo-NG",
@@ -115,6 +133,7 @@ def fetch_generic(dataset: str, split: str, max_clips: int) -> None:
     }
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     rows = load_dataset(dataset, split=split, streaming=True, token=_hf_token())
+    rows = rows.cast_column("audio", Audio(decode=False))
     manifest_lines: list[str] = []
     kept = 0
     for i, row in enumerate(rows):
@@ -127,9 +146,11 @@ def fetch_generic(dataset: str, split: str, max_clips: int) -> None:
         if pack is None or not text or not audio:
             continue
         clip_id = f"afx{kept:03d}"
-        sf.write(OUT_DIR / f"{clip_id}.wav", audio["array"], audio["sampling_rate"])
+        filename = _save_raw_audio(audio, OUT_DIR / clip_id)
+        if filename is None:
+            continue
         manifest_lines.append(json.dumps({
-            "id": clip_id, "audio": f"{clip_id}.wav", "language": pack,
+            "id": clip_id, "audio": filename, "language": pack,
             "source_dataset": dataset, "source_index": i, "text": text,
             "expected_parse": None,
         }, ensure_ascii=False))

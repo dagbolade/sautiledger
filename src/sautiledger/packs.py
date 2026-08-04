@@ -32,6 +32,8 @@ class Pack:
     correction_stop_words: frozenset[str] = frozenset()
     periods: dict[str, str] = field(default_factory=dict)
     days: frozenset[str] = frozenset()
+    # native-validated grammar switches (default off for unvalidated packs)
+    reduplication_distributive: bool = False
 
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
@@ -62,4 +64,5 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         correction_stop_words=frozenset(raw.get("correction_stop_words") or []),
         periods={str(k): str(v) for k, v in (raw.get("periods") or {}).items()},
         days=frozenset(raw.get("days") or []),
+        reduplication_distributive=bool(raw.get("reduplication_distributive", False)),
     )

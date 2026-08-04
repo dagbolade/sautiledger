@@ -3,7 +3,7 @@
 **An offline-first, code-switched voice ledger for African market traders.**
 Indaba 2026 · MLC (Africa) × Intron Agentic Voice AI Challenge.
 
-A trader says *"I don sell three derica of rice five k five"* — Pidgin
+A trader says *"I don sell three derica of rice five thousand five"* — Pidgin
 grammar, Yoruba numerals, market units, money slang — and the agent logs
 ₦5,500 to a ledger that lives on her phone, reads the entry back for
 confirmation, and answers *"abeg how much I don make today"* from local

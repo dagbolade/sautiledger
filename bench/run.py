@@ -77,6 +77,15 @@ def wav_seconds(path: Path) -> float:
         return 5.0  # non-wav or unreadable: assume a short clip
 
 
+def clip_seconds(clip: dict) -> float:
+    """Prefer the manifest's duration (AfriSwitch publishes it); fall back
+    to reading the wav header."""
+    duration = clip.get("duration")
+    if isinstance(duration, (int, float)) and duration > 0:
+        return float(duration)
+    return wav_seconds(clip["audio_path"])
+
+
 # ---------------------------------------------------------------- fake models
 
 
@@ -90,7 +99,7 @@ def _fake_anglicised(text: str) -> str:
     out = text
     for src, dst in [
         ("don sell", "don't sell"),
-        ("five k five", "5.5k"), ("forty five k", "45k"),
+        ("five thousand five", "5.5k"), ("forty five k", "45k"),
         ("egberun meta", "a thousand meters"), ("abeg", ""), ("oya", ""),
         ("wetin", "what in"), ("nimeuza", "name uza"),
     ]:
@@ -102,7 +111,7 @@ def _fake_mangler(text: str) -> str:
     """Deterministic amount-corruptor: truncates trailing money words —
     the failure class the transaction metric exists to catch."""
     for src, dst in [
-        ("five k five", "five k"), ("two two fifty", "two fifty"),
+        ("five thousand five", "five thousand"), ("two two fifty", "two fifty"),
         ("one two", "one"), ("egberun meta", "egberun"),
         ("dubu talatin", "dubu"), ("elfu tatu", "elfu"),
         ("mia moja hamsini", "mia moja"),
@@ -161,7 +170,7 @@ def estimate_whisper(clips: list[dict]) -> None:
     dur = wav_seconds(sample_path)
     n = len([c for c in clips if c["audio_path"]]) or 60
     total_min = (clip_s / max(dur, 0.1)) * sum(
-        wav_seconds(c["audio_path"]) for c in clips if c["audio_path"]
+        clip_seconds(c) for c in clips if c["audio_path"]
     ) / 60 if any(c["audio_path"] for c in clips) else (clip_s * n) / 60
     print(f"model load: {load_s:.0f}s; {dur:.1f}s clip took {clip_s:.1f}s "
           f"({clip_s / max(dur, 0.1):.1f}x realtime)")
@@ -201,7 +210,7 @@ def main() -> None:
     # spend estimate: every audio tier, per cloud model
     per_tier = {}
     for clip in present:
-        per_tier[clip["tier"]] = per_tier.get(clip["tier"], 0) + wav_seconds(clip["audio_path"])
+        per_tier[clip["tier"]] = per_tier.get(clip["tier"], 0) + clip_seconds(clip)
     total_min = sum(per_tier.values()) / 60
     print(f"Corpus: {len(present)}/{len(clips)} clips present, manifest sha256 {manifest_hash[:16]}…")
     for tier, secs in sorted(per_tier.items()):
@@ -228,6 +237,9 @@ def _score(model_name: str, clip: dict, hyp: str) -> dict:
         "tier": clip["tier"],
         "truth": clip["text"],
         "hyp": hyp,
+        # wild-speech tiers have no parse ground truth: txn/numeric columns
+        # must aggregate only over clips that do (else they read 100% vacuously)
+        "has_expected": bool(clip.get("expected_parse")),
         **score_clip(clip["text"], hyp, clip.get("expected_parse") or {}, pack),
     }
 

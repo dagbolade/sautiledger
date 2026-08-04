@@ -33,7 +33,7 @@ def _rows(agent):
 
 # (a) positive-path sale
 def test_sale_logs_exactly_one_correct_row(agent):
-    reply = agent.handle("I don sell three derica of rice five k five")
+    reply = agent.handle("I don sell three derica of rice five thousand five")
     rows = _rows(agent)
     assert len(rows) == 1
     row = rows[0]
@@ -46,25 +46,33 @@ def test_sale_logs_exactly_one_correct_row(agent):
     assert "five thousand five hundred" in reply
 
 
-# (b) ambiguity round trip — no row until the trader answers
-def test_ambiguity_no_row_until_answered(agent):
+# (b) reduplication distributive — confident one-turn log (native-validated)
+def test_reduplication_logs_in_one_turn(agent):
     reply = agent.handle("customer take two paint rubber of garri two two fifty")
-    assert "?" in reply
-    assert "two hundred fifty" in reply and "two thousand two hundred fifty" in reply
-    assert len(_rows(agent)) == 0  # NOTHING written while ambiguous
-
-    agent.handle("two fifty each")
     rows = _rows(agent)
     assert len(rows) == 1
     assert rows[0]["amount_each"] == 250
     assert rows[0]["amount"] == 500
+    assert "two hundred fifty" in reply
+
+
+# (b2) case 21: the natural clarify beat — no row until the amount arrives
+def test_amountless_sale_clarify_round_trip(agent):
+    reply = agent.handle("I don sell garri finish")
+    assert "How much" in reply and "?" in reply
+    assert len(_rows(agent)) == 0  # nothing written before the answer
+
+    agent.handle("five thousand")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["item"] == "garri"
+    assert rows[0]["amount"] == 5000
 
 
 # (c) query sums exactly the rows created, writes nothing
 def test_query_sums_ledger_exactly(agent):
-    agent.handle("I don sell three derica of rice five k five")
+    agent.handle("I don sell three derica of rice five thousand five")
     agent.handle("customer take two paint rubber of garri two two fifty")
-    agent.handle("two fifty each")
     assert len(_rows(agent)) == 2
 
     reply = agent.handle("how much I make today")
@@ -74,7 +82,7 @@ def test_query_sums_ledger_exactly(agent):
 
 # (d) chatter never mutates the ledger
 def test_chatter_leaves_ledger_unchanged(agent):
-    agent.handle("I don sell three derica of rice five k five")
+    agent.handle("I don sell three derica of rice five thousand five")
     before = [dict(r) for r in _rows(agent)]
     for utterance in (
         "my friend how your body today",

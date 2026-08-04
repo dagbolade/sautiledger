@@ -20,7 +20,7 @@ def client():
 
 def test_text_utterance_logs_and_reports_zero_egress(client):
     resp = client.post(
-        "/utterance", data={"text": "I don sell three derica of rice five k five"}
+        "/utterance", data={"text": "I don sell three derica of rice five thousand five"}
     )
     assert resp.status_code == 200
     body = resp.json()

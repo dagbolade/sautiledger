@@ -2,23 +2,23 @@
   "_readme": [
     "Normaliser test spec — the build hangs off this file.",
     "Each case: raw ASR-style text in, structured transaction out.",
-    "Amounts are integers in the currency's minor-free unit (NGN, KES) unless 'amount_minor' used.",
+    "Amounts are integers in the currency's minor-free unit (NGN, KES).",
     "Rule: deterministic grammar first, LLM fallback only when grammar returns null.",
-    "VALIDATE AT VENUE: sw-KE and ha-NG cases were drafted by a non-native speaker.",
-    "Get a Swahili and Hausa speaker at Indaba to correct wording + add 2 cases each in their own words."
+    "PROVENANCE: tier-a (pcm-yo-NG) utterances were drafted by an AI assistant and",
+    "CORRECTED by a native Nigerian Pidgin/Yoruba speaker (David) before recording.",
+    "sw-KE and ha-NG cases remain non-native drafts pending venue validation (flagged per-case).",
+    "Even this test corpus required native-speaker repair — the same gap the product exists to close."
   ],
-
   "packs": {
     "pcm-yo-NG": "Nigerian Pidgin / Yoruba / English mix, NGN",
     "sw-KE": "Swahili / English mix, KES",
     "ha-NG": "Hausa / English mix, NGN"
   },
-
   "cases": [
     {
       "id": 1,
       "pack": "pcm-yo-NG",
-      "utterance": "I don sell three derica of rice five k five",
+      "utterance": "I don sell three derica of rice five thousand five",
       "expect": {
         "intent": "log_transaction",
         "type": "sale",
@@ -27,7 +27,8 @@
         "unit": "derica",
         "amount": 5500,
         "currency": "NGN"
-      }
+      },
+      "note": "native-corrected: 'five thousand five' = 5500 ('five k five' was AI-Pidgin)"
     },
     {
       "id": 2,
@@ -61,14 +62,16 @@
       "id": 4,
       "pack": "pcm-yo-NG",
       "utterance": "customer take two paint rubber of garri two two fifty",
-      "note": "distributive pricing: 250 each... ambiguous with 2250 total. MUST trigger clarify, not guess.",
+      "note": "NATIVE CORRECTION: reduplicated money is the distributive — 'two two fifty' = 250 each, unambiguously. An outsider (and the AI that drafted this corpus) hears ambiguity; native grammar encodes the distributive. Formerly expected clarify.",
       "expect": {
-        "intent": "clarify",
-        "question_about": "amount",
-        "candidates": [
-          { "reading": "unit_price", "amount_each": 250, "total": 500 },
-          { "reading": "total", "amount": 2250 }
-        ]
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "garri",
+        "quantity": 2,
+        "unit": "paint rubber",
+        "amount_each": 250,
+        "amount": 500,
+        "currency": "NGN"
       }
     },
     {
@@ -109,7 +112,8 @@
         "amount_each": 1500,
         "amount": 3000,
         "currency": "NGN"
-      }
+      },
+      "note": "NATIVE-VALIDATED as-is: 'one five each' = 1500 each is real usage"
     },
     {
       "id": 8,
@@ -134,13 +138,14 @@
     {
       "id": 10,
       "pack": "pcm-yo-NG",
-      "utterance": "no no na five k not five k five",
+      "utterance": "no no na five k not five thousand five",
       "expect": {
         "intent": "correct_last_entry",
         "field": "amount",
         "new_value": 5000,
         "currency": "NGN"
-      }
+      },
+      "note": "native-corrected money phrasing; correction pattern unchanged"
     },
     {
       "id": 11,
@@ -167,7 +172,7 @@
       "id": 13,
       "pack": "pcm-yo-NG",
       "utterance": "sell pure water two bag one two",
-      "note": "1200, and 'pure water' must survive as one item, not water qty=pure",
+      "note": "NATIVE-VALIDATED as-is: 'one two' = 1200; 'pure water' survives as one item",
       "expect": {
         "intent": "log_transaction",
         "type": "sale",
@@ -267,13 +272,23 @@
         "intent": "clarify",
         "question_about": "missing_transaction_details"
       }
+    },
+    {
+      "id": 21,
+      "pack": "pcm-yo-NG",
+      "utterance": "I don sell garri finish",
+      "note": "native-drafted clarify showcase: completed sale, NO amount spoken. Agent must ask (market-natural: 'How much you sell the garri?') and MUST NOT log until the amount arrives.",
+      "expect": {
+        "intent": "clarify",
+        "question_about": "amount"
+      }
     }
   ],
-
   "acceptance_rules": [
     "A case passes only on exact structural match of 'expect' (ignore field order).",
-    "Grammar-first: cases 1-3, 5, 7-13 must pass WITHOUT the LLM fallback.",
-    "Cases 4, 6, 20 must return clarify — a confident wrong parse on these is a FAIL worse than a crash.",
+    "Grammar-first: cases 1-5, 7-13, 21 must pass WITHOUT the LLM fallback.",
+    "Cases 6, 20, 21 must return clarify — a confident wrong parse on these is a FAIL worse than a crash.",
+    "Case 4 must parse the reduplication-distributive CONFIDENTLY (native-speaker validated).",
     "Never fabricate an amount. Null + clarify beats a guess, always.",
     "New language pack = new config file + new cases here. No normaliser code changes allowed."
   ]

@@ -1,18 +1,28 @@
 # SautiLedger ASR Benchmark Report
 
-Corpus frozen before first run — manifest sha256: `9c183263845c0c52b0b5764c87b4afc059d7282cfcea1944efc6a99f2138ae67`.
-Clips scored: 20 (missing/skipped: 0).
+Corpus frozen before first run — manifest sha256: `d68d90443326f5abab5fcf84cc01841f1b3bd926def8703cfc59fb76ccd827a5`.
+Clips scored: 61 (missing/skipped: 0).
 > **Note:** DRY RUN: all three models are FAKE text transforms of the ground truth (echo / anglicised / amount-mangler). Numbers are illustrative of the table structure only.
 
 ## Summary
+
+### Corpus tier: `afriswitch-sample`
+
+| Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
+|---|---|---|---|---|---|---|
+| FAKE-anglicised | 0.3% | 0.3% | – | – | – | **–** |
+| FAKE-echo | 0.0% | 0.0% | – | – | – | **–** |
+| FAKE-mangler | 0.0% | 0.0% | – | – | – | **–** |
+
+*(no parse ground truth in this tier: WER columns only)*
 
 ### Corpus tier: `sautiledger-clips`
 
 | Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
 |---|---|---|---|---|---|---|
-| FAKE-anglicised | 13.8% | 13.8% | 95% | 80% | 100% | **0%** |
+| FAKE-anglicised | 14.1% | 14.1% | 95% | 81% | 100% | **0%** |
 | FAKE-echo | 0.0% | 0.0% | 100% | 100% | 100% | **0%** |
-| FAKE-mangler | 5.7% | 5.7% | 70% | 65% | 70% | **30%** |
+| FAKE-mangler | 5.4% | 5.4% | 71% | 67% | 71% | **29%** |
 
 The three-level transaction metric is the point: WER alone understates the
 differences for financial use. *Amount corrupted* counts transcripts that made
@@ -24,11 +34,17 @@ layer, and the amount-corrupted column is the evidence of what it repairs.
 
 ## Illustrative examples
 
-**case01** — truth: `I don sell three derica of rice five k five`
+**case01** — truth: `I don sell three derica of rice five thousand five`
 
 - `FAKE-anglicised`: `I don't sell three derica of rice 5.5k`  ⚠ perfective_negation_inversion
-- `FAKE-echo`: `I don sell three derica of rice five k five`
-- `FAKE-mangler`: `I don sell three derica of rice five k`  ✗ AMOUNT CORRUPTED
+- `FAKE-echo`: `I don sell three derica of rice five thousand five`
+- `FAKE-mangler`: `I don sell three derica of rice five thousand`  ✗ AMOUNT CORRUPTED
+
+**case21** — truth: `I don sell garri finish`
+
+- `FAKE-anglicised`: `I don't sell garri finish`  ⚠ perfective_negation_inversion
+- `FAKE-echo`: `I don sell garri finish`
+- `FAKE-mangler`: `I don sell garri finish`
 
 **case05** — truth: `sell garri egberun meta`
 
@@ -48,12 +64,6 @@ layer, and the amount-corrupted column is the evidence of what it repairs.
 - `FAKE-echo`: `wetin I sell pass this week`
 - `FAKE-mangler`: `wetin I sell pass this week`
 
-**case10** — truth: `no no na five k not five k five`
-
-- `FAKE-anglicised`: `no no na five k not 5.5k`
-- `FAKE-echo`: `no no na five k not five k five`
-- `FAKE-mangler`: `no no na five k not five k`
-
 ## Per-model notes
 
 **FAKE-anglicised** — No notes.
@@ -62,8 +72,24 @@ layer, and the amount-corrupted column is the evidence of what it repairs.
 
 **FAKE-mangler** — No notes.
 
+### The reduplication finding
+
+Case 4 ("two two fifty") was originally specced as an ambiguity requiring
+a clarify question. Native-speaker review corrected this: in Nigerian Pidgin,
+reduplicated money **is** the distributive — 250 each, unambiguously. An
+outsider (and the AI that drafted the corpus) hears ambiguity where native
+grammar encodes meaning. The parse rule now lives in the pcm-yo-NG pack,
+gated off for packs that have not had native validation.
+
 ## Methodology & caveats
 
+- Provenance: tier-a utterances were drafted by an AI assistant and CORRECTED
+  by a native Nigerian Pidgin/Yoruba speaker before recording; sw-KE and ha-NG
+  cases remain non-native drafts pending venue validation (flagged per-case).
+  Even the test corpus required native-speaker repair — the same gap the
+  product exists to close.
+- Licence: AfriSwitch (CC BY-NC-SA 4.0) is used for evaluation only, never
+  redistributed, and not used to train or build the product.
 - WER: word-level (S+D+I)/N. Normalised = lowercase, punctuation stripped,
   whitespace collapsed (jiwer-standard). The Intron-Multimodal-Benchmarking
   repo reports normalised + unnormalised WER but does not publish its

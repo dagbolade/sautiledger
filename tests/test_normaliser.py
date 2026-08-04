@@ -42,6 +42,41 @@ def test_case(case, packs):
         )
 
 
+class _Reduplication:
+    """Native-speaker rule: doubled money = distributive (per-unit price)."""
+
+
+def test_reduplication_full_phrase_doubling(packs):
+    result = normalise(
+        "customer take two paint rubber of garri two fifty two fifty",
+        packs["pcm-yo-NG"], llm=RaisingLlm(),
+    )
+    assert result.intent == "log_transaction"
+    assert result.amount_each == 250 and result.amount == 500
+
+
+def test_reduplication_bare_double(packs):
+    result = normalise(
+        "sell three congo of garri hundred hundred", packs["pcm-yo-NG"], llm=RaisingLlm()
+    )
+    assert result.intent == "log_transaction"
+    assert result.amount_each == 100 and result.amount == 300
+
+
+def test_reduplication_leading_token(packs):
+    result = normalise(
+        "customer take two mudu of elubo one one thousand", packs["pcm-yo-NG"], llm=RaisingLlm()
+    )
+    assert result.intent == "log_transaction"
+    assert result.amount_each == 1000 and result.amount == 2000
+
+
+def test_reduplication_is_pack_gated(packs):
+    """sw-KE has NOT validated this rule — same shape must not distribute."""
+    result = normalise("nimeuza mahindi gunia mbili mia tano mia tano", packs["sw-KE"], llm=RaisingLlm())
+    assert result.amount_each is None  # no distributive without the pack flag
+
+
 def test_clarify_cases_never_carry_an_amount(packs):
     """Cases 4, 6, 20 must clarify — and must not smuggle a guessed amount."""
     for case in SPEC["cases"]:

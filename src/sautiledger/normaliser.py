@@ -12,7 +12,9 @@ import re
 from .models import ParseResult
 from .packs import Pack
 
-_TOKEN_RE = re.compile(r"[a-z0-9']+")
+# "5.5k" survives as one token; "5,500" loses its comma first
+_TOKEN_RE = re.compile(r"\d+\.\d+k|[a-z0-9']+")
+_DIGIT_COMMA_RE = re.compile(r"(?<=\d),(?=\d)")
 
 # parse_money sentinels
 NO_MONEY = "no_money"
@@ -20,7 +22,7 @@ UNPARSEABLE = "unparseable"
 
 
 def tokenize(text: str) -> list[str]:
-    return _TOKEN_RE.findall(text.lower())
+    return _TOKEN_RE.findall(_DIGIT_COMMA_RE.sub("", text.lower()))
 
 
 # ---------------------------------------------------------------- numbers
@@ -35,8 +37,10 @@ def _num_value(tok: str, pack: Pack) -> int | None:
 
 
 def _knum_value(tok: str) -> int | None:
-    m = re.fullmatch(r"(\d+)k", tok)
-    return int(m.group(1)) * 1000 if m else None
+    # digit-k forms incl. decimals: Sahara's numeric normalisation may emit
+    # "5k" / "5.5k" regardless of what was spoken
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)k", tok)
+    return int(float(m.group(1)) * 1000) if m else None
 
 
 def is_moneyish(tok: str, pack: Pack) -> bool:
@@ -61,23 +65,8 @@ def _cls(v: int) -> str:
     return "OTHER"
 
 
-def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
-    """Resolve a money token run against pack rules only.
-
-    Returns {"amount": n} / {"amount_each": n, "amount": n} on success,
-    {"ambiguous": [candidates]} for the distributive trap, or the
-    NO_MONEY / UNPARSEABLE sentinels. Never guesses.
-    """
-    if not tokens:
-        return NO_MONEY
-    if any(t in pack.hard_money_words for t in tokens):
-        return UNPARSEABLE
-
-    each = any(t in pack.each_words for t in tokens)
-    toks = [t for t in tokens if t not in pack.each_words]
-    if not toks:
-        return UNPARSEABLE
-
+def _money_value(toks: list[str], pack: Pack) -> int | None:
+    """Value a plain (non-reduplicated) money phrase, or None."""
     seq: list[tuple[str, int | None]] = []
     for t in toks:
         kv = _knum_value(t)
@@ -89,7 +78,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
             continue
         v = _num_value(t, pack)
         if v is None:
-            return UNPARSEABLE
+            return None
         seq.append(("NUM", v))
 
     # compose tens+small pairs: "forty five" -> 45
@@ -109,58 +98,104 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
     ks = [k for k, _ in comp]
     vs = [v for _, v in comp]
     n = len(comp)
-    amount: int | None = None
 
     if n == 1 and ks == ["KNUM"]:
-        amount = vs[0]
-    elif n == 2 and ks == ["NUM", "K"]:
-        amount = vs[0] * 1000  # "forty five k" -> 45000
-    elif n == 3 and ks == ["NUM", "K", "NUM"] and _cls(vs[2]) == "SMALL":
-        amount = vs[0] * 1000 + vs[2] * 100  # "five k five" -> 5500
-    elif n == 2 and ks == ["NUM", "NUM"]:
+        return vs[0]  # "5k", "5.5k"
+    if n == 2 and ks == ["NUM", "K"]:
+        return vs[0] * 1000  # "forty five k" -> 45000
+    if n == 2 and ks == ["NUM", "NUM"]:
         a, b = vs
         ca, cb = _cls(a), _cls(b)
         if cb == "THOU" and a < 1000:
-            amount = a * 1000  # "ten thousand"
-        elif ca == "THOU" and b < 100:
-            amount = b * 1000  # "egberun meta", "elfu tatu", "dubu talatin"
-        elif ca == "HUND" and b < 100:
-            amount = b * 100 if _cls(b) == "SMALL" else None  # "mia tano"
-        elif cb == "HUND" and a < 10:
-            amount = a * 100  # "five hundred"
-        elif ca == "SMALL" and cb == "SMALL":
-            amount = a * 1000 + b * 100  # pair compression: "one two" -> 1200
-        elif ca == "SMALL" and cb == "TENS":
-            amount = a * 100 + b  # "two fifty" -> 250
-    elif n == 3 and ks == ["NUM", "NUM", "NUM"]:
+            return a * 1000  # "ten thousand"
+        if ca == "THOU" and b < 100:
+            return b * 1000  # "egberun meta", "elfu tatu", "dubu talatin"
+        if ca == "HUND" and _cls(b) == "SMALL":
+            return b * 100  # "mia tano"
+        if cb == "HUND" and a < 10:
+            return a * 100  # "five hundred"
+        if ca == "SMALL" and cb == "SMALL":
+            return a * 1000 + b * 100  # pair compression: "one two" -> 1200
+        if ca == "SMALL" and cb == "TENS":
+            return a * 100 + b  # "two fifty" -> 250
+        return None
+    if n == 3 and ks == ["NUM", "NUM", "NUM"]:
         a, b, c = vs
         ca, cb, cc = _cls(a), _cls(b), _cls(c)
+        if cb == "THOU" and a < 1000 and cc == "SMALL":
+            # native-validated: "<N> thousand <M>" = N*1000 + M*100
+            # ("five thousand five" -> 5500; "three thousand two" -> 3200)
+            return a * 1000 + c * 100
         if ca == "HUND" and cb == "SMALL" and cc == "TENS":
-            amount = b * 100 + c  # "mia moja hamsini" -> 150
-        elif cb == "HUND" and ca == "SMALL" and cc in ("TENS", "SMALL"):
-            amount = a * 100 + c  # "one hundred fifty"
-        elif ca == "SMALL" and cb == "SMALL" and cc == "TENS":
-            # The distributive trap: "two two fifty" = 250 each, or 2250 total?
-            total = a * 1000 + b * 100 + c
-            if quantity is not None and a == quantity:
-                each_amt = b * 100 + c
-                return {
-                    "ambiguous": [
-                        {"reading": "unit_price", "amount_each": each_amt, "total": each_amt * quantity},
-                        {"reading": "total", "amount": total},
-                    ]
-                }
-            return UNPARSEABLE
-    elif n == 1 and ks == ["NUM"] and vs[0] >= 100:
-        amount = vs[0]  # explicit figure like "500"
+            return b * 100 + c  # "mia moja hamsini" -> 150
+        if cb == "HUND" and ca == "SMALL" and cc in ("TENS", "SMALL"):
+            return a * 100 + c  # "one hundred fifty"
+        return None
+    if n == 1 and ks == ["NUM"] and vs[0] >= 100:
+        return vs[0]  # explicit figure like "500" / "5500"
+    return None
 
+
+def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
+    """Resolve a money token run against pack rules only.
+
+    Returns {"amount": n} / {"amount_each": n, "amount": n} on success,
+    {"ambiguous": [candidates]} for genuinely ambiguous forms, or the
+    NO_MONEY / UNPARSEABLE sentinels. Never guesses.
+    """
+    if not tokens:
+        return NO_MONEY
+    if any(t in pack.hard_money_words for t in tokens):
+        return UNPARSEABLE
+
+    each = any(t in pack.each_words for t in tokens)
+    toks = [t for t in tokens if t not in pack.each_words]
+    if not toks:
+        return UNPARSEABLE
+
+    def _each_result(value: int) -> dict:
+        result: dict = {"amount_each": value}
+        if quantity:
+            result["amount"] = value * quantity
+        return result
+
+    # Reduplication distributive (native-speaker validated, pack-gated):
+    # a doubled money amount means per-unit price. Full-phrase doubling
+    # ("two fifty two fifty", "hundred hundred") or leading-token doubling
+    # ("two two fifty" -> two-fifty each; "one one thousand" -> 1000 each).
+    if pack.reduplication_distributive and len(toks) >= 2:
+        half = len(toks) // 2
+        if len(toks) % 2 == 0 and toks[:half] == toks[half:]:
+            inner = _money_value(toks[:half], pack)
+            if inner is not None:
+                return _each_result(inner)
+        if toks[0] == toks[1]:
+            inner = _money_value(toks[1:], pack)
+            if inner is not None:
+                return _each_result(inner)
+
+    amount = _money_value(toks, pack)
     if amount is None:
+        # [SMALL, SMALL, TENS] without the reduplication rule (non-pcm packs)
+        # stays the ambiguity trap: ask, never guess.
+        vals = [_num_value(t, pack) for t in toks]
+        if (
+            len(vals) == 3
+            and all(v is not None for v in vals)
+            and _cls(vals[0]) == "SMALL" and _cls(vals[1]) == "SMALL" and _cls(vals[2]) == "TENS"
+            and quantity is not None and vals[0] == quantity
+        ):
+            each_amt = vals[1] * 100 + vals[2]
+            total = vals[0] * 1000 + vals[1] * 100 + vals[2]
+            return {
+                "ambiguous": [
+                    {"reading": "unit_price", "amount_each": each_amt, "total": each_amt * quantity},
+                    {"reading": "total", "amount": total},
+                ]
+            }
         return UNPARSEABLE
     if each:
-        result: dict = {"amount_each": amount}
-        if quantity:
-            result["amount"] = amount * quantity
-        return result
+        return _each_result(amount)
     return {"amount": amount}
 
 

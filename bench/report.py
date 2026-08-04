@@ -75,11 +75,15 @@ def render() -> Path:
         for (t, model), group in sorted(by_tier_model.items()):
             if t != tier:
                 continue
+            with_gt = [r for r in group if r.get("has_expected", True)]
             add(
                 f"| {model} | {_pct([r['wer'] for r in group])} | {_pct([r['wer_raw'] for r in group])} "
-                f"| {_pct([r['numeric_accuracy'] for r in group])} | {_pct([r['exact_match'] for r in group])} "
-                f"| {_pct([r['amount_safe'] for r in group])} | **{_pct([r['amount_corrupted'] for r in group])}** |"
+                f"| {_pct([r['numeric_accuracy'] for r in with_gt])} | {_pct([r['exact_match'] for r in with_gt])} "
+                f"| {_pct([r['amount_safe'] for r in with_gt])} | **{_pct([r['amount_corrupted'] for r in with_gt])}** |"
             )
+        if not any(r.get("has_expected", True) for _, g in by_tier_model.items() for r in g if r["tier"] == tier):
+            add("")
+            add("*(no parse ground truth in this tier: WER columns only)*")
         add("")
 
     add("The three-level transaction metric is the point: WER alone understates the")
@@ -117,8 +121,24 @@ def render() -> Path:
         add(f"**{model}** — {PROS_CONS.get(model, 'No notes.')}")
         add("")
 
+    add("### The reduplication finding")
+    add("")
+    add("Case 4 (\"two two fifty\") was originally specced as an ambiguity requiring")
+    add("a clarify question. Native-speaker review corrected this: in Nigerian Pidgin,")
+    add("reduplicated money **is** the distributive — 250 each, unambiguously. An")
+    add("outsider (and the AI that drafted the corpus) hears ambiguity where native")
+    add("grammar encodes meaning. The parse rule now lives in the pcm-yo-NG pack,")
+    add("gated off for packs that have not had native validation.")
+    add("")
     add("## Methodology & caveats")
     add("")
+    add("- Provenance: tier-a utterances were drafted by an AI assistant and CORRECTED")
+    add("  by a native Nigerian Pidgin/Yoruba speaker before recording; sw-KE and ha-NG")
+    add("  cases remain non-native drafts pending venue validation (flagged per-case).")
+    add("  Even the test corpus required native-speaker repair — the same gap the")
+    add("  product exists to close.")
+    add("- Licence: AfriSwitch (CC BY-NC-SA 4.0) is used for evaluation only, never")
+    add("  redistributed, and not used to train or build the product.")
     add("- WER: word-level (S+D+I)/N. Normalised = lowercase, punctuation stripped,")
     add("  whitespace collapsed (jiwer-standard). The Intron-Multimodal-Benchmarking")
     add("  repo reports normalised + unnormalised WER but does not publish its")

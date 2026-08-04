@@ -6,7 +6,12 @@ currency: NGN
 currency_words: [naira]
 connectives: [of]
 # discourse tokens that carry no transaction content
-fillers: [i, abeg, oya, am, make, hear, she, go, pay, on, the, a, please, give, me]
+# ("finish" = completive marker: "I don sell garri finish")
+fillers: [i, abeg, oya, am, make, hear, she, go, pay, on, the, a, please, give, me, finish]
+
+# NATIVE-VALIDATED: reduplicated money is the distributive —
+# "two two fifty" = 250 each, unambiguously (not an ambiguity to clarify)
+reduplication_distributive: true
 
 numbers:
   one: 1

@@ -64,8 +64,10 @@ class Agent:
                 f"{tools.spoken_number(total['amount'])} total?"
             )
         if parse.question_about == "amount":
-            thing = f"the {parse.item}" if parse.item else "that one"
-            return f"I no catch the amount. How much for {thing}?"
+            if parse.item:
+                verb = "pay for" if parse.type == "expense" else "sell"
+                return f"How much you {verb} the {parse.item}?"
+            return "How much for that one?"
         return "Wetin you want make I log? Tell me the item and the amount, abeg."
 
     # ------------------------------------------------------------ clarify flow

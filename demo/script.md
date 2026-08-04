@@ -4,19 +4,24 @@ Start: `python -m sautiledger.demo` (= `make demo`), open http://127.0.0.1:8090.
 Ledger is empty, egress meter reads **0.00 KB** in green.
 
 ## (a) Pidgin sale with a Yoruba number — ~20s
-Say (or type): **"I don sell three derica of rice five k five"**
+Say (or type): **"I don sell three derica of rice five thousand five"**
 - Agent replies and reads back: *"Logged: 3 derica of rice, five thousand
   five hundred naira. Correct?"*
 - Point at the ledger panel: entry + running total appeared.
 Then: **"sell garri egberun meta"** — "egberun meta" is Yoruba for 3,000.
 Same ledger, no language switch, no settings.
 
-## (b) The ambiguity trap — ~20s
+## (b) Native grammar + the safety clarify — ~25s
 Say: **"customer take two paint rubber of garri two two fifty"**
-- The agent does NOT log. It asks: *250 each (500 total), or 2,250 total?*
-- Answer: **"each"** → entry logs at 250 each, 500 total.
-- The line for the judges: *a confident wrong entry in someone's money
-  records is the worst possible failure — so the agent refuses to guess.*
+- Logs in ONE turn: 250 each, 500 total. Reduplicated money is the
+  distributive in Pidgin — a rule an outsider hears as ambiguous. The
+  line for the judges: *the corpus itself needed native-speaker
+  correction; that correction became a grammar rule in the language pack.*
+Then: **"I don sell garri finish"** — a sale with no amount spoken.
+- The agent does NOT log. It asks, market-natural: *"How much you sell
+  the garri?"* Answer: **"five thousand"** → entry logs at 5,000.
+- *A confident wrong entry in someone's money records is the worst
+  possible failure — so the agent never guesses an amount.*
 
 ## (c) The sovereignty moment — ~20s
 Kill the wifi (or restart with `SAUTI_MODE=offline`).
