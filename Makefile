@@ -14,4 +14,10 @@ chat:
 run:
 	$(PY) -m sautiledger.chat
 
-.PHONY: test chat run
+demo:
+	$(PY) -m sautiledger.demo
+
+bench:
+	$(PY) -m bench.run --confirm
+
+.PHONY: test chat run demo bench

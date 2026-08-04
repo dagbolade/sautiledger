@@ -1,0 +1,6 @@
+# Benchmark-only dependencies — NEVER add these to the app's pyproject.
+# pip install -r bench/requirements.txt
+faster-whisper>=1.0
+jiwer>=3.0
+datasets>=2.19
+soundfile>=0.12
