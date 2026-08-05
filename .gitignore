@@ -30,3 +30,6 @@ __pycache__/
 # editors
 .idea/
 .vscode/
+phone.log
+phone.err
+*.log
