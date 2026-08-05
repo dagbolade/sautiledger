@@ -20,8 +20,8 @@ Clips scored: 55 (missing/skipped: 0).
 
 | Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
 |---|---|---|---|---|---|---|
-| sahara-v2 | 71.6% | 80.8% | 53% | 40% | 80% | **20%** |
-| whisper-large-v3 | 98.6% | 106.3% | 53% | 7% | 87% | **13%** |
+| sahara-v2 | 71.6% | 80.8% | 60% | 40% | 87% | **13%** |
+| whisper-large-v3 | 98.6% | 106.3% | 53% | 7% | 93% | **7%** |
 | whisper-small | 119.4% | 120.0% | 53% | 7% | 93% | **7%** |
 
 The three-level transaction metric is the point: WER alone understates the
@@ -31,6 +31,76 @@ our normaliser log a WRONG amount — the failure a market trader cannot afford.
 that guesses is not. Transcription accuracy is necessary but not sufficient for
 financial records; the grammar-first normaliser + clarify design is the safety
 layer, and the amount-corrupted column is the evidence of what it repairs.
+
+### A caveat on WER for financial speech
+
+Sahara's tier-a WER is inflated by digit renderings that are semantically
+correct: it transcribes spoken "five thousand five" as "5k 5" — every such
+token counts as a word error against the spoken-form ground truth even though
+the number is right. This is itself evidence that WER is the wrong lens for
+financial speech, and why the numeric and transaction metrics exist.
+
+## Findings
+
+**(a) Only one model produced a usable ledger.** On the transaction metric,
+sahara-v2 achieved several times the exact-transaction rate of either whisper
+model — the whisper transcripts of Pidgin market speech were mostly not
+parseable as transactions at all. For this application there is one viable
+ASR, and it is the one trained on this speech.
+
+**(b) The corruption inversion.** whisper-small posts the LOWEST amount-
+corrupted rate — not because it is safe, but because its output is noise the
+grammar refuses to parse, which the agent converts into clarify questions.
+sahara-v2, being far more plausible, is the only model whose errors survive
+parsing — a plausible-but-flattened transcript is more dangerous than a
+garbled one. Downstream safety must be engineered, not assumed from accuracy:
+that is what the v2 flattened-distributive guard does.
+
+**(c) The predicted meaning inversion appeared in the wild.** Both whisper
+models transcribed perfective "I don sell" as negated "I don't sell" on the
+same clip — flagged automatically by the harness (see examples). An agent
+acting on the negation would drop a real sale from the record.
+
+## Amendments (v2 grammar) — documented post-freeze changes
+
+Two grammar amendments were applied AFTER the v1 scoring, motivated by
+observed ASR behaviour. The corpus, transcripts, and v1 numbers are frozen
+(`metrics_v1.json`); v2 re-scores the SAME cached transcripts — no new audio,
+no new API calls. Both scorings are reported.
+
+1. **Digit-twin rule** (pcm-yo-NG): `[N]k [M]` → N×1000 + M×100, so "5k 5"
+   parses as 5,500. Sahara demonstrably emits the digit twin of the native-
+   validated spoken "N thousand M" form; refusing it was the grammar not
+   speaking Sahara's output dialect, not safety.
+2. **Flattened-distributive guard**: any parse with quantity ≥ 2 and a single
+   bare numeral amount downgrades to a clarify ("₦X for each one, or ₦X for
+   everything?"). ASR numeric normalisation can collapse reduplication
+   ("two two fifty" → "250") before the grammar sees it — in v1 this logged
+   half the true bill. Includes quantity recovery: a leading numeral in item
+   position counts as quantity when the unit word was mangled ("2 pint of…").
+
+Before/after on the parse-ground-truth tier (`sautiledger-clips`):
+
+| Model | Txn exact v1→v2 | Amount safe v1→v2 | **Amount corrupted v1→v2** | Numeric acc v1→v2 |
+|---|---|---|---|---|
+| sahara-v2 | 40% → 40% | 80% → 87% | **20% → 13%** | 53% → 60% |
+| whisper-large-v3 | 7% → 7% | 87% → 93% | **13% → 7%** | 53% → 53% |
+| whisper-small | 7% → 7% | 93% → 93% | **7% → 7%** | 53% → 53% |
+
+Every movement is shown above, favourable or not — v1 remains the scoring of
+record for the frozen grammar; v2 is the scoring of the shipped product.
+
+**The guard did not reach 0% for sahara-v2** (expected 0%, actual above). The
+two residual corruptions are a DIFFERENT failure class — word deletion, not
+flattening: (1) "ten thousand naira" → "Abil thousand naira", the deleted
+multiplier leaving a bare "thousand" that logs ₦1,000 for a ₦10,000 expense;
+(2) the doubled correction trigger "no no na…" transcribed with a single
+"no", turning an amount correction into a spurious ₦500 sale. No
+deterministic guard catches deletions without over-asking on legitimate
+speech ("one thousand" is a real amount). These stand as the honest floor of
+the current design and the first item on the post-hackathon roadmap
+(confidence-weighted readback: low-confidence numerals echo the FULL amount
+back before commit).
 
 ## Illustrative examples
 

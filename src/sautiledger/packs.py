@@ -34,6 +34,8 @@ class Pack:
     days: frozenset[str] = frozenset()
     # native-validated grammar switches (default off for unvalidated packs)
     reduplication_distributive: bool = False
+    # v2: accept "5k 5" as the digit twin of spoken "five thousand five"
+    digit_twin_thousands: bool = False
 
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
@@ -65,4 +67,5 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         periods={str(k): str(v) for k, v in (raw.get("periods") or {}).items()},
         days=frozenset(raw.get("days") or []),
         reduplication_distributive=bool(raw.get("reduplication_distributive", False)),
+        digit_twin_thousands=bool(raw.get("digit_twin_thousands", False)),
     )

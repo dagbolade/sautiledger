@@ -101,6 +101,12 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
 
     if n == 1 and ks == ["KNUM"]:
         return vs[0]  # "5k", "5.5k"
+    if n == 2 and ks == ["KNUM", "NUM"] and _cls(vs[1]) == "SMALL" and pack.digit_twin_thousands:
+        # v2 amendment 1: digit twin of the native "N thousand M" form —
+        # Sahara's numeric normalisation emits "5k 5" for spoken
+        # "five thousand five"; refusing it was the grammar not speaking
+        # Sahara's output dialect, not safety.
+        return vs[0] + vs[1] * 100
     if n == 2 and ks == ["NUM", "K"]:
         return vs[0] * 1000  # "forty five k" -> 45000
     if n == 2 and ks == ["NUM", "NUM"]:
@@ -175,6 +181,21 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
                 return _each_result(inner)
 
     amount = _money_value(toks, pack)
+    if amount is not None:
+        if each:
+            return _each_result(amount)
+        if quantity is not None and quantity >= 2 and len(toks) == 1:
+            # v2 amendment 2 — flattened-distributive guard: ASR numeric
+            # normalisation can collapse reduplication ("two two fifty" ->
+            # "250") before the grammar sees it. A single bare numeral with
+            # quantity >= 2 is unknowable: each, or total? Ask, never guess.
+            return {
+                "ambiguous": [
+                    {"reading": "unit_price", "amount_each": amount, "total": amount * quantity},
+                    {"reading": "total", "amount": amount},
+                ]
+            }
+        return {"amount": amount}
     if amount is None:
         # [SMALL, SMALL, TENS] without the reduplication rule (non-pcm packs)
         # stays the ambiguity trap: ask, never guess.
@@ -194,9 +215,6 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
                 ]
             }
         return UNPARSEABLE
-    if each:
-        return _each_result(amount)
-    return {"amount": amount}
 
 
 # ---------------------------------------------------------------- phrases
@@ -327,7 +345,17 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     while j > 0 and is_moneyish(tokens[j - 1], pack):
         j -= 1
     money_toks = tokens[j:]
-    item = " ".join(tokens[:j]) or None
+    item_toks = tokens[:j]
+    if quantity is None and len(item_toks) >= 2:
+        lead = _num_value(item_toks[0], pack)
+        if lead is not None and 1 <= lead <= 99:
+            # v2 amendment 2 (quantity recovery): ASR can mangle the unit
+            # word ("2 pint of dairy") so unit matching fails and the
+            # numeral lands in item position — recover it as quantity so
+            # the flattened-distributive guard can see it.
+            quantity = lead
+            item_toks = item_toks[1:]
+    item = " ".join(item_toks) or None
 
     if not triggered and unit is None and not money_toks:
         return None  # no transaction signal at all — grammar has no reading

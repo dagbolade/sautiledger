@@ -57,6 +57,10 @@ class Agent:
         if parse.candidates:
             unit_price = next(c for c in parse.candidates if c["reading"] == "unit_price")
             total = next(c for c in parse.candidates if c["reading"] == "total")
+            if unit_price["amount_each"] == total["amount"]:
+                # flattened-distributive guard: one figure, two readings
+                spoken = tools.spoken_number(total["amount"])
+                return f"Na {spoken} naira for each one, or {spoken} naira for everything?"
             thing = parse.item or "that one"
             return (
                 f"The {thing} - you mean {tools.spoken_number(unit_price['amount_each'])} each "

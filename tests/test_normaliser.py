@@ -77,6 +77,39 @@ def test_reduplication_is_pack_gated(packs):
     assert result.amount_each is None  # no distributive without the pack flag
 
 
+class _V2Amendments:
+    """Documented post-freeze grammar amendments (see REPORT.md)."""
+
+
+def test_digit_twin_thousands(packs):
+    """v2.1: '5k 5' is Sahara's digit rendering of 'five thousand five'."""
+    result = normalise("I don sell three derica of rice 5k 5", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "log_transaction"
+    assert result.amount == 5500
+
+
+def test_digit_twin_is_pack_gated(packs):
+    result = normalise("nimeuza mahindi 5k 5", packs["sw-KE"], llm=RaisingLlm())
+    assert result.intent == "clarify"  # sw-KE has not enabled the rule
+
+
+def test_flattened_distributive_guard(packs):
+    """v2.2: qty>=2 + single bare numeral is unknowable — ask, never guess.
+    'pint' is an ASR-mangled unit: quantity recovered from the leading digit."""
+    result = normalise("customer take 2 pint of garri 250", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "clarify"
+    assert result.quantity == 2
+    readings = {c["reading"] for c in result.candidates}
+    assert readings == {"unit_price", "total"}
+    assert result.amount is None  # nothing logged
+
+
+def test_multiword_money_not_guarded(packs):
+    """'elfu tatu' is a spoken phrase, not a flattened numeral — logs confidently."""
+    result = normalise("nimeuza mahindi gunia mbili elfu tatu", packs["sw-KE"], llm=RaisingLlm())
+    assert result.intent == "log_transaction" and result.amount == 3000
+
+
 def test_clarify_cases_never_carry_an_amount(packs):
     """Cases 4, 6, 20 must clarify — and must not smuggle a guessed amount."""
     for case in SPEC["cases"]:

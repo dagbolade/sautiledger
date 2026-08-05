@@ -80,6 +80,26 @@ def test_query_sums_ledger_exactly(agent):
     assert len(_rows(agent)) == 2  # queries never write
 
 
+# (b3) v2 flattened-distributive guard: both resolutions
+def test_flattened_guard_resolves_each(agent):
+    reply = agent.handle("customer take 2 pint of garri 250")
+    assert "each one" in reply and "?" in reply
+    assert len(_rows(agent)) == 0
+    agent.handle("each")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["amount_each"] == 250 and rows[0]["amount"] == 500
+
+
+def test_flattened_guard_resolves_total(agent):
+    agent.handle("customer take 2 pint of garri 250")
+    assert len(_rows(agent)) == 0
+    agent.handle("na total")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["amount"] == 250 and rows[0]["amount_each"] is None
+
+
 # (d) chatter never mutates the ledger
 def test_chatter_leaves_ledger_unchanged(agent):
     agent.handle("I don sell three derica of rice five thousand five")

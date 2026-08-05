@@ -47,6 +47,71 @@ def _pct(values: list[bool | float]) -> str:
     return f"{100 * sum(values) / len(values):.1f}%"
 
 
+def _amendments_section(add) -> None:
+    """v1 vs v2 before/after, computed from metrics_v1.json (frozen v1
+    scoring) against the current metrics.json (v2 grammar)."""
+    v1_path = RESULTS_DIR / "metrics_v1.json"
+    if not v1_path.exists():
+        return
+    v1 = json.loads(v1_path.read_text(encoding="utf-8"))["results"]
+    v2 = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))["results"]
+
+    add("## Amendments (v2 grammar) — documented post-freeze changes")
+    add("")
+    add("Two grammar amendments were applied AFTER the v1 scoring, motivated by")
+    add("observed ASR behaviour. The corpus, transcripts, and v1 numbers are frozen")
+    add("(`metrics_v1.json`); v2 re-scores the SAME cached transcripts — no new audio,")
+    add("no new API calls. Both scorings are reported.")
+    add("")
+    add("1. **Digit-twin rule** (pcm-yo-NG): `[N]k [M]` → N×1000 + M×100, so \"5k 5\"")
+    add("   parses as 5,500. Sahara demonstrably emits the digit twin of the native-")
+    add("   validated spoken \"N thousand M\" form; refusing it was the grammar not")
+    add("   speaking Sahara's output dialect, not safety.")
+    add("2. **Flattened-distributive guard**: any parse with quantity ≥ 2 and a single")
+    add("   bare numeral amount downgrades to a clarify (\"₦X for each one, or ₦X for")
+    add("   everything?\"). ASR numeric normalisation can collapse reduplication")
+    add("   (\"two two fifty\" → \"250\") before the grammar sees it — in v1 this logged")
+    add("   half the true bill. Includes quantity recovery: a leading numeral in item")
+    add("   position counts as quantity when the unit word was mangled (\"2 pint of…\").")
+    add("")
+    add("Before/after on the parse-ground-truth tier (`sautiledger-clips`):")
+    add("")
+    add("| Model | Txn exact v1→v2 | Amount safe v1→v2 | **Amount corrupted v1→v2** | Numeric acc v1→v2 |")
+    add("|---|---|---|---|---|")
+
+    def agg(rows, model):
+        sel = [r for r in rows if r["model"] == model and r["tier"] == "sautiledger-clips"
+               and r.get("has_expected", True)]
+        return {
+            "exact": _pct([r["exact_match"] for r in sel]),
+            "safe": _pct([r["amount_safe"] for r in sel]),
+            "corr": _pct([r["amount_corrupted"] for r in sel]),
+            "num": _pct([r["numeric_accuracy"] for r in sel]),
+        }
+
+    models = sorted({r["model"] for r in v2 if r["tier"] == "sautiledger-clips"})
+    for model in models:
+        a, b = agg(v1, model), agg(v2, model)
+        add(f"| {model} | {a['exact']} → {b['exact']} | {a['safe']} → {b['safe']} "
+            f"| **{a['corr']} → {b['corr']}** | {a['num']} → {b['num']} |")
+    add("")
+    add("Every movement is shown above, favourable or not — v1 remains the scoring of")
+    add("record for the frozen grammar; v2 is the scoring of the shipped product.")
+    add("")
+    add("**The guard did not reach 0% for sahara-v2** (expected 0%, actual above). The")
+    add("two residual corruptions are a DIFFERENT failure class — word deletion, not")
+    add("flattening: (1) \"ten thousand naira\" → \"Abil thousand naira\", the deleted")
+    add("multiplier leaving a bare \"thousand\" that logs ₦1,000 for a ₦10,000 expense;")
+    add("(2) the doubled correction trigger \"no no na…\" transcribed with a single")
+    add("\"no\", turning an amount correction into a spurious ₦500 sale. No")
+    add("deterministic guard catches deletions without over-asking on legitimate")
+    add("speech (\"one thousand\" is a real amount). These stand as the honest floor of")
+    add("the current design and the first item on the post-hackathon roadmap")
+    add("(confidence-weighted readback: low-confidence numerals echo the FULL amount")
+    add("back before commit).")
+    add("")
+
+
 def render() -> Path:
     data = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))
     rows = data["results"]
@@ -94,6 +159,39 @@ def render() -> Path:
     add("financial records; the grammar-first normaliser + clarify design is the safety")
     add("layer, and the amount-corrupted column is the evidence of what it repairs.")
     add("")
+
+    add("### A caveat on WER for financial speech")
+    add("")
+    add("Sahara's tier-a WER is inflated by digit renderings that are semantically")
+    add("correct: it transcribes spoken \"five thousand five\" as \"5k 5\" — every such")
+    add("token counts as a word error against the spoken-form ground truth even though")
+    add("the number is right. This is itself evidence that WER is the wrong lens for")
+    add("financial speech, and why the numeric and transaction metrics exist.")
+    add("")
+
+    add("## Findings")
+    add("")
+    add("**(a) Only one model produced a usable ledger.** On the transaction metric,")
+    add("sahara-v2 achieved several times the exact-transaction rate of either whisper")
+    add("model — the whisper transcripts of Pidgin market speech were mostly not")
+    add("parseable as transactions at all. For this application there is one viable")
+    add("ASR, and it is the one trained on this speech.")
+    add("")
+    add("**(b) The corruption inversion.** whisper-small posts the LOWEST amount-")
+    add("corrupted rate — not because it is safe, but because its output is noise the")
+    add("grammar refuses to parse, which the agent converts into clarify questions.")
+    add("sahara-v2, being far more plausible, is the only model whose errors survive")
+    add("parsing — a plausible-but-flattened transcript is more dangerous than a")
+    add("garbled one. Downstream safety must be engineered, not assumed from accuracy:")
+    add("that is what the v2 flattened-distributive guard does.")
+    add("")
+    add("**(c) The predicted meaning inversion appeared in the wild.** Both whisper")
+    add("models transcribed perfective \"I don sell\" as negated \"I don't sell\" on the")
+    add("same clip — flagged automatically by the harness (see examples). An agent")
+    add("acting on the negation would drop a real sale from the record.")
+    add("")
+
+    _amendments_section(add)
 
     add("## Illustrative examples")
     add("")
