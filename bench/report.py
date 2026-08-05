@@ -54,7 +54,11 @@ def _amendments_section(add) -> None:
     if not v1_path.exists():
         return
     v1 = json.loads(v1_path.read_text(encoding="utf-8"))["results"]
-    v2 = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))["results"]
+    # v1 vs v2 isolates the grammar amendments (both scored on the same audio);
+    # the audio-correction section below covers v2 vs v3.
+    v2_path = RESULTS_DIR / "metrics_v2.json"
+    v2_source = v2_path if v2_path.exists() else (RESULTS_DIR / "metrics.json")
+    v2 = json.loads(v2_source.read_text(encoding="utf-8"))["results"]
 
     add("## Amendments (v2 grammar) — documented post-freeze changes")
     add("")
@@ -109,6 +113,52 @@ def _amendments_section(add) -> None:
     add("the current design and the first item on the post-hackathon roadmap")
     add("(confidence-weighted readback: low-confidence numerals echo the FULL amount")
     add("back before commit).")
+    add("")
+
+
+def _audio_correction_section(add) -> None:
+    """v2 vs v3: tier-a re-measured after the audio-conversion fix."""
+    v2_path = RESULTS_DIR / "metrics_v2.json"
+    if not v2_path.exists():
+        return
+    v2 = json.loads(v2_path.read_text(encoding="utf-8"))["results"]
+    v3 = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))["results"]
+
+    add("## Audio-conversion correction (v3) — tier-a re-measured")
+    add("")
+    add("After the v2 scoring, an A/B test against the vendor's own web UI showed")
+    add("materially better transcripts for the same clip. Root cause was NOT the")
+    add("language configuration (verified correct and API-validated): the corpus")
+    add("conversion step was time-stretching every tier-a clip by ~1.26x — a")
+    add("resampler bug copying frame padding as samples. ALL tier-a v1/v2 numbers")
+    add("for ALL models were measured on that corrupted audio. The corpus was")
+    add("re-converted from the preserved originals (15/15 duration-matched) and")
+    add("tier-a re-measured for every model as v3. Tier-b audio was never")
+    add("re-encoded and is unaffected; its results are unchanged.")
+    add("")
+    add("| Model | WER v2→v3 | Numeric acc v2→v3 | Txn exact v2→v3 | Amount safe v2→v3 | **Amount corrupted v2→v3** |")
+    add("|---|---|---|---|---|---|")
+
+    def agg(rows, model):
+        sel = [r for r in rows if r["model"] == model and r["tier"] == "sautiledger-clips"
+               and r.get("has_expected", True)]
+        return {
+            "wer": _pct([r["wer"] for r in sel]),
+            "num": _pct([r["numeric_accuracy"] for r in sel]),
+            "exact": _pct([r["exact_match"] for r in sel]),
+            "safe": _pct([r["amount_safe"] for r in sel]),
+            "corr": _pct([r["amount_corrupted"] for r in sel]),
+        }
+
+    models = sorted({r["model"] for r in v3 if r["tier"] == "sautiledger-clips"})
+    for model in models:
+        a, b = agg(v2, model), agg(v3, model)
+        add(f"| {model} | {a['wer']} → {b['wer']} | {a['num']} → {b['num']} "
+            f"| {a['exact']} → {b['exact']} | {a['safe']} → {b['safe']} "
+            f"| **{a['corr']} → {b['corr']}** |")
+    add("")
+    add("Both scorings are preserved (`metrics_v2.json`, `metrics.json`); the")
+    add("product ships with the corrected audio path regardless of these numbers.")
     add("")
 
 
@@ -192,6 +242,7 @@ def render() -> Path:
     add("")
 
     _amendments_section(add)
+    _audio_correction_section(add)
 
     add("## Illustrative examples")
     add("")

@@ -20,9 +20,9 @@ Clips scored: 55 (missing/skipped: 0).
 
 | Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
 |---|---|---|---|---|---|---|
-| sahara-v2 | 71.6% | 80.8% | 60% | 40% | 87% | **13%** |
-| whisper-large-v3 | 98.6% | 106.3% | 53% | 7% | 93% | **7%** |
-| whisper-small | 119.4% | 120.0% | 53% | 7% | 93% | **7%** |
+| sahara-v2 | 60.2% | 70.4% | 73% | 47% | 93% | **7%** |
+| whisper-large-v3 | 96.3% | 105.4% | 67% | 27% | 100% | **0%** |
+| whisper-small | 85.5% | 95.0% | 73% | 13% | 100% | **0%** |
 
 The three-level transaction metric is the point: WER alone understates the
 differences for financial use. *Amount corrupted* counts transcripts that made
@@ -102,25 +102,46 @@ the current design and the first item on the post-hackathon roadmap
 (confidence-weighted readback: low-confidence numerals echo the FULL amount
 back before commit).
 
+## Audio-conversion correction (v3) — tier-a re-measured
+
+After the v2 scoring, an A/B test against the vendor's own web UI showed
+materially better transcripts for the same clip. Root cause was NOT the
+language configuration (verified correct and API-validated): the corpus
+conversion step was time-stretching every tier-a clip by ~1.26x — a
+resampler bug copying frame padding as samples. ALL tier-a v1/v2 numbers
+for ALL models were measured on that corrupted audio. The corpus was
+re-converted from the preserved originals (15/15 duration-matched) and
+tier-a re-measured for every model as v3. Tier-b audio was never
+re-encoded and is unaffected; its results are unchanged.
+
+| Model | WER v2→v3 | Numeric acc v2→v3 | Txn exact v2→v3 | Amount safe v2→v3 | **Amount corrupted v2→v3** |
+|---|---|---|---|---|---|
+| sahara-v2 | 71.6% → 60.2% | 60% → 73% | 40% → 47% | 87% → 93% | **13% → 7%** |
+| whisper-large-v3 | 98.6% → 96.3% | 53% → 67% | 7% → 27% | 93% → 100% | **7% → 0%** |
+| whisper-small | 119.4% → 85.5% | 53% → 73% | 7% → 13% | 93% → 100% | **7% → 0%** |
+
+Both scorings are preserved (`metrics_v2.json`, `metrics.json`); the
+product ships with the corrected audio path regardless of these numbers.
+
 ## Illustrative examples
 
 **case01** — truth: `I don sell three derica of rice five thousand five`
 
-- `sahara-v2`: `I don sell 3 karet of rice 5k 5.`
-- `whisper-large-v3`: `I don't sell three Delica or Bryce 5005.`  ⚠ perfective_negation_inversion  ✗ AMOUNT CORRUPTED
-- `whisper-small`: `I don't sell 3 Delica of Brice 5005`  ⚠ perfective_negation_inversion  ✗ AMOUNT CORRUPTED
+- `sahara-v2`: `I don sell 3 derica of rice 5,500.`
+- `whisper-large-v3`: `I don't sell three delica of rice, 5,005.`  ⚠ perfective_negation_inversion
+- `whisper-small`: `I don't sell 3 Delica of guys, $5,005.`  ⚠ perfective_negation_inversion
+
+**case08** — truth: `abeg how much I don make today`
+
+- `sahara-v2`: `Abeg, how much I don make today?`
+- `whisper-large-v3`: `I beg, how much I don't make today?`  ⚠ perfective_negation_inversion
+- `whisper-small`: `a big how much I don't make today`  ⚠ perfective_negation_inversion
 
 **afx023** — truth: `kile kiwango kinachotakiwa cha kulipa dividends`
 
 - `sahara-v2`: `Kile kiwango kinachotakiwa cha kulipa dividends?`
 - `whisper-large-v3`: `If I don't have money, I won't be able to pay the dividend.`
 - `whisper-small`: `Kila Kiwangu Kina Chotaki Wachabuli Padik, Edent.`
-
-**case02** — truth: `sell one bag of beans forty five k`
-
-- `sahara-v2`: `Sell one bag of beans for 45`
-- `whisper-large-v3`: `Sell one bag of beans for $0.75`
-- `whisper-small`: `Set 1, 4, 5, 6, 5, 6, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15.`
 
 **afx016** — truth: `.... from the... Ikiwa tutaikomboa Mji wa Aleppo kutoka mkononi mwa magaidi`
 
