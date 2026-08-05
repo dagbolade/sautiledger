@@ -21,7 +21,9 @@ async function refreshState() {
   }
 }
 
+let currentMode = "offline";
 function renderMode(mode) {
+  currentMode = mode;
   const badge = $("mode");
   badge.textContent = mode === "cloud" ? "CLOUD ASR" : "OFFLINE";
   badge.className = mode === "cloud" ? "cloud" : "offline";
@@ -35,29 +37,38 @@ let egressLog = [];
 function renderEgress(total, log) {
   egressLog = log || [];
   const el = $("egress-total");
-  el.textContent = fmtKB(total);
-  el.classList.toggle("nonzero", total > 0);
+  const zero = total === 0;
+  el.textContent = zero && currentMode !== "cloud"
+    ? "0.00 KB — nothing don leave this phone."
+    : fmtKB(total);
+  $("egress").classList.toggle("zero", zero);
 }
 
+const seenRowIds = new Set();
 function renderLedger(entries, salesTotal) {
   $("total").textContent = currency + (salesTotal || 0).toLocaleString();
   const list = $("entries");
   list.innerHTML = "";
-  (entries || []).filter((e) => e.payment_status !== "voided")
-    .slice().reverse().forEach((e) => {
-      const li = document.createElement("li");
-      if (e.type === "expense") li.className = "expense";
-      let what = e.item || "entry";
-      if (e.quantity && e.unit) what += ` — ${e.quantity} ${e.unit}`;
-      else if (e.quantity) what += ` ×${e.quantity}`;
-      const credit = e.payment_status === "credit"
-        ? ` <span class="credit">CREDIT${e.due ? " · due " + e.due : ""}</span>` : "";
-      const sign = e.type === "expense" ? "-" : "";
-      li.innerHTML = `<span>${what}${credit}</span>` +
-        `<span class="amt">${sign}${currency}${(e.amount || 0).toLocaleString()}` +
-        `<button class="del" data-id="${e.id}" title="void this entry">✕</button></span>`;
-      list.appendChild(li);
-    });
+  (entries || []).slice().reverse().forEach((e) => {
+    const li = document.createElement("li");
+    const classes = [];
+    if (e.type === "expense") classes.push("expense");
+    if (e.payment_status === "voided") classes.push("voided");
+    if (!seenRowIds.has(e.id)) { classes.push("new"); seenRowIds.add(e.id); }
+    li.className = classes.join(" ");
+    const chip = e.quantity && e.unit ? `${e.quantity} ${e.unit}`
+      : e.quantity ? `×${e.quantity}` : "";
+    const credit = e.payment_status === "credit"
+      ? `<span class="credit">CREDIT${e.due ? " · " + e.due : ""}</span>` : "";
+    const sign = e.type === "expense" ? "-" : "";
+    const voidBtn = e.payment_status === "voided" ? ""
+      : `<button class="del" data-id="${e.id}" title="void this entry">✕</button>`;
+    li.innerHTML =
+      `<span class="item">${e.item || "entry"}</span>` +
+      (chip ? `<span class="chip">${chip}</span>` : "") + credit +
+      `<span class="amt">${sign}${currency}${(e.amount || 0).toLocaleString()}${voidBtn}</span>`;
+    list.appendChild(li);
+  });
   list.querySelectorAll(".del").forEach((btn) => {
     btn.addEventListener("click", async () => {
       // soft delete: the row is marked voided in the DB, never silently erased
@@ -86,11 +97,26 @@ function speak(text) {
   window.speechSynthesis.speak(u);
 }
 
+let statusBubble = null;
+function showStatus(text) {
+  clearStatus();
+  statusBubble = document.createElement("div");
+  statusBubble.className = "bubble sauti status";
+  statusBubble.textContent = text;
+  chat.appendChild(statusBubble);
+  chat.scrollTop = chat.scrollHeight;
+}
+function clearStatus() {
+  if (statusBubble) { statusBubble.remove(); statusBubble = null; }
+}
+
 async function submit(formData, shownText) {
   if (shownText) bubble(shownText, "you");
+  showStatus("thinking…");
   try {
     const resp = await fetch("/utterance", { method: "POST", body: formData });
     const body = await resp.json();
+    clearStatus();
     if (!resp.ok) {
       bubble(body.error || "Something went wrong.", "sauti");
       return;
@@ -99,6 +125,7 @@ async function submit(formData, shownText) {
     bubble(body.reply_text, "sauti", body.reply_text.trim().endsWith("?"));
     speak(body.reply_text);
   } catch (err) {
+    clearStatus();
     bubble("No response from the app server.", "sauti");
   }
   refreshState();
@@ -139,13 +166,15 @@ async function startRecording() {
     };
     recorder.start();
     $("talk").classList.add("recording");
-    $("talk").textContent = "LISTENING...";
+    $("talk").textContent = "LISTENING…";
+    showStatus("listening…");
   } catch (err) {
     bubble("Mic unavailable — type the utterance instead.", "sauti");
   }
 }
 
 function stopRecording() {
+  clearStatus();
   if (recorder && recorder.state === "recording") recorder.stop();
   recorder = null;
   $("talk").classList.remove("recording");

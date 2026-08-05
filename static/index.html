@@ -5,136 +5,206 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>SautiLedger</title>
 <style>
-  /* No frameworks, no CDN assets — this page must work with wifi off. */
+  /* Self-contained: no frameworks, no CDN assets — must work with wifi off. */
   :root {
     --bg: #0b1220;
-    --panel: #131c2e;
-    --panel-2: #1a2540;
-    --text: #e8eefc;
+    --panel: #121b2d;
+    --panel-2: #1b2740;
+    --line: #223052;
+    --text: #e9eefc;
     --muted: #8b9bb8;
-    --accent: #34d399;      /* the one accent colour */
+    --accent: #34d399;
+    --accent-dim: rgba(52, 211, 153, 0.14);
     --warn: #fbbf24;
     --radius: 14px;
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
-    background: var(--bg); color: var(--text);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); font-family: var(--font);
     display: flex; flex-direction: column;
-    max-width: 520px; margin: 0 auto; padding: 12px;
-    gap: 10px;
+    max-width: 480px; margin: 0 auto; padding: var(--s3);
+    gap: var(--s3);
+    font-size: 16px; line-height: 1.4;
   }
 
-  /* ---- egress meter: the headline of the whole app ---- */
+  /* ---- egress panel: calm, factual, tappable ---- */
   #egress {
-    background: var(--panel); border-radius: var(--radius);
-    padding: 14px 16px; cursor: pointer;
-    display: flex; align-items: center; justify-content: space-between;
-    border: 1px solid #223052;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: var(--s3) var(--s4);
+    display: flex; align-items: center; gap: var(--s3);
+    cursor: pointer; transition: background 0.3s, border-color 0.3s;
   }
-  #egress .label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em; }
-  #egress .value { font-size: 1.7rem; font-weight: 700; color: var(--accent); }
-  #egress .value.nonzero { color: var(--warn); }
-  #egress .hint { font-size: 0.7rem; color: var(--muted); }
+  #egress.zero { background: var(--accent-dim); border-color: rgba(52, 211, 153, 0.4); }
+  #egress svg { flex: 0 0 22px; height: 22px; color: var(--muted); }
+  #egress.zero svg { color: var(--accent); }
+  #egress .body { flex: 1; min-width: 0; }
+  #egress .label {
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.1em;
+    color: var(--muted); text-transform: uppercase;
+  }
+  #egress .value {
+    font-size: 1.15rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: var(--warn);
+  }
+  #egress.zero .value { color: var(--accent); font-size: 0.98rem; }
   #mode {
-    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
-    padding: 6px 10px; border-radius: 999px;
+    flex: 0 0 auto; font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em;
+    padding: 5px 11px; border-radius: 999px; border: 1px solid transparent;
   }
-  #mode.offline { background: rgba(52, 211, 153, 0.15); color: var(--accent); }
-  #mode.cloud { background: rgba(251, 191, 36, 0.15); color: var(--warn); }
+  #mode.offline { background: var(--accent-dim); color: var(--accent); border-color: rgba(52,211,153,0.35); }
+  #mode.cloud { background: rgba(251, 191, 36, 0.12); color: var(--warn); border-color: rgba(251,191,36,0.3); }
 
   /* ---- chat ---- */
   #chat {
     flex: 1; overflow-y: auto; display: flex; flex-direction: column;
-    gap: 8px; padding: 4px 2px;
+    gap: var(--s2); padding: var(--s1) 2px;
   }
   .bubble {
-    max-width: 85%; padding: 10px 14px; border-radius: var(--radius);
-    font-size: 1.05rem; line-height: 1.35;
+    max-width: 84%; padding: 10px 14px; border-radius: 16px;
+    font-size: 1rem; line-height: 1.4;
+    animation: bubbleIn 0.18s ease-out;
   }
-  .you { align-self: flex-end; background: var(--panel-2); }
-  .sauti { align-self: flex-start; background: var(--panel); border: 1px solid #223052; }
+  @keyframes bubbleIn { from { opacity: 0; transform: translateY(4px); } }
+  .you {
+    align-self: flex-end; background: var(--accent-dim);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+    border-bottom-right-radius: 6px;
+  }
+  .sauti {
+    align-self: flex-start; background: var(--panel);
+    border: 1px solid var(--line); border-bottom-left-radius: 6px;
+  }
   .sauti.question { border-color: var(--accent); }
+  .sauti.status { color: var(--muted); font-style: italic; animation: shimmer 1.2s ease-in-out infinite; }
+  @keyframes shimmer { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.9; } }
 
-  /* ---- ledger panel ---- */
+  /* ---- ledger: the hero panel ---- */
   #ledger {
-    background: var(--panel); border-radius: var(--radius);
-    padding: 12px 16px; border: 1px solid #223052;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: var(--s3) var(--s4);
   }
   #ledger h2 {
-    font-size: 0.8rem; color: var(--muted); letter-spacing: 0.08em;
-    display: flex; justify-content: space-between;
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 0.66rem; font-weight: 600; letter-spacing: 0.1em;
+    color: var(--muted); text-transform: uppercase;
+    padding-bottom: var(--s2); border-bottom: 1px solid var(--line);
   }
-  #ledger h2 span { color: var(--accent); font-size: 0.95rem; }
-  #entries { list-style: none; margin-top: 6px; max-height: 18vh; overflow-y: auto; }
+  #ledger h2 #total {
+    font-family: var(--font); font-size: 1.5rem; font-weight: 800;
+    letter-spacing: 0; color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  #entries { list-style: none; margin-top: var(--s2); max-height: 21vh; overflow-y: auto; }
   #entries li {
-    display: flex; justify-content: space-between; padding: 4px 0;
-    font-size: 0.95rem; border-top: 1px solid #1c2946;
+    display: flex; align-items: center; gap: var(--s2);
+    padding: 7px 0; font-size: 0.97rem;
+    border-bottom: 1px solid rgba(34, 48, 82, 0.5);
   }
-  #entries li .amt { font-variant-numeric: tabular-nums; }
+  #entries li:last-child { border-bottom: none; }
+  #entries li.new { animation: rowIn 0.45s ease-out; }
+  @keyframes rowIn {
+    from { opacity: 0; transform: translateY(-6px); background: var(--accent-dim); }
+    60% { background: var(--accent-dim); }
+    to { opacity: 1; transform: none; background: transparent; }
+  }
+  #entries li .item { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #entries li .chip {
+    flex: 0 0 auto; font-size: 0.7rem; font-weight: 700; color: var(--muted);
+    background: var(--panel-2); border-radius: 999px; padding: 2px 8px;
+  }
+  #entries li .credit {
+    flex: 0 0 auto; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.05em;
+    color: var(--warn);
+  }
+  #entries li .amt {
+    flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #entries li.expense .amt { color: var(--warn); }
+  #entries li.voided { opacity: 0.38; }
+  #entries li.voided .item, #entries li.voided .amt { text-decoration: line-through; }
   #entries li .del {
     background: none; border: none; color: var(--muted);
-    margin-left: 8px; cursor: pointer; font-size: 0.85rem; padding: 0 2px;
+    cursor: pointer; font-size: 0.8rem; padding: 2px 4px; line-height: 1;
   }
   #entries li .del:hover { color: var(--warn); }
-  #entries li.expense .amt { color: var(--warn); }
-  #entries li .credit { font-size: 0.7rem; color: var(--warn); }
 
-  /* ---- input row ---- */
-  #controls { display: flex; gap: 8px; align-items: stretch; }
+  /* ---- controls: voice is the product ---- */
+  #controls { display: flex; flex-direction: column; gap: var(--s2); align-items: center; }
   #talk {
-    flex: 0 0 92px; height: 92px; border-radius: 50%;
+    width: 112px; height: 112px; border-radius: 50%;
     border: 3px solid var(--accent); background: var(--panel);
-    color: var(--accent); font-size: 0.85rem; font-weight: 700;
+    color: var(--accent); font-family: var(--font);
+    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em;
     cursor: pointer; user-select: none; -webkit-user-select: none;
-    touch-action: none;
+    touch-action: none; position: relative; transition: transform 0.1s;
   }
-  #talk.recording { background: var(--accent); color: #06281c; }
-  #textbox {
-    flex: 1; display: flex; gap: 8px;
+  #talk:active { transform: scale(0.97); }
+  #talk.recording {
+    background: var(--accent); color: #06281c;
+    animation: pulse 1.4s ease-out infinite;
   }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+    100% { box-shadow: 0 0 0 22px rgba(52, 211, 153, 0); }
+  }
+  #textbox { display: flex; gap: var(--s2); width: 100%; }
   #text {
     flex: 1; background: var(--panel); color: var(--text);
-    border: 1px solid #223052; border-radius: var(--radius);
-    padding: 0 14px; font-size: 1rem;
+    border: 1px solid var(--line); border-radius: 10px;
+    padding: 9px 12px; font-size: 0.9rem; font-family: var(--font);
   }
+  #text::placeholder { color: var(--muted); }
   #send {
-    background: var(--accent); color: #06281c; border: none;
-    border-radius: var(--radius); padding: 0 18px; font-weight: 700;
-    font-size: 1rem; cursor: pointer;
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 10px; padding: 0 var(--s4); font-weight: 600;
+    font-size: 0.9rem; cursor: pointer; font-family: var(--font);
   }
 
   /* ---- egress ledger modal ---- */
   #modal {
-    position: fixed; inset: 0; background: rgba(4, 8, 18, 0.9);
-    display: none; flex-direction: column; padding: 16px;
-    max-width: 520px; margin: 0 auto;
+    position: fixed; inset: 0; background: rgba(4, 8, 18, 0.94);
+    display: none; flex-direction: column; padding: var(--s4);
+    max-width: 480px; margin: 0 auto;
   }
   #modal.open { display: flex; }
-  #modal h2 { font-size: 1.1rem; margin-bottom: 4px; }
-  #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: 12px; }
+  #modal h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: var(--s1); }
+  #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: var(--s4); }
   #egress-rows { flex: 1; overflow-y: auto; }
   .erow {
-    background: var(--panel); border-radius: 10px; padding: 10px 12px;
-    margin-bottom: 8px; font-size: 0.85rem; border: 1px solid #223052;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: var(--s3); margin-bottom: var(--s2);
+    font-size: 0.85rem;
   }
-  .erow .top { display: flex; justify-content: space-between; color: var(--warn); font-weight: 600; }
-  .erow .purpose { margin: 4px 0; }
-  .erow .disp { color: var(--muted); font-size: 0.78rem; }
-  .empty { color: var(--accent); text-align: center; padding: 40px 0; font-size: 1.05rem; }
+  .erow .top {
+    display: flex; justify-content: space-between;
+    color: var(--warn); font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .erow .purpose { margin: var(--s1) 0; }
+  .erow .disp { color: var(--muted); font-size: 0.76rem; }
+  .empty {
+    color: var(--accent); text-align: center; padding: 48px 0;
+    font-size: 1.05rem; font-weight: 600;
+  }
   #close {
-    background: var(--panel-2); color: var(--text); border: 1px solid #223052;
-    border-radius: var(--radius); padding: 12px; font-size: 1rem; cursor: pointer;
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: var(--s3); font-size: 1rem;
+    font-weight: 600; cursor: pointer; font-family: var(--font);
   }
 </style>
 </head>
 <body>
   <div id="egress" title="Tap to see every transmission">
-    <div>
-      <div class="label">DATA SENT OFF THIS PHONE</div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/>
+    </svg>
+    <div class="body">
+      <div class="label">Data sent off this phone</div>
       <div class="value" id="egress-total">0.00 KB</div>
-      <div class="hint">tap for the transmission ledger</div>
     </div>
     <div id="mode" class="offline">OFFLINE</div>
   </div>
@@ -142,14 +212,14 @@
   <div id="chat"></div>
 
   <div id="ledger">
-    <h2>TODAY'S LEDGER <span id="total">&#8358;0</span></h2>
+    <h2>Today's ledger <span id="total">&#8358;0</span></h2>
     <ul id="entries"></ul>
   </div>
 
   <div id="controls">
     <button id="talk">HOLD TO TALK</button>
     <div id="textbox">
-      <input id="text" type="text" placeholder="or type the utterance..." autocomplete="off">
+      <input id="text" type="text" placeholder="or type am here…" autocomplete="off">
       <button id="send">Send</button>
     </div>
   </div>
