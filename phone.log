@@ -1,0 +1,9 @@
+========================================================
+  Open on your phone:  https://10.5.33.177:8443
+========================================================
+- Phone and laptop must be on the SAME network.
+- The browser will warn about the certificate ONCE:
+  tap Advanced -> Proceed. Then the mic prompt appears.
+- If Windows Firewall asks, click Allow (private networks).
+- If the page never loads, the venue wifi likely isolates
+  clients: use your phone's hotspot instead (laptop joins it).

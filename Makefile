@@ -29,4 +29,7 @@ test-live:
 convert:
 	$(PY) -m bench.convert_clips
 
+phone:
+	$(PY) -m sautiledger.phone
+
 .PHONY: test chat run demo bench bench-dry test-live
