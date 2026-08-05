@@ -1,5 +1,6 @@
-"""AsrClient interface with cloud, offline, and fake implementations
-(CLAUDE.md rule 6: offline-swappable, selected by config).
+"""AsrClient interface with cloud, offline, and fake implementations.
+The implementation is selected by config, so the on-device engine can
+replace the cloud one without touching call sites.
 
 Sahara API contract (docs.voice.intron.io/docs/stt/file-upload-sync):
   POST https://infer.voice.intron.io/file/v1/upload/sync
@@ -63,7 +64,7 @@ def _spec_fixtures() -> dict[str, str]:
 class SaharaCloudAsr:
     """Cloud ASR. The ONLY data that ever leaves the device is the audio
     clip sent here, and it goes through the egress recorder — sending
-    audio without logging it violates CLAUDE.md rule 2."""
+    audio without logging it breaks the app's core guarantee."""
 
     def __init__(self, recorder: EgressRecorder, api_key: str | None, url: str = SAHARA_SYNC_URL):
         if not api_key:
@@ -84,7 +85,7 @@ class SaharaCloudAsr:
         )
         status, resp = self.recorder.post(
             self.url,
-            purpose=f"ASR transcription of one voice clip ({len(audio_bytes)} audio bytes)",
+            purpose="your voice clip, sent for transcription",
             data=body,
             headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": content_type},
         )

@@ -1,5 +1,5 @@
 """Language pack loading. A pack is pure data (packs/*.yaml) — adding a
-language means adding a pack file and test cases, never code (rule 5)."""
+language means adding a pack file and test cases, never code."""
 
 from __future__ import annotations
 
@@ -28,6 +28,7 @@ class Pack:
     log_triggers: list[str] = field(default_factory=list)
     queries: list[dict] = field(default_factory=list)
     summary_triggers: list[str] = field(default_factory=list)
+    recap_triggers: list[str] = field(default_factory=list)
     corrections: list[dict] = field(default_factory=list)
     correction_stop_words: frozenset[str] = frozenset()
     periods: dict[str, str] = field(default_factory=dict)
@@ -38,6 +39,8 @@ class Pack:
     digit_twin_thousands: bool = False
     # "3 FOR 500" — connective marking the following figure as a total
     price_connectives: frozenset[str] = frozenset()
+    # multi-word item names known to the language ("pure water")
+    multi_word_items: frozenset[str] = frozenset()
     # question markers: interrogative + sale trigger = query, not transaction
     interrogatives: list[str] = field(default_factory=list)
 
@@ -66,6 +69,7 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         log_triggers=list(raw.get("log_triggers") or []),
         queries=list(raw.get("queries") or []),
         summary_triggers=list(raw.get("summary_triggers") or []),
+        recap_triggers=list(raw.get("recap_triggers") or []),
         corrections=list(raw.get("corrections") or []),
         correction_stop_words=frozenset(raw.get("correction_stop_words") or []),
         periods={str(k): str(v) for k, v in (raw.get("periods") or {}).items()},
@@ -74,4 +78,5 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         digit_twin_thousands=bool(raw.get("digit_twin_thousands", False)),
         price_connectives=frozenset(raw.get("price_connectives") or []),
         interrogatives=list(raw.get("interrogatives") or []),
+        multi_word_items=frozenset(raw.get("multi_word_items") or []),
     )

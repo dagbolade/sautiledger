@@ -138,6 +138,31 @@ def test_mangled_narration_without_amount_always_clarifies(agent):
     assert len(_rows(agent)) == 0  # no number in the words -> nothing written
 
 
+# (f) the rejection path: a refused entry never stays in the book
+def test_rejection_voids_and_replaces_live(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    agent.handle("no I don sell garri egberun meta")
+    live_rows = [r for r in _rows(agent) if r["payment_status"] != "voided"]
+    assert len(live_rows) == 1
+    assert live_rows[0]["item"] == "garri" and live_rows[0]["amount"] == 3000
+
+
+# (g) unrecognised-item guard: confirm BEFORE commit, both answers
+def test_item_confirm_yes_path_live(agent):
+    reply = agent.handle("customer buy combined space for 300")
+    assert "combined space" in reply and "?" in reply
+    assert len(_rows(agent)) == 0
+    agent.handle("na so")  # voiced Pidgin yes
+    rows = _rows(agent)
+    assert len(rows) == 1 and rows[0]["amount"] == 300
+
+
+def test_item_confirm_no_path_live(agent):
+    agent.handle("customer buy combined space for 300")
+    agent.handle("no be so")
+    assert len(_rows(agent)) == 0
+
+
 # (d) chatter never mutates the ledger
 def test_chatter_leaves_ledger_unchanged(agent):
     agent.handle("I don sell three derica of rice five thousand five")

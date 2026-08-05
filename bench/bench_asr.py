@@ -1,7 +1,7 @@
 """Models under test, behind one BenchAsrClient interface.
 
 Cloud models (Sahara, frontier) route through the app's EgressRecorder
-into a bench-local DB — CLAUDE.md rule 2 applies to the benchmark too.
+into a bench-local DB — the egress-logging rule applies to the benchmark too.
 Local whisper models are imported lazily from bench/requirements.txt
 installs (NEVER added to the app's dependencies).
 """

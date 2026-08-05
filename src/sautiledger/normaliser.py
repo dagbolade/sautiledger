@@ -1,7 +1,7 @@
 """Deterministic, pack-driven normaliser. Grammar first; the LLM fallback
 (llm_fallback.py) is consulted only when the grammar returns None.
 
-The one non-negotiable (CLAUDE.md rule 3): never guess an amount.
+The one non-negotiable: never guess an amount.
 Anything outside the known money patterns becomes a clarify intent.
 """
 
@@ -102,7 +102,7 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
     if n == 1 and ks == ["KNUM"]:
         return vs[0]  # "5k", "5.5k"
     if n == 2 and ks == ["KNUM", "NUM"] and _cls(vs[1]) == "SMALL" and pack.digit_twin_thousands:
-        # v2 amendment 1: digit twin of the native "N thousand M" form —
+        # Digit-twin of the native "N thousand M" form —
         # Sahara's numeric normalisation emits "5k 5" for spoken
         # "five thousand five"; refusing it was the grammar not speaking
         # Sahara's output dialect, not safety.
@@ -198,7 +198,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
         if each:
             return _each_result(amount)
         if quantity is not None and quantity >= 2 and len(toks) == 1 and not total_marked:
-            # v2 amendment 2 — flattened-distributive guard: ASR numeric
+            # Flattened-distributive guard: ASR numeric
             # normalisation can collapse reduplication ("two two fifty" ->
             # "250") before the grammar sees it. A single bare numeral with
             # quantity >= 2 is unknowable: each, or total? Ask, never guess.
@@ -321,6 +321,13 @@ def _try_interrogative(tokens: list[str], pack: Pack) -> ParseResult | None:
 
 
 def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
+    for trigger in pack.recap_triggers:
+        if _find(tokens, trigger) >= 0:
+            # full row-by-row readback rather than the totals summary
+            return ParseResult(
+                intent="daily_summary", query="recap",
+                period=_find_period(tokens, pack) or "today",
+            )
     for trigger in pack.summary_triggers:
         if _find(tokens, trigger) >= 0:
             return ParseResult(
@@ -395,7 +402,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
         lead = _num_value(item_toks[0], pack)
         trail = _num_value(item_toks[-1], pack)
         if lead is not None and 1 <= lead <= 99:
-            # v2 quantity recovery, "N item" order: ASR can mangle the unit
+            # Quantity recovery, "N item" order: ASR can mangle the unit
             # word ("2 pint of dairy") so the numeral lands in item position
             quantity = lead
             item_toks = item_toks[1:]
@@ -457,7 +464,7 @@ def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
 def normalise(utterance: str, pack: Pack, llm=None) -> ParseResult:
     """Grammar first; LLM fallback only when the grammar returns None —
     or, for LONG utterances with a transaction signal the grammar could
-    not complete, as a second reading (CLAUDE.md rule 4; the sanitiser in
+    not complete, as a second reading (the sanitiser in
     llm_fallback.py still forbids any amount not literally present).
     The final fallback is a clarify, never a guess."""
     result = grammar_parse(utterance, pack)

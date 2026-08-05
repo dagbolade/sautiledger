@@ -33,8 +33,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if settings.mode == "cloud":
         asr = SaharaCloudAsr(recorder, settings.sahara_api_key)
     else:
-        # Offline: FakeAsr stands in until SaharaOfflineAsr lands (rule 6
-        # swap point) — nothing touches the network in this mode.
+        # Offline: FakeAsr stands in until the on-device engine lands —
+        # nothing touches the network in this mode.
         asr = FakeAsr()
 
     app = FastAPI(title="SautiLedger")

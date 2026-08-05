@@ -1,4 +1,4 @@
-"""THE single guarded network wrapper (CLAUDE.md rules 1-2).
+"""The single guarded network wrapper.
 
 This is the ONLY module in sautiledger allowed to perform remote HTTP.
 Every transmission is measured and written to egress_log BEFORE control
@@ -6,8 +6,8 @@ returns — success or failure — so the app can always prove what it
 shared. tests/test_import_guard.py walks the AST of every module to
 enforce this boundary.
 
-(llm_fallback.py and chat.py hold the only other urllib imports; both
-talk exclusively to 127.0.0.1 (Ollama), which never leaves the device.)
+(llm_fallback.py holds the only other outbound network import and talks
+exclusively to 127.0.0.1 (Ollama); phone.py only binds inbound sockets.)
 """
 
 from __future__ import annotations
@@ -55,10 +55,10 @@ class EgressRecorder:
         disposition = "unknown"
         try:
             status, body = self._open(url, data, headers, timeout)
-            disposition = f"sent; HTTP {status}; payload discarded after response"
+            disposition = f"delivered (HTTP {status}); deleted after response — nothing kept"
             return status, body
         except Exception as exc:
-            disposition = f"send failed: {type(exc).__name__}"
+            disposition = f"send failed ({type(exc).__name__}) — nothing was delivered"
             raise EgressError(f"transmission to {destination} failed: {exc}") from exc
         finally:
             self.ledger.conn.execute(

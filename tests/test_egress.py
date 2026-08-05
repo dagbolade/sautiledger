@@ -23,7 +23,7 @@ def test_successful_post_is_logged():
     row = rows[0]
     assert row["destination"] == "infer.voice.intron.io"
     assert row["bytes_sent"] == 1234
-    assert "HTTP 200" in row["disposition"]
+    assert "HTTP 200" in row["disposition"] and "deleted after response" in row["disposition"]
     assert recorder.total_bytes() == 1234
 
 

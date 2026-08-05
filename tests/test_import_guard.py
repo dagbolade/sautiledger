@@ -1,4 +1,4 @@
-"""AST guard for CLAUDE.md rules 1-2: egress.py is the only module that
+"""AST guard for the privacy invariant: egress.py is the only module that
 may perform remote HTTP. This turns the privacy claim into an enforced
 property of the codebase."""
 

@@ -111,8 +111,31 @@ def correct_last_entry(
     return f"Corrected: {field} now {new_value}."
 
 
-def daily_summary(ledger: Ledger, period: str | None, currency: str) -> str:
+def daily_summary(
+    ledger: Ledger, period: str | None, currency: str, recap: bool = False
+) -> str:
     period = period or "today"
+    if recap:
+        rows = [r for r in ledger.entries(period) if r["payment_status"] != "voided"]
+        if not rows:
+            return "Book empty for today. Nothing don enter yet."
+        lines = []
+        for row in rows[:10]:
+            what = row["item"] or "entry"
+            if row["quantity"] and row["unit"]:
+                what += f", {row['quantity']} {row['unit']}"
+            elif row["quantity"]:
+                what += f" times {row['quantity']}"
+            entry = f"{what}, {_money(row['amount'] or 0, row['currency'])}"
+            if row["type"] == "expense":
+                entry += " out"
+            if row["payment_status"] == "credit":
+                entry += " on credit"
+            lines.append(entry)
+        _n, total = ledger.sales_total(period)
+        extra = f" And {len(rows) - 10} more." if len(rows) > 10 else ""
+        return ("Your book today: " + "; ".join(lines) +
+                f". Total sales {_money(total, currency)}.{extra}")
     sales_n, sales_total = ledger.sales_total(period)
     exp_n, exp_total = ledger.expenses_total(period)
     credit = ledger.credit_outstanding()

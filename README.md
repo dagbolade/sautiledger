@@ -65,15 +65,17 @@ utterance — from inventing amounts.
 
 ```
 python -m venv .venv && .venv/Scripts/pip install -e ".[dev]"
-python -m pytest              # 58 tests, incl. the 20-case spec
+python -m pytest              # full suite, incl. the 21-case corpus
 python -m sautiledger.chat    # typed REPL (no mic needed)
 python -m sautiledger.demo    # full UI at http://127.0.0.1:8090
+python -m sautiledger.phone   # HTTPS on your LAN, for a phone's mic
 ```
 
-(`make test` / `make chat` / `make demo` on machines with make.)
+(`make test` / `make chat` / `make demo` / `make phone` with make.)
 Copy `.env.example` to `.env` and add `SAHARA_API_KEY` for cloud ASR;
 without it the app runs fully offline. The 90-second demo walkthrough is
-in [demo/script.md](demo/script.md).
+in [demo/script.md](demo/script.md); `python -m sautiledger.demo
+--seed-demo` pre-loads two clearly-marked rows for screenshots.
 
 ## Add your language in an afternoon
 
@@ -138,6 +140,15 @@ built during the freeze.
 
 ## Honest limitations
 
+- **Conversational-speed ASR fidelity.** Command-style utterances
+  transcribe well; fast narrated speech degrades — the benchmark's tier-a
+  numbers quantify this, and the clarify design absorbs most of it.
+- **Two deletion-class corruption cases remain** (see the benchmark
+  amendments section): ASR dropping "ten" from "ten thousand" or one "no"
+  from "no no" can still produce a wrong entry. Confidence-weighted
+  readback is the roadmap answer.
+- **Tier-a benchmark audio is a single speaker** (the developer) —
+  directional, not population-level, evidence.
 - **Small grammar, by design.** The normaliser covers transaction speech,
   not open conversation. Out-of-grammar utterances get a clarify question
   (or the local LLM fallback, which is amount-guarded).
@@ -152,6 +163,21 @@ built during the freeze.
   audio — the rest of the stack is genuinely offline.
 - **Single-user, single-device.** No sync, no backup, no auth. A trader's
   phone is the database; losing the phone loses the ledger.
+
+## Built with, and thanks
+
+- **Intron Sahara-v2 ASR** (infer.voice.intron.io) — the only network
+  call this app ever makes, and the reason code-switched market speech
+  transcribes at all.
+- **AfriSwitch** (huggingface.co/datasets/intronhealth/AfriSwitch,
+  CC BY-NC-SA 4.0) — used for evaluation only, fetched at run time,
+  never redistributed, and not used to train or build the product.
+- Local pieces: FastAPI, PyAV, faster-whisper (benchmark only),
+  Ollama + Llama 3.2 3B (optional local fallback), browser
+  speechSynthesis.
+- Built during Deep Learning Indaba 2026 with AI-assisted development;
+  all language corrections and design decisions came from a
+  native-speaker human in the loop.
 
 ## Licence
 

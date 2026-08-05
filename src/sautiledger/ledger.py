@@ -1,7 +1,6 @@
 """SQLite ledger — plain SQL, stdlib sqlite3, no ORM.
 
-The egress_log table is created here too (CLAUDE.md rule 2); it is
-written by egress.py from phase 3 onward.
+The egress_log table is created here too; egress.py writes to it.
 """
 
 from __future__ import annotations

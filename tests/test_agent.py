@@ -1,4 +1,4 @@
-"""End-to-end agent tests over the spec cases: utterance in, spoken reply
+"""End-to-end agent tests over the corpus cases: utterance in, spoken reply
 out, ledger rows checked. Uses an in-memory DB and a raising LLM — the
 whole flow must work grammar-only."""
 
@@ -115,7 +115,7 @@ def test_empty_log_request_never_writes(agent):
 
 
 def test_agent_refuses_amountless_log(agent):
-    """Belt-and-braces on rule 3: even if a parse reaches dispatch with no
+    """Second layer of the never-fabricate invariant: even if a parse has no
     amount, the agent asks instead of writing."""
     from sautiledger.models import ParseResult
 
@@ -142,11 +142,52 @@ def test_confirmation_bare_yes(agent):
     assert len(_rows(agent)) == 1
 
 
-def test_confirmation_bare_no_prompts_correction(agent):
+def test_confirmation_bare_no_voids_and_prompts(agent):
     agent.handle("I don sell three derica of rice five thousand five")
     reply = agent.handle("no")
     assert "wrong" in reply.lower()
-    assert agent.ledger.last_transaction()["amount"] == 5500  # nothing changed yet
+    assert agent.ledger.last_transaction() is None  # rejected row voided
+    assert agent.ledger.sales_total("today") == (0, 0)
+
+
+def test_rejection_with_replacement_voids_then_relogs(agent):
+    """'No, I don say…' must never leave the rejected row in the book."""
+    agent.handle("I don sell three derica of rice five thousand five")
+    agent.handle("no I don sell garri egberun meta")
+    rows = _rows(agent)
+    live_rows = [r for r in rows if r["payment_status"] != "voided"]
+    assert len(live_rows) == 1
+    assert live_rows[0]["item"] == "garri" and live_rows[0]["amount"] == 3000
+
+
+def test_unknown_multiword_item_confirms_before_commit(agent):
+    reply = agent.handle("customer buy combined space for 300")
+    assert reply == "Na combined space you talk?"
+    assert len(_rows(agent)) == 0  # NOTHING written yet
+    agent.handle("yes")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "combined space" and row["amount"] == 300
+
+
+def test_unknown_multiword_item_rejected_writes_nothing(agent):
+    agent.handle("customer buy combined space for 300")
+    agent.handle("no")
+    assert len(_rows(agent)) == 0
+    assert agent.ledger.last_transaction() is None
+
+
+def test_known_multiword_item_logs_directly(agent):
+    agent.handle("sell pure water two bag one two")  # pack-known item
+    assert agent.ledger.last_transaction()["item"] == "pure water"
+
+
+def test_recap_reads_the_book(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    agent.handle("yes")
+    agent.handle("sell garri egberun meta")
+    reply = agent.handle("read my ledger")
+    assert "rice" in reply and "garri" in reply
+    assert "eight thousand five hundred naira" in reply  # 5500 + 3000
 
 
 def test_correction_outranks_confirmation_stripping(agent):

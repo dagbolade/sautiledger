@@ -1,4 +1,4 @@
-"""Typed-utterance REPL — stands in for ASR until phase 3.
+"""Typed-utterance REPL — drives the agent without a microphone.
 
 Run: python -m sautiledger.chat   (= make chat)
 Env: SAUTI_PACK (default pcm-yo-NG), SAUTI_DB (default data/ledger.db)

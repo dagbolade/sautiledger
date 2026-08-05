@@ -1,6 +1,6 @@
 """LLM fallback for utterances the grammar cannot read at all.
 
-CLAUDE.md rule 3: NEVER fabricate an amount. Two defences here:
+Invariant: NEVER fabricate an amount. Two defences here:
   1. FALLBACK_PROMPT orders the model to return clarify when unsure.
   2. llm_parse() discards any amount that is not literally present in
      the utterance (as digits or a single pack number word) and
@@ -17,7 +17,7 @@ from typing import Protocol
 from .models import ParseResult
 from .packs import Pack
 
-# Rule 3 lives in the prompt itself: a confident wrong entry in someone's
+# The invariant is written into the prompt itself: a wrong entry in someone's
 # money records is the worst possible failure, so the model is told that
 # clarify is always the safe answer.
 FALLBACK_PROMPT = """You turn a market trader's spoken utterance into one JSON object.
@@ -49,7 +49,7 @@ class LlmClient(Protocol):
 class OllamaLlmClient:
     """Local model via Ollama. NOTE: this talks to localhost only — it is
     not network egress. Any REMOTE llm must route through egress.py
-    (phase 3) per CLAUDE.md rule 2."""
+    so the transmission is logged."""
 
     def __init__(self, model: str = "llama3.2:3b", host: str = "http://127.0.0.1:11434"):
         self.model = model
@@ -107,7 +107,7 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
 
     data = {k: v for k, v in data.items() if k in _ALLOWED_KEYS}
 
-    # Rule 3 guard: any amount the model produced must exist literally in
+    # Fabrication guard: any amount the model produced must exist literally in
     # the utterance, otherwise the whole parse degrades to clarify.
     allowed = _literal_numbers(utterance, pack)
     amount_fields = [data.get("amount"), data.get("amount_each")]
@@ -115,6 +115,16 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
         amount_fields.append(data.get("new_value"))
     for value in amount_fields:
         if value is not None and (not isinstance(value, int) or value not in allowed):
+            return ParseResult(intent="clarify", question_about="amount")
+
+    # Confusion guards: a literal-but-wrong pick is still wrong. If the
+    # model chose a tiny figure while a money-sized one exists in the same
+    # utterance, or picked the quantity as the amount, ask instead.
+    amount = data.get("amount")
+    if isinstance(amount, int):
+        if amount < 100 and any(v >= 100 for v in allowed):
+            return ParseResult(intent="clarify", question_about="amount")
+        if amount == data.get("quantity"):
             return ParseResult(intent="clarify", question_about="amount")
 
     try:
@@ -139,8 +149,16 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
             or result.new_value is None
         ):
             return ParseResult(intent="clarify", question_about="missing_transaction_details")
+        # a correction needs a correction cue in the words — chatter must
+        # never mutate the ledger through the fallback
+        cue_words = {"no", "not", "wrong", "na", "change", "correct"}
+        if not any(t in cue_words for t in re.findall(r"[a-z']+", utterance.lower())):
+            return ParseResult(intent="clarify", question_about="missing_transaction_details")
+        # a corrected item name must come from the utterance, not the model
+        if result.field == "item" and str(result.new_value).lower() not in utterance.lower():
+            return ParseResult(intent="clarify", question_about="missing_transaction_details")
     elif result.intent == "log_transaction":
-        # rule 3, completeness side: no amount -> not a loggable entry
+        # completeness side of the invariant: no amount -> not a loggable entry
         if result.amount is None and result.amount_each is None:
             return ParseResult(
                 intent="clarify", question_about="amount",

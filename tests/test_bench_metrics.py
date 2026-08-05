@@ -43,7 +43,7 @@ def test_derivable_numbers_handles_all_formats():
 
 
 def test_the_inversion_case():
-    """The spec's canonical synthetic: 'I dont sell 3 bags 5.5k' vs truth
+    """Canonical synthetic case: 'I dont sell 3 bags 5.5k' vs truth
     'I don sell three bags five thousand five' — numeric-accurate, but flagged."""
     hyp = "I dont sell 3 bags of rice 5.5k"
     assert numeric_accuracy(EXPECTED, hyp, PACK) is True

@@ -2,9 +2,9 @@
 
 acceptance_rules enforcement:
 - Exact structural match on every key the case's expect block declares.
-- The spec requires grammar-only for cases 1-3, 5, 7-13; our packs cover
-  all 20 cases, so we hold every case to the stricter bar: the LLM
-  client raises if it is ever consulted.
+- acceptance_rules requires grammar-only for most cases; the packs cover
+  all 21, so every case is held to the stricter bar: the LLM client
+  raises if it is ever consulted.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ SPEC = json.loads((ROOT / "normaliser_tests.json").read_text(encoding="utf-8"))
 
 class RaisingLlm:
     def complete(self, prompt: str) -> str:
-        raise AssertionError("LLM fallback consulted on a grammar case (rule 4 violation)")
+        raise AssertionError("LLM fallback consulted on a grammar-only case")
 
 
 @pytest.fixture(scope="module")
@@ -40,10 +40,6 @@ def test_case(case, packs):
             f"case {case['id']} ({case['utterance']!r}): "
             f"{key}={got.get(key)!r}, expected {expected!r}"
         )
-
-
-class _Reduplication:
-    """Native-speaker rule: doubled money = distributive (per-unit price)."""
 
 
 def test_reduplication_full_phrase_doubling(packs):
@@ -77,12 +73,8 @@ def test_reduplication_is_pack_gated(packs):
     assert result.amount_each is None  # no distributive without the pack flag
 
 
-class _V2Amendments:
-    """Documented post-freeze grammar amendments (see REPORT.md)."""
-
-
 def test_digit_twin_thousands(packs):
-    """v2.1: '5k 5' is Sahara's digit rendering of 'five thousand five'."""
+    """Digit-twin rule: '5k 5' is Sahara's digit rendering of 'five thousand five'."""
     result = normalise("I don sell three derica of rice 5k 5", packs["pcm-yo-NG"], llm=RaisingLlm())
     assert result.intent == "log_transaction"
     assert result.amount == 5500
@@ -94,7 +86,7 @@ def test_digit_twin_is_pack_gated(packs):
 
 
 def test_flattened_distributive_guard(packs):
-    """v2.2: qty>=2 + single bare numeral is unknowable — ask, never guess.
+    """Flattened-distributive guard: qty>=2 + a bare numeral is unknowable — ask.
     'pint' is an ASR-mangled unit: quantity recovered from the leading digit."""
     result = normalise("customer take 2 pint of garri 250", packs["pcm-yo-NG"], llm=RaisingLlm())
     assert result.intent == "clarify"
@@ -136,10 +128,6 @@ def test_interrogative_beats_log_intent(packs):
     assert result.query == "item_total"
     assert result.item == "groundnut"
     assert result.period == "today"
-
-
-class _NarratedSales:
-    """Post-benchmark product iteration: third-person narrated sales."""
 
 
 def test_narrated_sale_with_name_prefix(packs):

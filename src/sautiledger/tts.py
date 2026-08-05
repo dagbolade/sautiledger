@@ -1,4 +1,4 @@
-"""TtsClient interface (CLAUDE.md rule 6: swappable by config).
+"""TtsClient interface — implementations selected by config.
 
 Default voice-out path is the BROWSER's speechSynthesis (static/app.js):
 fully on-device, zero egress, zero install. Trade-off (see README):
@@ -7,8 +7,8 @@ not beauty — the trader hears the amount echoed back.
 
 PiperLocalTts is here for a nicer local voice when a piper binary and
 voice model are installed. SaharaTts is the swap point for Intron's TTS;
-NOTE: a CLOUD TTS call would send reply text off-device — that violates
-CLAUDE.md rule 1 unless the pitch changes, and it MUST route through
+NOTE: a CLOUD TTS call would send reply text off-device, breaking the
+audio-only egress guarantee — if ever enabled it MUST route through
 egress.py so the meter shows it.
 """
 
@@ -67,13 +67,13 @@ class SaharaTts:
     """Swap point for Intron's Sahara TTS (docs.voice.intron.io/docs/tts/*).
 
     Deliberately unimplemented: cloud TTS would transmit the reply text
-    (which echoes ledger amounts) off-device — a rule 1 violation unless
-    the sovereignty story changes. If ever enabled, the request MUST go
+    (which echoes ledger amounts) off-device, breaking the audio-only
+    egress guarantee. If ever enabled, the request MUST go
     through egress.EgressRecorder so the transmission ledger shows it.
     """
 
     def speak(self, text: str) -> bytes:
         raise NotImplementedError(
-            "Sahara TTS not enabled: cloud TTS would egress ledger contents (rule 1). "
-            "Wire through egress.EgressRecorder if the pitch ever changes."
+            "Sahara TTS not enabled: cloud TTS would egress ledger contents. "
+            "Wire through egress.EgressRecorder if this is ever enabled."
         )

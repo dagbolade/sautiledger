@@ -20,6 +20,10 @@ digit_twin_thousands: true
 # "groundnut 3 FOR 500" — the connective marks 500 as an explicit total
 price_connectives: [for, at]
 
+# multi-word item names known to the language — exempt from the
+# unknown-item confirmation guard
+multi_word_items: [pure water, palm oil, pure water bag]
+
 # interrogative + sale trigger = query ("how much groundnut I don sell today")
 interrogatives: [how much, how many, wetin]
 
@@ -86,6 +90,7 @@ queries:
     query: credit_outstanding
 
 summary_triggers: [close the day, summary]
+recap_triggers: [read my ledger, read the ledger, talk wetin dey book, wetin dey book, wetin dey my book]
 
 corrections:
   - trigger: no no na

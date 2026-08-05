@@ -78,7 +78,7 @@ function bubble(text, who, isQuestion) {
 }
 
 function speak(text) {
-  // Local browser TTS (phase 5): synthesised on-device, nothing egresses.
+  // Local browser TTS: synthesised on-device, nothing egresses.
   if (!window.speechSynthesis) return;
   const u = new SpeechSynthesisUtterance(text);
   u.rate = 1.0;
@@ -182,5 +182,13 @@ $("close").addEventListener("click", () => $("modal").classList.remove("open"));
 // ---------------------------------------------------------------- boot
 
 bubble("Oya, talk your sale make I write am down.", "sauti");
-refreshState();
+let greetedEmpty = false;
+(async () => {
+  await refreshState();
+  const state = await (await fetch("/state")).json().catch(() => null);
+  if (!greetedEmpty && state && (state.entries || []).length === 0) {
+    greetedEmpty = true;
+    bubble("Ledger empty. Oya, talk your first sale.", "sauti");
+  }
+})();
 setInterval(refreshState, 5000);

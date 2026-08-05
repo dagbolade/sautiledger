@@ -36,7 +36,7 @@ class ParseResult:
 
 @dataclass
 class Transcript:
-    """What an AsrClient returns (used from phase 3 onward)."""
+    """What an AsrClient returns."""
 
     text: str
     language_hint: str | None = None
