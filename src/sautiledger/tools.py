@@ -1,4 +1,4 @@
-"""Exactly four tools (CLAUDE.md: do not add a fifth). All replies are
+"""Exactly four tools (CONSTRAINTS.md: do not add a fifth). All replies are
 short and spoken-style, echoing amount and item so the TTS readback
 doubles as verification of what was written to the ledger."""
 

@@ -14,7 +14,7 @@ SQLite. Her financial life never exists anywhere but her own device.
 Most voice agents ship your audio, your transcript, your conversation
 history, and their own reasoning to someone's server. SautiLedger ships
 **four seconds of audio** (to Sahara ASR) and nothing else. Two rules from
-[CLAUDE.md](CLAUDE.md) make that a property of the code, not a promise:
+[CONSTRAINTS.md](CONSTRAINTS.md) make that a property of the code, not a promise:
 
 1. **The only data that ever leaves the device is the audio clip sent for
    transcription.** The ledger, transcripts, parses, queries, and agent
