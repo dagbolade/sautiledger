@@ -26,4 +26,7 @@ bench-dry:
 test-live:
 	$(PY) -m pytest -m live -q
 
+convert:
+	$(PY) -m bench.convert_clips
+
 .PHONY: test chat run demo bench bench-dry test-live

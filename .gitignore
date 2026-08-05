@@ -6,6 +6,11 @@ data/
 recordings/
 *.wav
 *.webm
+*.mp4
+*.m4a
+*.opus
+*.ogg
+bench/corpus/*/raw/
 
 # benchmark: fetched datasets + raw outputs are never committed
 # (AfriSwitch is CC BY-NC-SA — fetched at run time, not redistributed;

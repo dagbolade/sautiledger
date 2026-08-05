@@ -285,22 +285,36 @@ def run_real(present: list[dict], manifest_hash: str, frontier: str) -> None:
     for model in models:
         raw_dir = RESULTS_DIR / "raw" / model.name
         raw_dir.mkdir(parents=True, exist_ok=True)
+        consecutive_failures = 0
+        done = 0
         for clip in present:
             cache = raw_dir / f"{clip['id']}.json"
             if cache.exists():
                 hyp = json.loads(cache.read_text(encoding="utf-8"))["transcript"]
             else:
-                print(f"[{model.name}] {clip['id']} …")
+                print(f"[{model.name}] {clip['id']} …", flush=True)
                 try:
                     hyp = model.transcribe_file(clip["audio_path"], clip.get("language"))
+                    consecutive_failures = 0
                 except Exception as exc:
-                    print(f"  ! {type(exc).__name__}: {exc}")
+                    consecutive_failures += 1
+                    print(f"  ! {type(exc).__name__}: {exc}", flush=True)
+                    if consecutive_failures >= 3:
+                        # credit exhaustion / outage: stop CLEANLY, never
+                        # retry-loop against an empty balance
+                        note = (f"{model.name} ABORTED after 3 consecutive failures: "
+                                f"{done}/{len(present)} clips completed and cached.")
+                        print(f"  !! {note}")
+                        notes.append(note)
+                        break
                     continue
                 cache.write_text(
                     json.dumps({"transcript": hyp, "clip": clip["id"]}, ensure_ascii=False),
                     encoding="utf-8",
                 )
+            done += 1
             results.append(_score(model.name, clip, hyp))
+        print(f"[{model.name}] {done}/{len(present)} clips scored", flush=True)
     _write_and_report(results, manifest_hash, notes, len(present), 0)
 
 

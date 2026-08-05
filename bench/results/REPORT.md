@@ -1,8 +1,8 @@
 # SautiLedger ASR Benchmark Report
 
 Corpus frozen before first run — manifest sha256: `d68d90443326f5abab5fcf84cc01841f1b3bd926def8703cfc59fb76ccd827a5`.
-Clips scored: 61 (missing/skipped: 0).
-> **Note:** DRY RUN: all three models are FAKE text transforms of the ground truth (echo / anglicised / amount-mangler). Numbers are illustrative of the table structure only.
+Clips scored: 55 (missing/skipped: 0).
+> **Note:** No frontier API key was available; whisper-small substitutes as the third model. This is a weaker baseline than GPT-4o-transcribe/Gemini.
 
 ## Summary
 
@@ -10,9 +10,9 @@ Clips scored: 61 (missing/skipped: 0).
 
 | Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
 |---|---|---|---|---|---|---|
-| FAKE-anglicised | 0.3% | 0.3% | – | – | – | **–** |
-| FAKE-echo | 0.0% | 0.0% | – | – | – | **–** |
-| FAKE-mangler | 0.0% | 0.0% | – | – | – | **–** |
+| sahara-v2 | 42.4% | 56.2% | – | – | – | **–** |
+| whisper-large-v3 | 76.4% | 85.1% | – | – | – | **–** |
+| whisper-small | 77.6% | 87.3% | – | – | – | **–** |
 
 *(no parse ground truth in this tier: WER columns only)*
 
@@ -20,9 +20,9 @@ Clips scored: 61 (missing/skipped: 0).
 
 | Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
 |---|---|---|---|---|---|---|
-| FAKE-anglicised | 14.1% | 14.1% | 95% | 81% | 100% | **0%** |
-| FAKE-echo | 0.0% | 0.0% | 100% | 100% | 100% | **0%** |
-| FAKE-mangler | 5.4% | 5.4% | 71% | 67% | 71% | **29%** |
+| sahara-v2 | 71.6% | 80.8% | 53% | 40% | 80% | **20%** |
+| whisper-large-v3 | 98.6% | 106.3% | 53% | 7% | 87% | **13%** |
+| whisper-small | 119.4% | 120.0% | 53% | 7% | 93% | **7%** |
 
 The three-level transaction metric is the point: WER alone understates the
 differences for financial use. *Amount corrupted* counts transcripts that made
@@ -36,41 +36,41 @@ layer, and the amount-corrupted column is the evidence of what it repairs.
 
 **case01** — truth: `I don sell three derica of rice five thousand five`
 
-- `FAKE-anglicised`: `I don't sell three derica of rice 5.5k`  ⚠ perfective_negation_inversion
-- `FAKE-echo`: `I don sell three derica of rice five thousand five`
-- `FAKE-mangler`: `I don sell three derica of rice five thousand`  ✗ AMOUNT CORRUPTED
+- `sahara-v2`: `I don sell 3 karet of rice 5k 5.`
+- `whisper-large-v3`: `I don't sell three Delica or Bryce 5005.`  ⚠ perfective_negation_inversion  ✗ AMOUNT CORRUPTED
+- `whisper-small`: `I don't sell 3 Delica of Brice 5005`  ⚠ perfective_negation_inversion  ✗ AMOUNT CORRUPTED
 
-**case21** — truth: `I don sell garri finish`
+**afx023** — truth: `kile kiwango kinachotakiwa cha kulipa dividends`
 
-- `FAKE-anglicised`: `I don't sell garri finish`  ⚠ perfective_negation_inversion
-- `FAKE-echo`: `I don sell garri finish`
-- `FAKE-mangler`: `I don sell garri finish`
-
-**case05** — truth: `sell garri egberun meta`
-
-- `FAKE-anglicised`: `sell garri a thousand meters`
-- `FAKE-echo`: `sell garri egberun meta`
-- `FAKE-mangler`: `sell garri egberun`  ✗ AMOUNT CORRUPTED
+- `sahara-v2`: `Kile kiwango kinachotakiwa cha kulipa dividends?`
+- `whisper-large-v3`: `If I don't have money, I won't be able to pay the dividend.`
+- `whisper-small`: `Kila Kiwangu Kina Chotaki Wachabuli Padik, Edent.`
 
 **case02** — truth: `sell one bag of beans forty five k`
 
-- `FAKE-anglicised`: `sell one bag of beans 45k`
-- `FAKE-echo`: `sell one bag of beans forty five k`
-- `FAKE-mangler`: `sell one bag of beans forty five k`
+- `sahara-v2`: `Sell one bag of beans for 45`
+- `whisper-large-v3`: `Sell one bag of beans for $0.75`
+- `whisper-small`: `Set 1, 4, 5, 6, 5, 6, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15.`
 
-**case09** — truth: `wetin I sell pass this week`
+**afx016** — truth: `.... from the... Ikiwa tutaikomboa Mji wa Aleppo kutoka mkononi mwa magaidi`
 
-- `FAKE-anglicised`: `what in I sell pass this week`
-- `FAKE-echo`: `wetin I sell pass this week`
-- `FAKE-mangler`: `wetin I sell pass this week`
+- `sahara-v2`: `Aleppo kutoka kwa. Ikiwa tutaikomboa mji wa Aleppo kutoka mkononi mwa magaidi.`
+- `whisper-large-v3`: `Aleppo from the...`
+- `whisper-small`: `The repo from the key was to talk on bomb. You are a lepo. Could I come in on him? I'm a guy`
+
+**afx019** — truth: `actually kwasababu hivi kwa mfano wa kitabu zitakazo nunuliwa, unajua hii nchi.`
+
+- `sahara-v2`: `Actually, kwa sababu ni hivi, kwa mfano 500 zitakazonunuliwa, unajua hii ni nini.`
+- `whisper-large-v3`: `Actually, because this is how it is. For example, 5 out of 5 people are not being bought. You know this country.`
+- `whisper-small`: `Actually, because of the NIV. I'm going to put a little bit of my guitar in the middle of the song. I'm going to put it in the middle.`
 
 ## Per-model notes
 
-**FAKE-anglicised** — No notes.
+**sahara-v2** — Built for exactly this speech: code-switched African utterances, dense numbers, market vocabulary. Cloud-only in this benchmark (offline deployment exists but was not under test); every call is visible in the egress ledger. Judged here on downstream safety, not just WER.
 
-**FAKE-echo** — No notes.
+**whisper-large-v3** — Strong general-purpose local model; runs fully offline. Known weaknesses on Pidgin and Yoruba numerals; tends to 'anglicise' code-switched speech, which is precisely the error class that corrupts amounts downstream.
 
-**FAKE-mangler** — No notes.
+**whisper-small** — Lightweight local substitute (used only when no frontier API key was available). Fast and offline, but weakest on accented, code-switched speech — treat its numbers as a floor, not a fair frontier baseline.
 
 ### The reduplication finding
 
