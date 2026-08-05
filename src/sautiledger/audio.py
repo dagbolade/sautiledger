@@ -28,11 +28,14 @@ def to_wav16k(blob: bytes) -> tuple[bytes, float]:
         with av.open(io.BytesIO(blob)) as container:
             stream = container.streams.audio[0]
             resampler = av.AudioResampler(format="s16", layout="mono", rate=TARGET_RATE)
+            # to_ndarray() yields exactly frame.samples values; the raw plane
+            # buffer includes alignment padding, and copying it stretches the
+            # audio (~1.26x slowdown) into garbage for every ASR model
             for frame in container.decode(stream):
                 for out in resampler.resample(frame):
-                    chunks.append(bytes(out.planes[0]))
+                    chunks.append(out.to_ndarray().tobytes())
             for out in resampler.resample(None):
-                chunks.append(bytes(out.planes[0]))
+                chunks.append(out.to_ndarray().tobytes())
     except Exception as exc:
         raise AudioUnusable(f"undecodable audio ({type(exc).__name__}: {exc})") from exc
 

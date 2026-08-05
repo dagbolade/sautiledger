@@ -27,11 +27,13 @@ def convert_file(src: Path, dest: Path) -> None:
         stream = container.streams.audio[0]
         resampler = av.AudioResampler(format="s16", layout="mono", rate=TARGET_RATE)
         chunks: list[bytes] = []
+        # to_ndarray() yields exactly frame.samples values; the raw plane
+        # buffer includes alignment padding that stretches the audio
         for frame in container.decode(stream):
             for out in resampler.resample(frame):
-                chunks.append(bytes(out.planes[0]))
+                chunks.append(out.to_ndarray().tobytes())
         for out in resampler.resample(None):  # flush
-            chunks.append(bytes(out.planes[0]))
+            chunks.append(out.to_ndarray().tobytes())
     with wave.open(str(dest), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(2)
