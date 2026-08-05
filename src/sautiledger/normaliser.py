@@ -142,7 +142,7 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
     return None
 
 
-def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
+def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marked: bool = False):
     """Resolve a money token run against pack rules only.
 
     Returns {"amount": n} / {"amount_each": n, "amount": n} on success,
@@ -184,7 +184,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack):
     if amount is not None:
         if each:
             return _each_result(amount)
-        if quantity is not None and quantity >= 2 and len(toks) == 1:
+        if quantity is not None and quantity >= 2 and len(toks) == 1 and not total_marked:
             # v2 amendment 2 — flattened-distributive guard: ASR numeric
             # normalisation can collapse reduplication ("two two fifty" ->
             # "250") before the grammar sees it. A single bare numeral with
@@ -285,6 +285,28 @@ def _try_query(tokens: list[str], pack: Pack) -> ParseResult | None:
     return None
 
 
+def _try_interrogative(tokens: list[str], pack: Pack) -> ParseResult | None:
+    """Interrogative + sale trigger = a QUERY, never a transaction:
+    'how much groundnut I don sell today' asks the ledger, it does not
+    log a sale. Leftover content words become an item filter."""
+    if not any(_find(tokens, phrase) >= 0 for phrase in pack.interrogatives):
+        return None
+    period = _find_period(tokens, pack) or "today"
+    rest = list(tokens)
+    for phrase in (list(pack.interrogatives) + pack.sale_triggers
+                   + pack.expense_triggers + pack.log_triggers
+                   + list(pack.periods)):
+        rest = _remove_phrase(rest, phrase)
+    drop = pack.fillers | pack.currency_words | pack.connectives | pack.days
+    leftover = [t for t in rest if t not in drop and _num_value(t, pack) is None]
+    if leftover:
+        return ParseResult(
+            intent="query_ledger", query="item_total",
+            item=" ".join(leftover), period=period,
+        )
+    return ParseResult(intent="query_ledger", query="profit_or_sales_total", period=period)
+
+
 def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
     for trigger in pack.summary_triggers:
         if _find(tokens, trigger) >= 0:
@@ -346,15 +368,26 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
         j -= 1
     money_toks = tokens[j:]
     item_toks = tokens[:j]
+
+    # "groundnut 3 FOR 500": a price connective before the amount marks the
+    # figure as an explicit total (skip the distributive guard)
+    total_marked = False
+    while item_toks and item_toks[-1] in pack.price_connectives:
+        item_toks.pop()
+        total_marked = True
+
     if quantity is None and len(item_toks) >= 2:
         lead = _num_value(item_toks[0], pack)
+        trail = _num_value(item_toks[-1], pack)
         if lead is not None and 1 <= lead <= 99:
-            # v2 amendment 2 (quantity recovery): ASR can mangle the unit
-            # word ("2 pint of dairy") so unit matching fails and the
-            # numeral lands in item position — recover it as quantity so
-            # the flattened-distributive guard can see it.
+            # v2 quantity recovery, "N item" order: ASR can mangle the unit
+            # word ("2 pint of dairy") so the numeral lands in item position
             quantity = lead
             item_toks = item_toks[1:]
+        elif trail is not None and 1 <= trail <= 99:
+            # "item N" order: "groundnut 3 for 500" -> qty 3, item groundnut
+            quantity = trail
+            item_toks = item_toks[:-1]
     item = " ".join(item_toks) or None
 
     if not triggered and unit is None and not money_toks:
@@ -371,7 +404,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     if item is None and not money_toks and unit is None:
         return ParseResult(intent="clarify", question_about="missing_transaction_details")
 
-    m = parse_money(money_toks, quantity, pack)
+    m = parse_money(money_toks, quantity, pack, total_marked=total_marked)
     if m in (NO_MONEY, UNPARSEABLE):
         return ParseResult(intent="clarify", question_about="amount", **base)
     if "ambiguous" in m:
@@ -395,7 +428,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
 def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
     """Deterministic parse. None means the grammar has no reading at all."""
     tokens = tokenize(utterance)
-    for attempt in (_try_correction, _try_query, _try_summary, _try_transaction):
+    for attempt in (_try_correction, _try_query, _try_interrogative, _try_summary, _try_transaction):
         result = attempt(tokens, pack)
         if result is not None:
             return result

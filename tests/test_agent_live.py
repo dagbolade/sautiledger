@@ -100,6 +100,25 @@ def test_flattened_guard_resolves_total(agent):
     assert rows[0]["amount"] == 250 and rows[0]["amount_each"] is None
 
 
+# (c2) item-filtered query — asks the ledger, never logs
+def test_item_filtered_query(agent):
+    agent.handle("I sell groundnut 3 for 500")
+    assert len(_rows(agent)) == 1
+    reply = agent.handle("how much groundnut I don sell today")
+    assert "groundnut" in reply.lower() and "five hundred naira" in reply
+    assert len(_rows(agent)) == 1  # a question never writes
+
+
+# (c3) the no-echo rule: clarify questions never parrot the utterance
+def test_clarify_never_echoes_utterance(agent):
+    rambling = "I don sell the thing wey that woman carry come here yesterday evening"
+    reply = agent.handle(rambling)
+    assert "?" in reply
+    assert len(reply) < 90  # short fixed template
+    assert "woman carry come" not in reply  # no parroting
+    assert len(_rows(agent)) == 0
+
+
 # (d) chatter never mutates the ledger
 def test_chatter_leaves_ledger_unchanged(agent):
     agent.handle("I don sell three derica of rice five thousand five")

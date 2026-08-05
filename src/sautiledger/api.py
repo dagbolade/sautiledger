@@ -13,6 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .agent import Agent
 from .asr import FakeAsr, NotConfigured, SaharaCloudAsr
+from .audio import AudioUnusable, to_wav16k
 from .config import Settings, get_settings
 from .egress import EgressError, EgressRecorder
 from .ledger import Ledger
@@ -49,20 +50,40 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         audio: UploadFile | None = File(None),
     ):
         egress_before = recorder.total_bytes()
+
+        def friendly(reply: str, error: str) -> dict:
+            # spoken-style bubble instead of a raw error (the UI reads this aloud)
+            return {
+                "transcript": "",
+                "reply_text": reply,
+                "parse": None,
+                "error": error,
+                "egress_delta": recorder.total_bytes() - egress_before,
+                "egress_total": recorder.total_bytes(),
+            }
+
         transcript_text = (text or "").strip()
         if audio is not None:
             blob = await audio.read()
+            content_type = audio.content_type or "unknown"
+            if settings.mode == "cloud":
+                try:
+                    blob, duration = to_wav16k(blob)
+                except AudioUnusable as exc:
+                    print(f"audio rejected: {exc}; content_type={content_type} "
+                          f"bytes={len(blob)}", flush=True)
+                    return friendly("I no hear you well, abeg try again.", str(exc))
             try:
                 transcript_text = asr.transcribe(blob, language_hint=pack.name).text
             except EgressError as exc:
-                return JSONResponse(
-                    status_code=502,
-                    content={
-                        "error": str(exc),
-                        "egress_delta": recorder.total_bytes() - egress_before,
-                        "egress_total": recorder.total_bytes(),
-                    },
+                print(f"ASR send failed: {exc}; content_type={content_type} "
+                      f"bytes={len(blob)}", flush=True)
+                return friendly(
+                    "Network wahala — I no fit reach the cloud right now. Try again small time.",
+                    str(exc),
                 )
+            if not transcript_text:
+                return friendly("I no hear you well, abeg talk am again.", "empty transcript")
         if not transcript_text:
             return JSONResponse(status_code=400, content={"error": "no text or audio provided"})
 

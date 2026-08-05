@@ -12,13 +12,22 @@ talk exclusively to 127.0.0.1 (Ollama), which never leaves the device.)
 
 from __future__ import annotations
 
+import ssl
 import urllib.error
 import urllib.request
 import uuid
 from datetime import datetime
 from urllib.parse import urlsplit
 
+import certifi
+
 from .ledger import Ledger
+
+# Outbound TLS uses certifi's CA bundle explicitly — NEVER the process
+# default, which the inbound self-signed dev cert (phone mode) or stray
+# SSL_* env vars can contaminate (observed: CERTIFICATE_VERIFY_FAILED on
+# infer.voice.intron.io while serving https on the LAN).
+_OUTBOUND_TLS = ssl.create_default_context(cafile=certifi.where())
 
 
 class EgressError(RuntimeError):
@@ -36,7 +45,7 @@ class EgressRecorder:
         # the API's WAF rejects urllib's default Python-urllib user-agent
         headers = {"User-Agent": "SautiLedger/0.1", **headers}
         req = urllib.request.Request(url, data=data, headers=headers, method="POST")
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout, context=_OUTBOUND_TLS) as resp:
             return resp.status, resp.read()
 
     def post(

@@ -74,12 +74,13 @@ class SaharaCloudAsr:
 
     def transcribe(self, audio_bytes: bytes, language_hint: str | None = None) -> Transcript:
         language = LANGUAGE_CODES.get(language_hint or "", "en")
+        # audio.py transcodes every clip to 16kHz wav before it reaches here
         body, content_type = encode_multipart(
             fields={
-                "audio_file_name": "utterance.webm",
+                "audio_file_name": "utterance.wav",
                 "use_language_asr_input": language,
             },
-            files={"audio_file_blob": ("utterance.webm", audio_bytes, "audio/webm")},
+            files={"audio_file_blob": ("utterance.wav", audio_bytes, "audio/wav")},
         )
         status, resp = self.recorder.post(
             self.url,

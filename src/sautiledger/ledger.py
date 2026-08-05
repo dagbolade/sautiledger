@@ -116,6 +116,14 @@ class Ledger:
         ).fetchone()
         return row["n"], row["total"]
 
+    def item_total(self, item: str, period: str) -> tuple[int, int]:
+        row = self.conn.execute(
+            """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
+               FROM transactions WHERE type = 'sale' AND item = ? AND ts >= ?""",
+            (item, self._since(period)),
+        ).fetchone()
+        return row["n"], row["total"]
+
     def top_item(self, period: str) -> tuple[str, int] | None:
         row = self.conn.execute(
             """SELECT item, COALESCE(SUM(amount), 0) AS total

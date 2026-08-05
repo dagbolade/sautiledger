@@ -69,9 +69,16 @@ def log_transaction(ledger: Ledger, parse: ParseResult, raw_utterance: str) -> s
     return f"{verb}: {what}, {_money(parse.amount, parse.currency)}. Correct?"
 
 
-def query_ledger(ledger: Ledger, query: str, period: str | None, currency: str) -> str:
+def query_ledger(
+    ledger: Ledger, query: str, period: str | None, currency: str, item: str | None = None
+) -> str:
     period = period or "today"
     when = "this week" if period == "this_week" else period
+    if query == "item_total" and item:
+        n, total = ledger.item_total(item, period)
+        if n == 0:
+            return f"You never sell {item} {when}."
+        return f"{item.capitalize()}: {_money(total, currency)} from {n} sale{'s' if n != 1 else ''} {when}."
     if query == "top_item":
         top = ledger.top_item(period)
         if top is None:

@@ -42,7 +42,9 @@ class Agent:
                 return self._clarify_question(parse)
             return tools.log_transaction(self.ledger, parse, raw)
         if parse.intent == "query_ledger":
-            return tools.query_ledger(self.ledger, parse.query, parse.period, self.pack.currency)
+            return tools.query_ledger(
+                self.ledger, parse.query, parse.period, self.pack.currency, item=parse.item
+            )
         if parse.intent == "correct_last_entry":
             return tools.correct_last_entry(
                 self.ledger, parse.field, parse.new_value, parse.due, self.pack.currency
@@ -68,10 +70,13 @@ class Agent:
                 f"{tools.spoken_number(total['amount'])} total?"
             )
         if parse.question_about == "amount":
-            if parse.item:
+            # NO-ECHO RULE: never rebuild the user's utterance inside our own
+            # question — a mangled parse would parrot garbage back. Only a
+            # short, clean item name may be mentioned; otherwise fixed template.
+            if parse.item and len(parse.item.split()) <= 3:
                 verb = "pay for" if parse.type == "expense" else "sell"
                 return f"How much you {verb} the {parse.item}?"
-            return "How much for that one?"
+            return "How much you sell am?"
         return "Wetin you want make I log? Tell me the item and the amount, abeg."
 
     # ------------------------------------------------------------ clarify flow

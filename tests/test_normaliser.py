@@ -110,6 +110,34 @@ def test_multiword_money_not_guarded(packs):
     assert result.intent == "log_transaction" and result.amount == 3000
 
 
+def test_item_then_quantity_order(packs):
+    """'groundnut 3 for 500' — qty follows item; 'for' marks the total."""
+    result = normalise("I sell groundnut 3 for 500", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "log_transaction"
+    assert result.item == "groundnut" and result.quantity == 3 and result.amount == 500
+
+
+def test_quantity_then_item_order(packs):
+    result = normalise("I sell 3 groundnut for 500", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "log_transaction"
+    assert result.item == "groundnut" and result.quantity == 3 and result.amount == 500
+
+
+def test_for_marks_total_and_skips_guard(packs):
+    """qty>=2 + bare numeral normally asks each-or-total; 'for' answers it."""
+    result = normalise("I sell groundnut 3 for 500", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "log_transaction" and result.candidates is None
+
+
+def test_interrogative_beats_log_intent(packs):
+    """'how much groundnut I don sell today' is a QUERY, never a sale."""
+    result = normalise("how much groundnut I don sell today", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "query_ledger"
+    assert result.query == "item_total"
+    assert result.item == "groundnut"
+    assert result.period == "today"
+
+
 def test_clarify_cases_never_carry_an_amount(packs):
     """Cases 4, 6, 20 must clarify — and must not smuggle a guessed amount."""
     for case in SPEC["cases"]:

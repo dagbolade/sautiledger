@@ -36,6 +36,10 @@ class Pack:
     reduplication_distributive: bool = False
     # v2: accept "5k 5" as the digit twin of spoken "five thousand five"
     digit_twin_thousands: bool = False
+    # "3 FOR 500" — connective marking the following figure as a total
+    price_connectives: frozenset[str] = frozenset()
+    # question markers: interrogative + sale trigger = query, not transaction
+    interrogatives: list[str] = field(default_factory=list)
 
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
@@ -68,4 +72,6 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         days=frozenset(raw.get("days") or []),
         reduplication_distributive=bool(raw.get("reduplication_distributive", False)),
         digit_twin_thousands=bool(raw.get("digit_twin_thousands", False)),
+        price_connectives=frozenset(raw.get("price_connectives") or []),
+        interrogatives=list(raw.get("interrogatives") or []),
     )

@@ -12,10 +12,11 @@ SRC = Path(__file__).resolve().parents[1] / "src" / "sautiledger"
 # No third-party HTTP client anywhere — egress.py itself uses urllib.
 BANNED_EVERYWHERE = {"requests", "httpx", "aiohttp", "urllib3", "websockets"}
 
-# Stdlib network modules: only in the egress wrapper and the two modules
-# that talk exclusively to localhost Ollama (never egress).
+# Stdlib network modules: only in the egress wrapper, the localhost-Ollama
+# module, and phone.py (INBOUND serving + LAN-IP detection via a UDP
+# socket that never transmits — it hosts, it does not egress).
 NETWORK_MODULES = {"urllib", "http", "socket", "ftplib", "smtplib"}
-NETWORK_ALLOWLIST = {"egress.py", "llm_fallback.py"}
+NETWORK_ALLOWLIST = {"egress.py", "llm_fallback.py", "phone.py"}
 
 
 def _imported_roots(path: Path) -> set[str]:

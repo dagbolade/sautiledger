@@ -17,6 +17,12 @@ reduplication_distributive: true
 # Sahara's numeric normalisation emits this form
 digit_twin_thousands: true
 
+# "groundnut 3 FOR 500" — the connective marks 500 as an explicit total
+price_connectives: [for, at]
+
+# interrogative + sale trigger = query ("how much groundnut I don sell today")
+interrogatives: [how much, how many, wetin]
+
 numbers:
   one: 1
   two: 2
