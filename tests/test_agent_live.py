@@ -119,6 +119,25 @@ def test_clarify_never_echoes_utterance(agent):
     assert len(_rows(agent)) == 0
 
 
+# (e) mangled narrated speech through the widened LLM fallback:
+# the iron rule is NO WRONG AMOUNT, whatever the 3B decides
+def test_mangled_narration_with_literal_amount(agent):
+    agent.handle("customer come buy three packet indomie she pay 700 naira for everything")
+    rows = _rows(agent)
+    assert len(rows) <= 1
+    if rows:  # if the fallback completed the parse, the amount must be literal
+        assert rows[0]["amount"] in (700, 2100)  # 700 total or 700 x 3
+    # and never anything else — no invented figures
+    for row in rows:
+        assert row["amount"] != 500 and row["amount"] != 7000
+
+
+def test_mangled_narration_without_amount_always_clarifies(agent):
+    reply = agent.handle("customer come buy the thing wey she like for that her shop")
+    assert "?" in reply and len(reply) < 90
+    assert len(_rows(agent)) == 0  # no number in the words -> nothing written
+
+
 # (d) chatter never mutates the ledger
 def test_chatter_leaves_ledger_unchanged(agent):
     agent.handle("I don sell three derica of rice five thousand five")

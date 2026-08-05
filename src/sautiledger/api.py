@@ -96,6 +96,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "egress_total": recorder.total_bytes(),
         }
 
+    @app.post("/void/{txn_id}")
+    def void(txn_id: int):
+        row = ledger.void_transaction(txn_id)
+        if row is None:
+            return JSONResponse(status_code=404, content={"error": "no such entry"})
+        return {"ok": True, "voided": txn_id}
+
     @app.get("/state")
     def state():
         entries = [dict(row) for row in ledger.entries("today")]

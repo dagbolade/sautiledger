@@ -73,6 +73,11 @@
     font-size: 0.95rem; border-top: 1px solid #1c2946;
   }
   #entries li .amt { font-variant-numeric: tabular-nums; }
+  #entries li .del {
+    background: none; border: none; color: var(--muted);
+    margin-left: 8px; cursor: pointer; font-size: 0.85rem; padding: 0 2px;
+  }
+  #entries li .del:hover { color: var(--warn); }
   #entries li.expense .amt { color: var(--warn); }
   #entries li .credit { font-size: 0.7rem; color: var(--warn); }
 

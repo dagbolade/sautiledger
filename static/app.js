@@ -43,16 +43,27 @@ function renderLedger(entries, salesTotal) {
   $("total").textContent = currency + (salesTotal || 0).toLocaleString();
   const list = $("entries");
   list.innerHTML = "";
-  (entries || []).slice().reverse().forEach((e) => {
-    const li = document.createElement("li");
-    if (e.type === "expense") li.className = "expense";
-    const what = [e.quantity, e.unit, e.item].filter(Boolean).join(" ") || e.item || "entry";
-    const credit = e.payment_status === "credit"
-      ? ` <span class="credit">CREDIT${e.due ? " · due " + e.due : ""}</span>` : "";
-    const sign = e.type === "expense" ? "-" : "";
-    li.innerHTML = `<span>${what}${credit}</span>` +
-      `<span class="amt">${sign}${currency}${(e.amount || 0).toLocaleString()}</span>`;
-    list.appendChild(li);
+  (entries || []).filter((e) => e.payment_status !== "voided")
+    .slice().reverse().forEach((e) => {
+      const li = document.createElement("li");
+      if (e.type === "expense") li.className = "expense";
+      let what = e.item || "entry";
+      if (e.quantity && e.unit) what += ` — ${e.quantity} ${e.unit}`;
+      else if (e.quantity) what += ` ×${e.quantity}`;
+      const credit = e.payment_status === "credit"
+        ? ` <span class="credit">CREDIT${e.due ? " · due " + e.due : ""}</span>` : "";
+      const sign = e.type === "expense" ? "-" : "";
+      li.innerHTML = `<span>${what}${credit}</span>` +
+        `<span class="amt">${sign}${currency}${(e.amount || 0).toLocaleString()}` +
+        `<button class="del" data-id="${e.id}" title="void this entry">✕</button></span>`;
+      list.appendChild(li);
+    });
+  list.querySelectorAll(".del").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      // soft delete: the row is marked voided in the DB, never silently erased
+      await fetch(`/void/${btn.dataset.id}`, { method: "POST" });
+      refreshState();
+    });
   });
 }
 

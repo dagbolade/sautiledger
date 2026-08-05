@@ -113,6 +113,29 @@ Report renders to `bench/results/REPORT.md` with the manifest hash frozen
 before the first run. Sahara's failures, if any, are reported unedited —
 the claim under test is downstream safety, not raw perfection.
 
+## Changelog: post-benchmark product iterations
+
+The benchmark (bench/results/REPORT.md) was frozen FIRST; these product
+improvements came after measurement, from live phone testing — the
+right order, and the numbers were not re-scored:
+
+- **Narrated third-person sales**: "Blessing come my shop come buy
+  biscuits for 50 naira" parses (narration prefix discarded — ASR
+  mangles names); a narrated sale with the money tail lost by ASR asks
+  the amount question a fellow trader would ask, not a generic prompt.
+- **Widened LLM fallback**: long utterances (>6 words) with a sale
+  signal the grammar can't complete get one local-3B structured-
+  extraction attempt — same iron rule: an amount must be literally
+  present in the transcript or it becomes a clarify.
+- **Conversational confirmation**: "yes, and then…" confirms and
+  processes the rest in one breath; bare "no" opens the correction flow.
+- **Ledger row polish + void**: clean "item ×qty" display and a ✕ per
+  row — deletion is a soft void (row persists in the DB marked voided,
+  logged, never silent).
+
+See [ROADMAP.md](ROADMAP.md) for what was found and deliberately not
+built during the freeze.
+
 ## Honest limitations
 
 - **Small grammar, by design.** The normaliser covers transaction speech,

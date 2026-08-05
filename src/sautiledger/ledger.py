@@ -87,9 +87,25 @@ class Ledger:
 
     # ------------------------------------------------------------ reads
 
+    def void_transaction(self, txn_id: int) -> sqlite3.Row | None:
+        """Soft delete: the row stays in the DB marked 'voided' (auditable,
+        never silent) and drops out of every total and the UI list."""
+        row = self.conn.execute(
+            "SELECT * FROM transactions WHERE id = ?", (txn_id,)
+        ).fetchone()
+        if row is None:
+            return None
+        self.conn.execute(
+            "UPDATE transactions SET payment_status = 'voided' WHERE id = ?", (txn_id,)
+        )
+        self.conn.commit()
+        print(f"voided txn #{txn_id}: {row['item']} {row['amount']}", flush=True)
+        return row
+
     def last_transaction(self) -> sqlite3.Row | None:
         return self.conn.execute(
-            "SELECT * FROM transactions ORDER BY id DESC LIMIT 1"
+            "SELECT * FROM transactions WHERE payment_status != 'voided' "
+            "ORDER BY id DESC LIMIT 1"
         ).fetchone()
 
     def _since(self, period: str) -> str:
@@ -103,7 +119,7 @@ class Ledger:
     def sales_total(self, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'sale' AND ts >= ?""",
+               FROM transactions WHERE type = 'sale' AND payment_status != 'voided' AND ts >= ?""",
             (self._since(period),),
         ).fetchone()
         return row["n"], row["total"]
@@ -111,7 +127,7 @@ class Ledger:
     def expenses_total(self, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'expense' AND ts >= ?""",
+               FROM transactions WHERE type = 'expense' AND payment_status != 'voided' AND ts >= ?""",
             (self._since(period),),
         ).fetchone()
         return row["n"], row["total"]
@@ -119,7 +135,7 @@ class Ledger:
     def item_total(self, item: str, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'sale' AND item = ? AND ts >= ?""",
+               FROM transactions WHERE type = 'sale' AND payment_status != 'voided' AND item = ? AND ts >= ?""",
             (item, self._since(period)),
         ).fetchone()
         return row["n"], row["total"]
@@ -128,7 +144,7 @@ class Ledger:
         row = self.conn.execute(
             """SELECT item, COALESCE(SUM(amount), 0) AS total
                FROM transactions
-               WHERE type = 'sale' AND item IS NOT NULL AND ts >= ?
+               WHERE type = 'sale' AND payment_status != 'voided' AND item IS NOT NULL AND ts >= ?
                GROUP BY item ORDER BY total DESC LIMIT 1""",
             (self._since(period),),
         ).fetchone()

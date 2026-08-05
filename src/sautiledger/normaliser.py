@@ -142,6 +142,16 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
     return None
 
 
+def _small_single_value(toks: list[str], pack: Pack) -> int | None:
+    """A lone figure under 100 ('biscuits FOR 50 naira'): only money when a
+    price connective vouched for it (total_marked callers only)."""
+    if len(toks) == 1:
+        v = _num_value(toks[0], pack)
+        if v is not None and 0 < v < 100:
+            return v
+    return None
+
+
 def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marked: bool = False):
     """Resolve a money token run against pack rules only.
 
@@ -181,6 +191,9 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
                 return _each_result(inner)
 
     amount = _money_value(toks, pack)
+    if amount is None and total_marked:
+        # "for 50 naira": the connective marks even a small figure as money
+        amount = _small_single_value(toks, pack)
     if amount is not None:
         if each:
             return _each_result(amount)
@@ -318,25 +331,27 @@ def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
 
 
 def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
+    def consume_trigger(toks: list[str], phrases: list[str]) -> tuple[list[str], bool]:
+        for phrase in phrases:
+            i = _find(toks, phrase)
+            if i >= 0:
+                # everything BEFORE the trigger is narration ("Blessing come
+                # my shop come buy…") — names get ASR-mangled, so the prefix
+                # is discarded rather than parsed
+                return toks[i + len(phrase.split()):], True
+        return toks, False
+
     ttype: str | None = None
-    triggered = False
-    for phrase in pack.expense_triggers:
-        if _find(tokens, phrase) >= 0:
-            ttype, triggered = "expense", True
-            tokens = _remove_phrase(tokens, phrase)
-            break
-    if ttype is None:
-        for phrase in pack.sale_triggers:
-            if _find(tokens, phrase) >= 0:
-                ttype, triggered = "sale", True
-                tokens = _remove_phrase(tokens, phrase)
-                break
-    if ttype is None:
-        for phrase in pack.log_triggers:
-            if _find(tokens, phrase) >= 0:
-                triggered = True  # generic "log" — default type is sale
-                tokens = _remove_phrase(tokens, phrase)
-                break
+    tokens, triggered = consume_trigger(tokens, pack.expense_triggers)
+    if triggered:
+        ttype = "expense"
+    else:
+        tokens, triggered = consume_trigger(tokens, pack.sale_triggers)
+        if triggered:
+            ttype = "sale"
+        else:
+            tokens, triggered = consume_trigger(tokens, pack.log_triggers)
+            # generic "log" — default type is sale
 
     drop = pack.fillers | pack.currency_words | pack.connectives
     tokens = [t for t in tokens if t not in drop]
@@ -412,8 +427,12 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             intent="clarify", question_about="amount", candidates=m["ambiguous"], **base
         )
     if item is None:
-        # An amount with nothing it belongs to is not a loggable entry.
-        return ParseResult(intent="clarify", question_about="missing_transaction_details", **base)
+        # An amount with nothing it belongs to is not loggable — but there IS
+        # a transaction signal, so ask about the item, not the generic prompt.
+        return ParseResult(
+            intent="clarify", question_about="item",
+            amount=m.get("amount"), amount_each=m.get("amount_each"), **base,
+        )
     return ParseResult(
         intent="log_transaction",
         amount=m.get("amount"),
@@ -436,10 +455,24 @@ def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
 
 
 def normalise(utterance: str, pack: Pack, llm=None) -> ParseResult:
-    """Grammar first; LLM fallback only when the grammar returns None
-    (CLAUDE.md rule 4). The final fallback is a clarify, never a guess."""
+    """Grammar first; LLM fallback only when the grammar returns None —
+    or, for LONG utterances with a transaction signal the grammar could
+    not complete, as a second reading (CLAUDE.md rule 4; the sanitiser in
+    llm_fallback.py still forbids any amount not literally present).
+    The final fallback is a clarify, never a guess."""
     result = grammar_parse(utterance, pack)
     if result is not None:
+        if llm is not None and result.intent == "clarify" and result.question_about == "amount":
+            tokens = tokenize(utterance)
+            # Widened fallback for narrated speech: >6 words, no deliberate
+            # hard-money refusal in play. Never fires on the frozen clarify
+            # cases (6: hard words; 20/21: short / different question).
+            if len(tokens) > 6 and not any(t in pack.hard_money_words for t in tokens):
+                from .llm_fallback import llm_parse
+
+                llm_result = llm_parse(utterance, pack, llm)
+                if llm_result is not None and llm_result.intent == "log_transaction":
+                    return llm_result
         return result
     if llm is not None:
         from .llm_fallback import llm_parse  # local import avoids a cycle

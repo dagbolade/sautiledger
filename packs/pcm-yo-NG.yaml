@@ -67,8 +67,12 @@ units:
   kg: kg
   kilo: kg
 
-sale_triggers: [don sell, customer take, customer buy, sold, sell]
-expense_triggers: [i buy, bought, buy]
+# narrated third-person sales ("Blessing come my shop come buy biscuits"):
+# anything BEFORE the matched trigger is narration (names get ASR-mangled,
+# never require recognising them). Bare "buy" is a SALE unless first-person
+# ("i buy" = expense, checked first).
+sale_triggers: [don sell, customer take, customer buy, come buy, buy am, sold, sell, carry, take, buy]
+expense_triggers: [i buy, i don buy, bought]
 log_triggers: [log am, log]
 
 queries:

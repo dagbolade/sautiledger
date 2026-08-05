@@ -127,6 +127,56 @@ def test_agent_refuses_amountless_log(agent):
     assert agent.ledger.last_transaction() is None
 
 
+def test_confirmation_yes_with_new_content(agent):
+    """'yes, and then …' — confirm and process the rest in one breath."""
+    agent.handle("I don sell three derica of rice five thousand five")
+    reply = agent.handle("yes and I sell garri egberun meta")
+    assert "three thousand naira" in reply
+    assert len(_rows(agent)) == 2
+
+
+def test_confirmation_bare_yes(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    reply = agent.handle("yes")
+    assert "Noted" in reply
+    assert len(_rows(agent)) == 1
+
+
+def test_confirmation_bare_no_prompts_correction(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    reply = agent.handle("no")
+    assert "wrong" in reply.lower()
+    assert agent.ledger.last_transaction()["amount"] == 5500  # nothing changed yet
+
+
+def test_correction_outranks_confirmation_stripping(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    agent.handle("no no na five k not five thousand five")
+    assert agent.ledger.last_transaction()["amount"] == 5000
+
+
+def test_narrated_amountless_then_answer(agent):
+    reply = agent.handle("Blessing come my shop come buy biscuits")
+    assert reply == "How much you sell the biscuits?"
+    assert len(_rows(agent)) == 0
+    agent.handle("50 naira")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "biscuits" and row["amount"] == 50
+
+
+def test_void_transaction(agent):
+    agent.handle("I don sell three derica of rice five thousand five")
+    txn_id = agent.ledger.last_transaction()["id"]
+    agent.ledger.void_transaction(txn_id)
+    assert agent.ledger.last_transaction() is None  # voided rows invisible
+    assert agent.ledger.sales_total("today") == (0, 0)
+    # but never silently erased: the row persists, marked voided
+    raw = agent.ledger.conn.execute(
+        "SELECT payment_status FROM transactions WHERE id = ?", (txn_id,)
+    ).fetchone()
+    assert raw["payment_status"] == "voided"
+
+
 def test_amount_clarify_then_answer(agent):
     """Case-6-style flow: unparseable Yoruba money -> ask -> answer -> log."""
     reply = agent.handle("oya log am one congo of crayfish egbeje o din owo")

@@ -138,6 +138,46 @@ def test_interrogative_beats_log_intent(packs):
     assert result.period == "today"
 
 
+class _NarratedSales:
+    """Post-benchmark product iteration: third-person narrated sales."""
+
+
+def test_narrated_sale_with_name_prefix(packs):
+    result = normalise(
+        "Blessing come my shop come buy biscuits for 50 naira", packs["pcm-yo-NG"], llm=RaisingLlm()
+    )
+    assert result.intent == "log_transaction"
+    assert result.type == "sale" and result.item == "biscuits" and result.amount == 50
+
+
+def test_narrated_bare_buy_is_a_sale(packs):
+    result = normalise("customer buy garri two hundred", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "log_transaction"
+    assert result.type == "sale" and result.item == "garri" and result.amount == 200
+
+
+def test_first_person_buy_stays_expense(packs):
+    result = normalise("I buy fuel ten thousand naira", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.type == "expense" and result.amount == 10000
+
+
+def test_narrated_sale_without_amount_asks_amount_not_generic(packs):
+    """ASR often eats the money tail — the question must be the amount
+    clarify, never 'wetin you want make I log?'."""
+    result = normalise(
+        "Blessing come my shop come buy biscuits", packs["pcm-yo-NG"], llm=RaisingLlm()
+    )
+    assert result.intent == "clarify"
+    assert result.question_about == "amount"
+    assert result.item == "biscuits"
+
+
+def test_carry_narration(packs):
+    result = normalise("she carry two bag", packs["pcm-yo-NG"], llm=RaisingLlm())
+    assert result.intent == "clarify" and result.question_about == "amount"
+    assert result.quantity == 2 and result.unit == "bag"
+
+
 def test_clarify_cases_never_carry_an_amount(packs):
     """Cases 4, 6, 20 must clarify — and must not smuggle a guessed amount."""
     for case in SPEC["cases"]:
