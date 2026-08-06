@@ -27,6 +27,7 @@ class Settings:
     db_path: str
     mode: str  # "cloud" | "offline"
     sahara_api_key: str | None
+    asr_path: str = "sync"  # "sync" | "async" (async: upload + poll)
 
 
 def get_settings() -> Settings:
@@ -38,4 +39,5 @@ def get_settings() -> Settings:
         db_path=os.environ.get("SAUTI_DB", "data/ledger.db"),
         mode=mode,
         sahara_api_key=key,
+        asr_path=os.environ.get("SAUTI_ASR", "sync"),
     )

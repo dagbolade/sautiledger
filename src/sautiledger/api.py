@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .agent import Agent
-from .asr import FakeAsr, NotConfigured, SaharaCloudAsr
+from .asr import FakeAsr, NotConfigured, SaharaAsyncAsr, SaharaCloudAsr
 from .audio import AudioUnusable, to_wav16k
 from .config import Settings, get_settings
 from .egress import EgressError, EgressRecorder
@@ -31,7 +31,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     agent = Agent(pack, ledger, ollama_if_available())
 
     if settings.mode == "cloud":
-        asr = SaharaCloudAsr(recorder, settings.sahara_api_key)
+        if settings.asr_path == "async":
+            asr = SaharaAsyncAsr(recorder, settings.sahara_api_key)
+        else:
+            asr = SaharaCloudAsr(recorder, settings.sahara_api_key)
     else:
         # Offline: FakeAsr stands in until the on-device engine lands —
         # nothing touches the network in this mode.

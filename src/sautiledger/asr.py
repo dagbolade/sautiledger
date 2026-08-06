@@ -97,6 +97,66 @@ class SaharaCloudAsr:
         )
 
 
+class SaharaAsyncAsr:
+    """Alternate cloud path: async upload then poll for the result.
+    Same egress rules — the upload is logged with its byte count, and
+    every result-check GET is logged at zero bytes. Selected with
+    SAUTI_ASR=async (used while the sync endpoint is degraded)."""
+
+    UPLOAD_URL = "https://infer.voice.intron.io/file/v1/upload"
+    STATUS_URL = "https://infer.voice.intron.io/file/v1/status/{file_id}"
+
+    def __init__(self, recorder: EgressRecorder, api_key: str | None,
+                 poll_interval: float = 2.5, timeout: float = 90.0):
+        if not api_key:
+            raise NotConfigured("SAHARA_API_KEY is not set")
+        self.recorder = recorder
+        self.api_key = api_key
+        self.poll_interval = poll_interval
+        self.timeout = timeout
+
+    def transcribe(self, audio_bytes: bytes, language_hint: str | None = None) -> Transcript:
+        import time
+
+        language = LANGUAGE_CODES.get(language_hint or "", "en")
+        body, content_type = encode_multipart(
+            fields={
+                "audio_file_name": "utterance.wav",
+                "use_language_asr_input": language,
+            },
+            files={"audio_file_blob": ("utterance.wav", audio_bytes, "audio/wav")},
+        )
+        auth = {"Authorization": f"Bearer {self.api_key}"}
+        _status, resp = self.recorder.post(
+            self.UPLOAD_URL,
+            purpose="your voice clip, sent for transcription",
+            data=body,
+            headers={**auth, "Content-Type": content_type},
+        )
+        file_id = (json.loads(resp).get("data") or {}).get("file_id")
+        if not file_id:
+            return Transcript(text="", language_hint=language_hint)
+
+        deadline = time.monotonic() + self.timeout
+        while time.monotonic() < deadline:
+            time.sleep(self.poll_interval)
+            _status, resp = self.recorder.get(
+                self.STATUS_URL.format(file_id=file_id),
+                purpose="checking transcription result (no audio sent)",
+                headers=auth,
+            )
+            data = json.loads(resp).get("data") or {}
+            state = data.get("processing_status")
+            if state == "FILE_TRANSCRIBED":
+                return Transcript(
+                    text=(data.get("audio_transcript") or "").strip(),
+                    language_hint=language_hint,
+                )
+            if state == "FILE_PROCESSING_FAILED":
+                break
+        return Transcript(text="", language_hint=language_hint)
+
+
 class SaharaOfflineAsr:
     """Swap point for Sahara's on-device deployment: drop the local
     engine in here — transcribe() keeps the same signature, call sites

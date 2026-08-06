@@ -41,10 +41,11 @@ class EgressRecorder:
         self._open = opener or self._urllib_open
 
     @staticmethod
-    def _urllib_open(url: str, data: bytes, headers: dict, timeout: float):
+    def _urllib_open(url: str, data: bytes | None, headers: dict, timeout: float,
+                     method: str = "POST"):
         # the API's WAF rejects urllib's default Python-urllib user-agent
         headers = {"User-Agent": "SautiLedger/0.1", **headers}
-        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+        req = urllib.request.Request(url, data=data, headers=headers, method=method)
         with urllib.request.urlopen(req, timeout=timeout, context=_OUTBOUND_TLS) as resp:
             return resp.status, resp.read()
 
@@ -71,6 +72,29 @@ class EgressRecorder:
                     len(data),
                     disposition,
                 ),
+            )
+            self.ledger.conn.commit()
+
+    def get(self, url: str, *, purpose: str, headers: dict, timeout: float = 30
+            ) -> tuple[int, bytes]:
+        """Logged GET (result polling). No payload leaves the device, but a
+        request is a transmission — it appears in the egress ledger with
+        zero bytes sent."""
+        destination = urlsplit(url).netloc
+        disposition = "unknown"
+        try:
+            status, body = self._open(url, None, headers, timeout, "GET")
+            disposition = f"result check (HTTP {status}); no data sent"
+            return status, body
+        except Exception as exc:
+            disposition = f"result check failed ({type(exc).__name__})"
+            raise EgressError(f"transmission to {destination} failed: {exc}") from exc
+        finally:
+            self.ledger.conn.execute(
+                """INSERT INTO egress_log (ts, destination, purpose, bytes_sent, disposition)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (datetime.now().isoformat(timespec="seconds"),
+                 destination, purpose, 0, disposition),
             )
             self.ledger.conn.commit()
 
