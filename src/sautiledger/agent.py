@@ -37,6 +37,15 @@ def _strip_leading(toks: list[str], words: set[str], phrases: list[list[str]]):
     return toks, False
 
 
+def _strip_copula(toks: list[str]) -> list[str]:
+    """After a rejection, 'na …' introduces the restatement ('no, na 2
+    biscuits for 350') — drop the copula so it never pollutes the parse.
+    'na so' / 'na him' are affirmations, not copulas: leave those."""
+    if len(toks) >= 2 and toks[0] == "na" and toks[1] not in ("so", "him"):
+        return toks[1:]
+    return toks
+
+
 class Agent:
     def __init__(self, pack: Pack, ledger: Ledger, llm=None):
         self.pack = pack
@@ -74,6 +83,7 @@ class Agent:
         rest, rejected = _strip_leading(toks, _NO_WORDS, _NO_PHRASES)
         if rejected:
             self._void_last_logged()
+            rest = _strip_copula(rest)
             if not rest:
                 return "I don remove am. Wetin I write wrong? Talk am again."
             return self.handle(" ".join(rest))  # remainder is the replacement
@@ -184,9 +194,12 @@ class Agent:
                     replace(pending, intent="log_transaction", question_about=None), text
                 )
             rest, rejected = _strip_leading(lowered, _NO_WORDS, _NO_PHRASES)
-            if rejected and not rest:
+            if rejected:
                 self.pending = None  # nothing was written
-                return "Oya talk am again make I hear well."
+                rest = _strip_copula(rest)
+                if not rest:
+                    return "Oya talk am again make I hear well."
+                return self.handle(" ".join(rest))  # rejection + restatement
             return None  # they restated instead — parse it fresh
 
         if pending.candidates:

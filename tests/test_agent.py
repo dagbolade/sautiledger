@@ -218,6 +218,25 @@ def test_void_transaction(agent):
     assert raw["payment_status"] == "voided"
 
 
+def test_amount_for_quantity_order(agent):
+    """Lagos-prep regression: 'biscuits 350 for 2' = ₦350 for 2 pieces."""
+    reply = agent.handle("i sell biscuits 350 for 2")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "biscuits" and row["quantity"] == 2 and row["amount"] == 350
+    assert "three hundred fifty naira" in reply
+
+
+def test_item_confirm_rejection_with_restatement(agent):
+    """Lagos-prep regression: 'no, na 2 biscuits for 350 naira' must strip
+    the negation AND the copula, then log the restatement cleanly."""
+    agent.handle("customer buy combined space for 300")  # -> item confirm
+    assert len(_rows(agent)) == 0
+    reply = agent.handle("no, na 2 biscuits for 350 naira")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "biscuits" and row["quantity"] == 2 and row["amount"] == 350
+    assert "no na" not in reply
+
+
 def test_amount_clarify_then_answer(agent):
     """Case-6-style flow: unparseable Yoruba money -> ask -> answer -> log."""
     reply = agent.handle("oya log am one congo of crayfish egbeje o din owo")

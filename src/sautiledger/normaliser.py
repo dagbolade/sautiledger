@@ -410,6 +410,16 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             # "item N" order: "groundnut 3 for 500" -> qty 3, item groundnut
             quantity = trail
             item_toks = item_toks[:-1]
+
+    if total_marked and quantity is None and len(money_toks) == 1 and item_toks:
+        # amount-for-quantity order: "biscuits 350 for 2" = ₦350 for 2 —
+        # a count-sized figure after the connective with a money-sized
+        # figure before it means the sides are swapped
+        small = _num_value(money_toks[0], pack)
+        big = _num_value(item_toks[-1], pack)
+        if small is not None and 1 <= small <= 99 and big is not None and big >= 100:
+            quantity = small
+            money_toks = [item_toks.pop()]
     item = " ".join(item_toks) or None
 
     if not triggered and unit is None and not money_toks:
