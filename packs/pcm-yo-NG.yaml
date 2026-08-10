@@ -17,8 +17,9 @@ reduplication_distributive: true
 # Sahara's numeric normalisation emits this form
 digit_twin_thousands: true
 
-# "groundnut 3 FOR 500" — the connective marks 500 as an explicit total
-price_connectives: [for, at]
+# "groundnut 3 FOR 500" — the connective marks 500 as an explicit total;
+# "fun" is the Yoruba equivalent ("mo taa ede FUN 300")
+price_connectives: [for, at, fun]
 
 # multi-word item names known to the language — exempt from the
 # unknown-item confirmation guard
@@ -94,8 +95,10 @@ units:
 # anything BEFORE the matched trigger is narration (names get ASR-mangled,
 # never require recognising them). Bare "buy" is a SALE unless first-person
 # ("i buy" = expense, checked first).
-sale_triggers: [don sell, customer take, customer buy, come buy, buy am, sold, sell, carry, take, buy]
-expense_triggers: [i buy, i don buy, bought]
+# "mo taa" / "mo ta" — Yoruba first-person "I sold"
+sale_triggers: [don sell, customer take, customer buy, come buy, buy am, mo taa, mo ta, sold, sell, carry, take, buy]
+# "mo ra" — Yoruba first-person "I bought"
+expense_triggers: [i buy, i don buy, mo ra, bought]
 log_triggers: [log am, log]
 
 queries:

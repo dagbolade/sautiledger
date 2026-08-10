@@ -255,6 +255,20 @@ def test_carton_market_unit(agent):
     assert "2 carton of indomie" in reply
 
 
+def test_yoruba_first_person_sale(agent):
+    """Lagos-prep regression: 'mo taa ede fun 300' = I sold shrimp for 300."""
+    reply = agent.handle("mo taa ede fun 300")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "ede" and row["amount"] == 300 and row["type"] == "sale"
+    assert "three hundred naira" in reply
+
+
+def test_yoruba_first_person_expense(agent):
+    agent.handle("mo ra epo fun 500")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "epo" and row["amount"] == 500 and row["type"] == "expense"
+
+
 def test_amount_clarify_then_answer(agent):
     """Case-6-style flow: unparseable Yoruba money -> ask -> answer -> log."""
     reply = agent.handle("oya log am one congo of crayfish egbeje o din owo")
