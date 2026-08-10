@@ -237,6 +237,15 @@ def test_item_confirm_rejection_with_restatement(agent):
     assert "no na" not in reply
 
 
+def test_carton_market_unit(agent):
+    """Lagos-prep regression: 'carton' must be a known unit, not item debris."""
+    reply = agent.handle("i sell 2 carton of indomie for 25000 naira")
+    row = agent.ledger.last_transaction()
+    assert row["item"] == "indomie" and row["quantity"] == 2 and row["unit"] == "carton"
+    assert row["amount"] == 25000
+    assert "2 carton of indomie" in reply
+
+
 def test_amount_clarify_then_answer(agent):
     """Case-6-style flow: unparseable Yoruba money -> ask -> answer -> log."""
     reply = agent.handle("oya log am one congo of crayfish egbeje o din owo")

@@ -70,6 +70,25 @@ units:
   bags: bag
   kg: kg
   kilo: kg
+  carton: carton
+  cartons: carton
+  crate: crate
+  crates: crate
+  packet: packet
+  packets: packet
+  sachet: sachet
+  sachets: sachet
+  tin: tin
+  tins: tin
+  bottle: bottle
+  bottles: bottle
+  basket: basket
+  baskets: basket
+  cup: cup
+  cups: cup
+  dozen: dozen
+  tuber: tuber
+  tubers: tuber
 
 # narrated third-person sales ("Blessing come my shop come buy biscuits"):
 # anything BEFORE the matched trigger is narration (names get ASR-mangled,
