@@ -103,10 +103,20 @@ def query_ledger(
         return (f"You sell {_money(sales_total, currency)}, you spend "
                 f"{_money(exp_total, currency)} — wetin remain na "
                 f"{_money(balance, currency)}.")
-    # default: profit_or_sales_total
+    # default: profit_or_sales_total — native-speaker ruling: when a trader
+    # says "make", they mean PROFIT (net), so spend is subtracted when present
     n, total = ledger.sales_total(period)
-    if n == 0:
+    _en, exp_total = ledger.expenses_total(period)
+    if n == 0 and exp_total == 0:
         return f"No sales logged {when} yet."
+    if exp_total:
+        balance = total - exp_total
+        if balance < 0:
+            return (f"{when.capitalize()} you never make anything o — "
+                    f"{_money(total, currency)} in sales but {_money(exp_total, currency)} "
+                    f"spend: you dey down {_money(-balance, currency)}.")
+        return (f"You don make {_money(balance, currency)} {when} — "
+                f"{_money(total, currency)} in sales, {_money(exp_total, currency)} spend.")
     return f"You don make {_money(total, currency)} from {n} sale{'s' if n != 1 else ''} {when}."
 
 

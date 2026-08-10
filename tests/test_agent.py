@@ -190,6 +190,22 @@ def test_recap_matches_loose_phrasings(agent):
         assert "indomie" in reply and "twenty five thousand naira" in reply, phrasing
 
 
+def test_make_means_profit(agent):
+    """Native-speaker ruling: 'how much I don make' = net, not revenue."""
+    agent.handle("i sell 2 carton of indomie for 25000 naira")
+    agent.awaiting_confirm = False
+    agent.handle("i buy fuel ten thousand naira")
+    agent.awaiting_confirm = False
+    reply = agent.handle("abeg how much I don make today")
+    assert "fifteen thousand naira" in reply          # the net, headline
+    assert "twenty five thousand naira" in reply      # sales shown as breakdown
+    # without expenses, sales == net and the original wording stands
+    fresh = Agent(agent.pack, Ledger(":memory:"), llm=agent.llm)
+    fresh.handle("sell garri egberun meta")
+    fresh.awaiting_confirm = False
+    assert "three thousand naira" in fresh.handle("how much I don make today")
+
+
 def test_net_balance_calculation(agent):
     """The book does arithmetic: sales in minus expenses out."""
     agent.handle("i sell 2 carton of indomie for 25000 naira")
