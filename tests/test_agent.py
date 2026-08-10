@@ -190,6 +190,40 @@ def test_recap_matches_loose_phrasings(agent):
         assert "indomie" in reply and "twenty five thousand naira" in reply, phrasing
 
 
+def test_net_balance_calculation(agent):
+    """The book does arithmetic: sales in minus expenses out."""
+    agent.handle("i sell 2 carton of indomie for 25000 naira")
+    agent.awaiting_confirm = False
+    agent.handle("i buy fuel ten thousand naira")
+    agent.awaiting_confirm = False
+    reply = agent.handle("wetin remain today")
+    assert "twenty five thousand naira" in reply    # sales
+    assert "ten thousand naira" in reply            # spend
+    assert "fifteen thousand naira" in reply        # balance
+    reply = agent.handle("my profit")
+    assert "fifteen thousand naira" in reply
+
+
+def test_recap_separates_sales_from_expenses(agent):
+    agent.handle("i sell 2 carton of indomie for 25000 naira")
+    agent.awaiting_confirm = False
+    agent.handle("i buy fuel ten thousand naira")
+    agent.awaiting_confirm = False
+    reply = agent.handle("read my ledger")
+    assert "Money wey enter" in reply and "indomie" in reply
+    assert "Money wey comot" in reply and "fuel" in reply
+    assert "wetin remain na fifteen thousand naira" in reply
+
+
+def test_overspend_is_called_out(agent):
+    agent.handle("i sell garri egberun meta")   # 3000 in
+    agent.awaiting_confirm = False
+    agent.handle("i buy fuel ten thousand naira")  # 10000 out
+    agent.awaiting_confirm = False
+    reply = agent.handle("wetin remain")
+    assert "spend pass sales" in reply and "seven thousand naira" in reply
+
+
 def test_recap_reads_the_book(agent):
     agent.handle("I don sell three derica of rice five thousand five")
     agent.handle("yes")

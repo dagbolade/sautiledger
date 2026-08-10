@@ -102,6 +102,17 @@ expense_triggers: [i buy, i don buy, mo ra, bought]
 log_triggers: [log am, log]
 
 queries:
+  # net balance (sales minus spend) — the book doing arithmetic
+  - phrase: wetin remain
+    query: net_balance
+  - phrase: how much remain
+    query: net_balance
+  - phrase: my profit
+    query: net_balance
+  - phrase: my gain
+    query: net_balance
+  - phrase: balance me
+    query: net_balance
   - phrase: how much i don make
     query: profit_or_sales_total
   - phrase: how much i make

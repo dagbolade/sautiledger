@@ -90,6 +90,19 @@ def query_ledger(
         if not total:
             return "Nobody dey owe you. Credit book clean."
         return f"Credit outstanding: {_money(total, currency)}."
+    if query == "net_balance":
+        _sn, sales_total = ledger.sales_total(period)
+        _en, exp_total = ledger.expenses_total(period)
+        balance = sales_total - exp_total
+        if sales_total == 0 and exp_total == 0:
+            return f"Nothing don enter the book {when} yet."
+        if balance < 0:
+            return (f"You sell {_money(sales_total, currency)}, you spend "
+                    f"{_money(exp_total, currency)} — you don spend pass sales by "
+                    f"{_money(-balance, currency)} o.")
+        return (f"You sell {_money(sales_total, currency)}, you spend "
+                f"{_money(exp_total, currency)} — wetin remain na "
+                f"{_money(balance, currency)}.")
     # default: profit_or_sales_total
     n, total = ledger.sales_total(period)
     if n == 0:
@@ -119,23 +132,36 @@ def daily_summary(
         rows = [r for r in ledger.entries(period) if r["payment_status"] != "voided"]
         if not rows:
             return "Book empty for today. Nothing don enter yet."
-        lines = []
-        for row in rows[:10]:
+
+        def line(row):
             what = row["item"] or "entry"
             if row["quantity"] and row["unit"]:
                 what += f", {row['quantity']} {row['unit']}"
             elif row["quantity"]:
                 what += f" times {row['quantity']}"
             entry = f"{what}, {_money(row['amount'] or 0, row['currency'])}"
-            if row["type"] == "expense":
-                entry += " out"
             if row["payment_status"] == "credit":
                 entry += " on credit"
-            lines.append(entry)
-        _n, total = ledger.sales_total(period)
-        extra = f" And {len(rows) - 10} more." if len(rows) > 10 else ""
-        return ("Your book today: " + "; ".join(lines) +
-                f". Total sales {_money(total, currency)}.{extra}")
+            return entry
+
+        sales = [r for r in rows if r["type"] == "sale"][:8]
+        expenses = [r for r in rows if r["type"] == "expense"][:8]
+        parts = []
+        if sales:
+            parts.append("Money wey enter: " + "; ".join(line(r) for r in sales))
+        if expenses:
+            parts.append("Money wey comot: " + "; ".join(line(r) for r in expenses))
+        _n, sales_total = ledger.sales_total(period)
+        _en, exp_total = ledger.expenses_total(period)
+        balance = sales_total - exp_total
+        tail = (f" Sales {_money(sales_total, currency)}; "
+                f"spend {_money(exp_total, currency)}; "
+                f"wetin remain na {_money(abs(balance), currency)}"
+                f"{' — you don spend pass sales o' if balance < 0 else ''}."
+                if exp_total else f" Total sales {_money(sales_total, currency)}.")
+        skipped = len(rows) - len(sales) - len(expenses)
+        extra = f" And {skipped} more." if skipped > 0 else ""
+        return "Your book today. " + ". ".join(parts) + "." + tail + extra
     sales_n, sales_total = ledger.sales_total(period)
     exp_n, exp_total = ledger.expenses_total(period)
     credit = ledger.credit_outstanding()
