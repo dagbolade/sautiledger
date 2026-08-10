@@ -109,7 +109,9 @@ queries:
     query: credit_outstanding
 
 summary_triggers: [close the day, summary]
-recap_triggers: [read my ledger, read the ledger, talk wetin dey book, wetin dey book, wetin dey my book]
+# "ledger" as a bare token: any mention means "read the book" in this
+# app's domain ("read ALL my ledger for today", "check my ledger", …)
+recap_triggers: [ledger, read my book, talk wetin dey book, wetin dey book, wetin dey my book]
 
 corrections:
   - trigger: no no na

@@ -181,6 +181,15 @@ def test_known_multiword_item_logs_directly(agent):
     assert agent.ledger.last_transaction()["item"] == "pure water"
 
 
+def test_recap_matches_loose_phrasings(agent):
+    """Lagos-prep regression: 'read ALL my ledger for today' and other
+    ledger mentions must reach the recap, never the LLM fallback."""
+    agent.handle("i sell 2 carton of indomie for 25000 naira")
+    for phrasing in ("read all my ledger for today", "check my ledger", "wetin dey my ledger"):
+        reply = agent.handle(phrasing)
+        assert "indomie" in reply and "twenty five thousand naira" in reply, phrasing
+
+
 def test_recap_reads_the_book(agent):
     agent.handle("I don sell three derica of rice five thousand five")
     agent.handle("yes")

@@ -320,14 +320,21 @@ def _try_interrogative(tokens: list[str], pack: Pack) -> ParseResult | None:
     return ParseResult(intent="query_ledger", query="profit_or_sales_total", period=period)
 
 
-def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
+def _try_recap(tokens: list[str], pack: Pack) -> ParseResult | None:
+    """Full row-by-row readback. Runs BEFORE the interrogative pass so
+    'wetin dey my ledger' reads the book instead of querying an item, and
+    matches loosely — 'read ALL my ledger for today' must not miss because
+    of an interposed word."""
     for trigger in pack.recap_triggers:
         if _find(tokens, trigger) >= 0:
-            # full row-by-row readback rather than the totals summary
             return ParseResult(
                 intent="daily_summary", query="recap",
                 period=_find_period(tokens, pack) or "today",
             )
+    return None
+
+
+def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
     for trigger in pack.summary_triggers:
         if _find(tokens, trigger) >= 0:
             return ParseResult(
@@ -464,7 +471,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
 def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
     """Deterministic parse. None means the grammar has no reading at all."""
     tokens = tokenize(utterance)
-    for attempt in (_try_correction, _try_query, _try_interrogative, _try_summary, _try_transaction):
+    for attempt in (_try_correction, _try_query, _try_recap, _try_interrogative, _try_summary, _try_transaction):
         result = attempt(tokens, pack)
         if result is not None:
             return result
