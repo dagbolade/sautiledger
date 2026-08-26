@@ -290,6 +290,14 @@ class Ledger:
         ).fetchone()
         return row["total"]
 
+    def statement_rows(self, since_iso: str) -> list[sqlite3.Row]:
+        """Non-voided rows from a date onward — the statement's raw truth."""
+        return self.conn.execute(
+            "SELECT * FROM transactions WHERE session_id = ? "
+            "AND payment_status != 'voided' AND ts >= ? ORDER BY ts",
+            (self.session_id, since_iso),
+        ).fetchall()
+
     def all_transactions(self) -> list[sqlite3.Row]:
         return self.conn.execute(
             "SELECT * FROM transactions WHERE session_id = ? ORDER BY id",

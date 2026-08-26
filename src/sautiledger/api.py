@@ -16,7 +16,7 @@ import re
 import secrets
 import threading
 import zipfile
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Request, Response, UploadFile
@@ -31,6 +31,7 @@ from .egress import EgressError, EgressRecorder
 from .ledger import DEFAULT_SESSION, Ledger
 from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
+from .statement import build_statement_html
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
 
@@ -241,6 +242,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "egress_log": [dict(row) for row in sess.recorder.log()],
         }
 
+    # -------------------------------------------------- bank-readiness statement
+
+    def _statement_response(ledger: Ledger, period: str) -> Response:
+        days = 30 if period == "month" else 7
+        since = (date.today() - timedelta(days=days - 1)).isoformat()
+        label = f"Last {days} days · {since} to {date.today().isoformat()}"
+        owner = f"Trader account {ledger.session_id[:8]}"
+        page = build_statement_html(
+            ledger.statement_rows(since), pack.currency, label, days, owner
+        )
+        return Response(content=page, media_type="text/html")
+
+    @app.get("/statement")
+    def statement(request: Request, response: Response, period: str = "week"):
+        """The visitor's own book as a lender-legible page; the browser's
+        print-to-PDF turns it into the document."""
+        sess = session_for(resolve_device(request, response))
+        return _statement_response(sess.ledger, period)
+
     # -------------------------------------------------- admin (field test)
     # Token-gated export of one session's usage evidence — pulled with the
     # participant's permission. No token configured = no admin surface.
@@ -276,6 +296,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             headers={"Content-Disposition":
                      f'attachment; filename="{session}-{what}.csv"'},
         )
+
+    @app.get("/admin/statement")
+    def admin_statement(request: Request, session: str, period: str = "week"):
+        denied = _admin_denied(request)
+        if denied:
+            return denied
+        return _statement_response(base_ledger.scoped(session), period)
 
     @app.get("/admin/audio")
     def admin_audio(request: Request, session: str):
