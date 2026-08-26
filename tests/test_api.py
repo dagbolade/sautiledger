@@ -231,3 +231,22 @@ def test_admin_surface_is_locked(tmp_path):
     # no token configured -> the whole surface is disabled
     bare = TestClient(_shared_app())
     assert bare.get("/admin/sessions").status_code == 403
+
+
+def test_admin_dashboard_gated_and_shows_fleet(tmp_path):
+    app = _instrumented_app(tmp_path)
+    ama, bola = TestClient(app), TestClient(app)
+    ama.post("/utterance", data={"text": "sell garri egberun meta"})
+    ama.post("/utterance", data={"text": "i don sell 3 crayfish"})   # clarify
+    bola.post("/utterance", data={"text": "i don sell 3 derica of rice five thousand five"})
+
+    assert ama.get("/admin/dashboard").status_code == 401
+    # token in the query string works too — the dashboard is a browser page
+    page = ama.get("/admin/dashboard?token=test-admin-token")
+    assert page.status_code == 200
+    body = page.text
+    assert ama.cookies.get("sauti_device")[:8] in body
+    assert bola.cookies.get("sauti_device")[:8] in body
+    assert "8,500" in body        # fleet sales: 3000 + 5500
+    assert "clarify" in body      # outcomes table
+    assert "/admin/statement?session=" in body  # export links per session

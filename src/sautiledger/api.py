@@ -270,9 +270,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def _admin_denied(request: Request):
         if not settings.admin_token:
             return JSONResponse(status_code=403, content={"error": "admin disabled"})
-        if request.headers.get("x-admin-token") != settings.admin_token:
+        supplied = (request.headers.get("x-admin-token")
+                    or request.query_params.get("token"))
+        if supplied != settings.admin_token:
             return JSONResponse(status_code=401, content={"error": "bad token"})
         return None
+
+    @app.get("/admin/dashboard")
+    def admin_dashboard(request: Request):
+        denied = _admin_denied(request)
+        if denied:
+            return denied
+        from .dashboard import build_dashboard_html
+        page = build_dashboard_html(
+            base_ledger.sessions_overview(),
+            base_ledger.usage_outcomes(),
+            base_ledger.usage_by_day(),
+            base_ledger.usage_mode_counts(),
+            settings.admin_token,
+        )
+        return Response(content=page, media_type="text/html")
 
     @app.get("/admin/sessions")
     def admin_sessions(request: Request):

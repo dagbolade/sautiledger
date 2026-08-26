@@ -208,18 +208,65 @@ class Ledger:
         return row["n"]
 
     def sessions_overview(self) -> list[sqlite3.Row]:
-        """One row per session across the whole database (admin view)."""
+        """One row per session across the whole database (admin view) —
+        sessions that only asked questions still appear."""
         return self.conn.execute(
-            """SELECT session_id,
-                      COUNT(*) AS transactions,
-                      MIN(ts) AS first_ts, MAX(ts) AS last_ts,
+            """SELECT s.session_id,
+                      (SELECT COUNT(*) FROM transactions t
+                        WHERE t.session_id = s.session_id) AS transactions,
+                      (SELECT COALESCE(SUM(amount), 0) FROM transactions t
+                        WHERE t.session_id = s.session_id AND t.type = 'sale'
+                          AND t.payment_status != 'voided') AS sales_total,
                       (SELECT COUNT(*) FROM usage_log u
-                        WHERE u.session_id = t.session_id) AS utterances,
+                        WHERE u.session_id = s.session_id) AS utterances,
                       (SELECT COUNT(*) FROM usage_log u
-                        WHERE u.session_id = t.session_id
-                          AND u.audio_file IS NOT NULL) AS retained_clips
-               FROM transactions t GROUP BY session_id ORDER BY MAX(ts) DESC"""
+                        WHERE u.session_id = s.session_id
+                          AND u.input_mode = 'voice') AS voice_utterances,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = s.session_id
+                          AND u.outcome = 'logged') AS logged,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = s.session_id
+                          AND u.outcome = 'clarify') AS clarified,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = s.session_id
+                          AND u.outcome LIKE 'asr%') AS asr_failures,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = s.session_id
+                          AND u.audio_file IS NOT NULL) AS retained_clips,
+                      (SELECT MIN(x) FROM (
+                          SELECT MIN(ts) AS x FROM transactions t
+                           WHERE t.session_id = s.session_id
+                          UNION SELECT MIN(ts) FROM usage_log u
+                           WHERE u.session_id = s.session_id)) AS first_ts,
+                      (SELECT MAX(x) FROM (
+                          SELECT MAX(ts) AS x FROM transactions t
+                           WHERE t.session_id = s.session_id
+                          UNION SELECT MAX(ts) FROM usage_log u
+                           WHERE u.session_id = s.session_id)) AS last_ts
+               FROM (SELECT session_id FROM transactions
+                     UNION SELECT session_id FROM usage_log) s
+               ORDER BY last_ts DESC"""
         ).fetchall()
+
+    def usage_outcomes(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT outcome, COUNT(*) AS n FROM usage_log "
+            "GROUP BY outcome ORDER BY n DESC"
+        ).fetchall()
+
+    def usage_by_day(self, days: int = 14) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            """SELECT substr(ts, 1, 10) AS day, COUNT(*) AS n FROM usage_log
+               GROUP BY day ORDER BY day DESC LIMIT ?""",
+            (days,),
+        ).fetchall()
+
+    def usage_mode_counts(self) -> dict:
+        rows = self.conn.execute(
+            "SELECT input_mode, COUNT(*) AS n FROM usage_log GROUP BY input_mode"
+        ).fetchall()
+        return {r["input_mode"]: r["n"] for r in rows}
 
     # ------------------------------------------------------------ reads
 
