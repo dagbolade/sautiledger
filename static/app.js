@@ -35,6 +35,7 @@ function fmtKB(bytes) {
 }
 
 let egressLog = [];
+let lastEgress = null;
 function renderEgress(total, log) {
   egressLog = log || [];
   const el = $("egress-total");
@@ -43,6 +44,13 @@ function renderEgress(total, log) {
     ? "0.00 KB — nothing don leave this phone."
     : fmtKB(total);
   $("egress").classList.toggle("zero", zero);
+  if (lastEgress !== null && total > lastEgress && !reduceMotion) {
+    // bytes just left: the meter visibly registers it
+    el.classList.remove("flash");
+    void el.offsetWidth;
+    el.classList.add("flash");
+  }
+  lastEgress = total;
 }
 
 const reduceMotion = window.matchMedia
@@ -274,6 +282,10 @@ $("egress").addEventListener("click", () => {
   $("modal").classList.add("open");
 });
 $("close").addEventListener("click", () => $("modal").classList.remove("open"));
+// tapping the dimmed backdrop closes the sheet too — the gesture people expect
+$("modal").addEventListener("click", (e) => {
+  if (e.target === $("modal")) $("modal").classList.remove("open");
+});
 
 // ---------------------------------------------------------------- boot
 
