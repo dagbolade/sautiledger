@@ -166,19 +166,28 @@ function renderConsent(on) {
   $("consent").classList.toggle("on", !!on);
 }
 
-$("retain").addEventListener("change", async () => {
-  const on = $("retain").checked;
-  const form = new FormData();
-  form.append("retain_audio", on ? "true" : "false");
-  try {
-    await fetch("/consent", { method: "POST", body: form });
-    bubble(on
-      ? "I go dey keep your voice clips from now. You fit off am anytime."
-      : "Okay — I no go keep your clips again.", "sauti");
-  } catch (err) {
-    bubble("No response from the app server.", "sauti");
-  }
-  refreshState();
+// debounced: rapid flicking settles to ONE saved state and ONE bubble
+let consentTimer = null;
+let consentAnnounced = null;
+$("retain").addEventListener("change", () => {
+  $("consent").classList.toggle("on", $("retain").checked); // instant visual
+  clearTimeout(consentTimer);
+  consentTimer = setTimeout(async () => {
+    const on = $("retain").checked;
+    if (on === consentAnnounced) return;
+    const form = new FormData();
+    form.append("retain_audio", on ? "true" : "false");
+    try {
+      await fetch("/consent", { method: "POST", body: form });
+      consentAnnounced = on;
+      bubble(on
+        ? "I go dey keep your voice clips from now. You fit off am anytime."
+        : "Okay — I no go keep your clips again.", "sauti");
+    } catch (err) {
+      bubble("Server no answer o. Check your network, then try again.", "sauti");
+    }
+    refreshState();
+  }, 400);
 });
 
 // ---------------------------------------------------------------- text input
