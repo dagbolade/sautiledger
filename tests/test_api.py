@@ -250,3 +250,13 @@ def test_admin_dashboard_gated_and_shows_fleet(tmp_path):
     assert "8,500" in body        # fleet sales: 3000 + 5500
     assert "clarify" in body      # outcomes table
     assert "/admin/statement?session=" in body  # export links per session
+
+
+def test_dashboard_visit_teaches_the_browser(tmp_path):
+    app = _instrumented_app(tmp_path)
+    admin = TestClient(app)
+    assert admin.get("/admin/dashboard").status_code == 401
+    assert admin.get("/admin/dashboard?token=test-admin-token").status_code == 200
+    # cookie set by that visit now carries the auth on its own
+    assert admin.get("/admin/dashboard").status_code == 200
+    assert admin.get("/admin/sessions").status_code == 200

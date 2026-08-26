@@ -271,7 +271,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not settings.admin_token:
             return JSONResponse(status_code=403, content={"error": "admin disabled"})
         supplied = (request.headers.get("x-admin-token")
-                    or request.query_params.get("token"))
+                    or request.query_params.get("token")
+                    or request.cookies.get("sauti_admin"))
         if supplied != settings.admin_token:
             return JSONResponse(status_code=401, content={"error": "bad token"})
         return None
@@ -289,7 +290,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             base_ledger.usage_mode_counts(),
             settings.admin_token,
         )
-        return Response(content=page, media_type="text/html")
+        resp = Response(content=page, media_type="text/html")
+        # visiting once with the token teaches this browser: after that,
+        # plain /admin/dashboard (and the export links) just work
+        resp.set_cookie("sauti_admin", settings.admin_token,
+                        max_age=60 * 60 * 24 * 30, httponly=True, samesite="lax")
+        return resp
 
     @app.get("/admin/sessions")
     def admin_sessions(request: Request):
