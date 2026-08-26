@@ -46,6 +46,22 @@ CREATE TABLE IF NOT EXISTS egress_log (
 );
 CREATE INDEX IF NOT EXISTS idx_txn_session ON transactions(session_id);
 CREATE INDEX IF NOT EXISTS idx_egress_session ON egress_log(session_id);
+CREATE TABLE IF NOT EXISTS usage_log (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts          TEXT NOT NULL,
+    session_id  TEXT NOT NULL,
+    input_mode  TEXT NOT NULL,
+    transcript  TEXT,
+    reply       TEXT,
+    outcome     TEXT NOT NULL,
+    audio_file  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_usage_session ON usage_log(session_id);
+CREATE TABLE IF NOT EXISTS session_prefs (
+    session_id   TEXT PRIMARY KEY,
+    retain_audio INTEGER NOT NULL DEFAULT 0,
+    updated      TEXT NOT NULL
+);
 """
 
 _CORRECTABLE_FIELDS = {"amount", "amount_each", "item", "quantity", "unit", "payment_status"}
@@ -135,6 +151,76 @@ class Ledger:
         print(f"voided txn #{txn_id}: {row['item']} {row['amount']}", flush=True)
         return row
 
+    # -------------------------------------------------- field-test observability
+    # (usage_log is local to the database like everything else — it is
+    #  never transmitted; the admin export reads it out with consent)
+
+    def record_usage(self, input_mode: str, transcript: str | None,
+                     reply: str | None, outcome: str,
+                     audio_file: str | None = None) -> None:
+        self.conn.execute(
+            """INSERT INTO usage_log
+               (ts, session_id, input_mode, transcript, reply, outcome, audio_file)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (datetime.now().isoformat(timespec="seconds"), self.session_id,
+             input_mode, transcript, reply, outcome, audio_file),
+        )
+        self.conn.commit()
+
+    def usage_rows(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM usage_log WHERE session_id = ? ORDER BY id",
+            (self.session_id,),
+        ).fetchall()
+
+    @property
+    def retain_audio(self) -> bool:
+        row = self.conn.execute(
+            "SELECT retain_audio FROM session_prefs WHERE session_id = ?",
+            (self.session_id,),
+        ).fetchone()
+        return bool(row and row["retain_audio"])
+
+    def set_retain_audio(self, value: bool) -> None:
+        self.conn.execute(
+            """INSERT INTO session_prefs (session_id, retain_audio, updated)
+               VALUES (?, ?, ?)
+               ON CONFLICT(session_id) DO UPDATE SET retain_audio = ?, updated = ?""",
+            (self.session_id, int(value),
+             datetime.now().isoformat(timespec="seconds"),
+             int(value), datetime.now().isoformat(timespec="seconds")),
+        )
+        self.conn.commit()
+
+    def max_txn_id(self) -> int:
+        row = self.conn.execute(
+            "SELECT COALESCE(MAX(id), 0) AS m FROM transactions WHERE session_id = ?",
+            (self.session_id,),
+        ).fetchone()
+        return row["m"]
+
+    def voided_count(self) -> int:
+        row = self.conn.execute(
+            "SELECT COUNT(*) AS n FROM transactions "
+            "WHERE session_id = ? AND payment_status = 'voided'",
+            (self.session_id,),
+        ).fetchone()
+        return row["n"]
+
+    def sessions_overview(self) -> list[sqlite3.Row]:
+        """One row per session across the whole database (admin view)."""
+        return self.conn.execute(
+            """SELECT session_id,
+                      COUNT(*) AS transactions,
+                      MIN(ts) AS first_ts, MAX(ts) AS last_ts,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = t.session_id) AS utterances,
+                      (SELECT COUNT(*) FROM usage_log u
+                        WHERE u.session_id = t.session_id
+                          AND u.audio_file IS NOT NULL) AS retained_clips
+               FROM transactions t GROUP BY session_id ORDER BY MAX(ts) DESC"""
+        ).fetchall()
+
     # ------------------------------------------------------------ reads
 
     def last_transaction(self) -> sqlite3.Row | None:
@@ -203,6 +289,12 @@ class Ledger:
             (self.session_id,),
         ).fetchone()
         return row["total"]
+
+    def all_transactions(self) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM transactions WHERE session_id = ? ORDER BY id",
+            (self.session_id,),
+        ).fetchall()
 
     def entries(self, period: str) -> list[sqlite3.Row]:
         return self.conn.execute(

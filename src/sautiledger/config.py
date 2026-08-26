@@ -33,6 +33,11 @@ class Settings:
     # text leaving the device is never a silent default.
     agent: str = "auto"  # "auto" | "local" | "hosted" | "none"
     hf_token: str | None = None
+    # consented voice-clip retention lands here; None (with an in-memory db)
+    # disables retention entirely
+    recordings_dir: str | None = None
+    # unlocks /admin/* (field-test export); unset = admin surface disabled
+    admin_token: str | None = None
 
 
 def get_settings() -> Settings:
@@ -47,4 +52,6 @@ def get_settings() -> Settings:
         asr_path=os.environ.get("SAUTI_ASR", "sync"),
         agent=os.environ.get("SAUTI_AGENT", "auto"),
         hf_token=os.environ.get("HF_TOKEN") or None,
+        recordings_dir=os.environ.get("SAUTI_RECORDINGS") or None,
+        admin_token=os.environ.get("SAUTI_ADMIN_TOKEN") or None,
     )

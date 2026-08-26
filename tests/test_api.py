@@ -156,3 +156,78 @@ def test_presession_database_migrates_with_rows_tagged_default(tmp_path):
     n, total = ledger.sales_total("today")
     assert (n, total) == (1, 5500)
     assert ledger.scoped("abcdef0123456789").sales_total("today") == (0, 0)
+
+
+# ------------------------------------------- field-test instrumentation
+
+
+def _instrumented_app(tmp_path):
+    return create_app(Settings(
+        pack="pcm-yo-NG", db_path=":memory:", mode="offline", sahara_api_key=None,
+        recordings_dir=str(tmp_path / "recordings"), admin_token="test-admin-token",
+    ))
+
+
+def test_every_turn_lands_in_usage_log_with_honest_outcomes(tmp_path):
+    app = _instrumented_app(tmp_path)
+    client = TestClient(app)
+    client.post("/utterance", data={"text": "sell garri egberun meta"})     # logged
+    client.post("/utterance", data={"text": "i don sell 3 crayfish"})       # clarify
+    client.post("/utterance", data={"text": "egberun meji"})                # logged
+    client.post("/utterance", data={"text": "how much i don make today"})   # reply
+    device = client.cookies.get("sauti_device")
+
+    resp = client.get(f"/admin/export?session={device}&what=usage",
+                      headers={"x-admin-token": "test-admin-token"})
+    assert resp.status_code == 200
+    import csv as csv_mod
+    rows = list(csv_mod.DictReader(resp.text.splitlines()))
+    assert [r["outcome"] for r in rows] == ["logged", "clarify", "logged", "reply"]
+    assert all(r["input_mode"] == "text" for r in rows)
+    assert rows[1]["transcript"] == "i don sell 3 crayfish"
+
+
+def test_audio_retention_is_off_by_default_and_honours_consent(tmp_path):
+    app = _instrumented_app(tmp_path)
+    client = TestClient(app)
+
+    assert client.get("/state").json()["retain_audio"] is False
+    client.post("/utterance",
+                files={"audio": ("clip.webm", b"case05.wav", "audio/webm")})
+    rec_root = tmp_path / "recordings"
+    assert not rec_root.exists()  # nothing kept without consent
+
+    resp = client.post("/consent", data={"retain_audio": "true"})
+    assert resp.json() == {"retain_audio": True}
+    assert client.get("/state").json()["retain_audio"] is True
+    client.post("/utterance",
+                files={"audio": ("clip.webm", b"case05.wav", "audio/webm")})
+    device = client.cookies.get("sauti_device")
+    clips = list((rec_root / device).iterdir())
+    assert len(clips) == 1
+    assert clips[0].read_bytes() == b"case05.wav"  # exactly what the model heard
+
+    # and the clip is fetchable through the admin zip
+    resp = client.get(f"/admin/audio?session={device}",
+                      headers={"x-admin-token": "test-admin-token"})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "application/zip"
+
+    client.post("/consent", data={"retain_audio": "false"})
+    client.post("/utterance",
+                files={"audio": ("clip.webm", b"case05.wav", "audio/webm")})
+    assert len(list((rec_root / device).iterdir())) == 1  # no new clip
+
+
+def test_admin_surface_is_locked(tmp_path):
+    app = _instrumented_app(tmp_path)
+    client = TestClient(app)
+    assert client.get("/admin/sessions").status_code == 401
+    assert client.get("/admin/sessions",
+                      headers={"x-admin-token": "wrong"}).status_code == 401
+    ok = client.get("/admin/sessions", headers={"x-admin-token": "test-admin-token"})
+    assert ok.status_code == 200
+
+    # no token configured -> the whole surface is disabled
+    bare = TestClient(_shared_app())
+    assert bare.get("/admin/sessions").status_code == 403

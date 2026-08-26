@@ -16,6 +16,7 @@ async function refreshState() {
     renderMode(state.mode);
     renderEgress(state.egress_total, state.egress_log);
     renderLedger(state.entries, state.sales_total);
+    renderConsent(state.retain_audio);
   } catch (err) {
     /* server briefly unreachable — keep last view */
   }
@@ -130,6 +131,29 @@ async function submit(formData, shownText) {
   }
   refreshState();
 }
+
+// ------------------------------------------------- voice-clip retention
+
+function renderConsent(on) {
+  const box = $("retain");
+  if (document.activeElement !== box) box.checked = !!on;
+  $("consent").classList.toggle("on", !!on);
+}
+
+$("retain").addEventListener("change", async () => {
+  const on = $("retain").checked;
+  const form = new FormData();
+  form.append("retain_audio", on ? "true" : "false");
+  try {
+    await fetch("/consent", { method: "POST", body: form });
+    bubble(on
+      ? "I go dey keep your voice clips from now. You fit off am anytime."
+      : "Okay — I no go keep your clips again.", "sauti");
+  } catch (err) {
+    bubble("No response from the app server.", "sauti");
+  }
+  refreshState();
+});
 
 // ---------------------------------------------------------------- text input
 

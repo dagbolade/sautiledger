@@ -10,9 +10,13 @@ Run: python -m uvicorn sautiledger.api:app --port 8090
 
 from __future__ import annotations
 
+import csv
+import io
 import re
 import secrets
 import threading
+import zipfile
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Request, Response, UploadFile
@@ -73,6 +77,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     pack = load_pack(settings.pack)
     base_ledger = Ledger(settings.db_path)
 
+    # consented voice clips land next to the database (i.e. on the volume);
+    # an in-memory database with no explicit dir means retention is off
+    rec_dir = settings.recordings_dir
+    if rec_dir is None and settings.db_path != ":memory:":
+        rec_dir = str(Path(settings.db_path).parent / "recordings")
+
     sessions: dict[str, _Session] = {}
     lock = threading.Lock()
     clock = [0]  # monotonic touch counter for oldest-idle eviction
@@ -113,11 +123,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         audio: UploadFile | None = File(None),
     ):
         sess = session_for(resolve_device(request, response))
-        recorder, agent, asr = sess.recorder, sess.agent, sess.asr
+        recorder, agent, ledger = sess.recorder, sess.agent, sess.ledger
+        asr = sess.asr
         egress_before = recorder.total_bytes()
+        input_mode = "voice" if audio is not None else "text"
+        saved_clip: str | None = None
+        transcript_text = (text or "").strip()
 
-        def friendly(reply: str, error: str) -> dict:
-            # spoken-style bubble instead of a raw error (the UI reads this aloud)
+        def friendly(reply: str, error: str, outcome: str) -> dict:
+            # spoken-style bubble instead of a raw error (the UI reads this
+            # aloud); every turn — failures included — lands in usage_log
+            ledger.record_usage(input_mode, transcript_text or None, reply,
+                                outcome, saved_clip)
             return {
                 "transcript": "",
                 "reply_text": reply,
@@ -127,7 +144,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "egress_total": recorder.total_bytes(),
             }
 
-        transcript_text = (text or "").strip()
         if audio is not None:
             blob = await audio.read()
             content_type = audio.content_type or "unknown"
@@ -135,14 +151,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if recorder.sends_today(_ASR_PURPOSE) >= ASR_DAILY_CAP:
                     return friendly(
                         "Voice don reach im limit for today o. Type am instead, abeg.",
-                        "daily ASR cap reached",
+                        "daily ASR cap reached", "capped",
                     )
                 try:
                     blob, duration = to_wav16k(blob)
                 except AudioUnusable as exc:
                     print(f"audio rejected: {exc}; content_type={content_type} "
                           f"bytes={len(blob)}", flush=True)
-                    return friendly("I no hear you well, abeg try again.", str(exc))
+                    return friendly("I no hear you well, abeg try again.",
+                                    str(exc), "audio_unusable")
+            if rec_dir and ledger.retain_audio:
+                # consented retention: keep exactly the bytes the model hears
+                clip_dir = Path(rec_dir) / ledger.session_id
+                clip_dir.mkdir(parents=True, exist_ok=True)
+                ext = ".wav" if settings.mode == "cloud" else ".bin"
+                name = datetime.now().strftime("%Y%m%dT%H%M%S-%f") + ext
+                (clip_dir / name).write_bytes(blob)
+                saved_clip = f"{ledger.session_id}/{name}"
             try:
                 transcript_text = asr.transcribe(blob, language_hint=pack.name).text
             except EgressError as exc:
@@ -150,14 +175,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                       f"bytes={len(blob)}", flush=True)
                 return friendly(
                     "Network wahala — I no fit reach the cloud right now. Try again small time.",
-                    str(exc),
+                    str(exc), "asr_failed",
                 )
             if not transcript_text:
-                return friendly("I no hear you well, abeg talk am again.", "empty transcript")
+                return friendly("I no hear you well, abeg talk am again.",
+                                "empty transcript", "asr_empty")
         if not transcript_text:
             return JSONResponse(status_code=400, content={"error": "no text or audio provided"})
 
+        txn_before = ledger.max_txn_id()
+        voided_before = ledger.voided_count()
         reply = agent.handle(transcript_text)
+        if ledger.max_txn_id() > txn_before:
+            outcome = "logged"
+        elif ledger.voided_count() > voided_before:
+            outcome = "voided"
+        elif agent.pending is not None:
+            outcome = "clarify"
+        else:
+            outcome = "reply"
+        ledger.record_usage(input_mode, transcript_text, reply, outcome, saved_clip)
         return {
             "transcript": transcript_text,
             "reply_text": reply,
@@ -176,6 +213,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
         return {"ok": True, "voided": txn_id}
 
+    @app.post("/consent")
+    def consent(request: Request, response: Response, retain_audio: str = Form(...)):
+        """The voice-clip retention switch. Off by default; the visitor flips
+        it knowingly from the UI, and can flip it back any time (already
+        saved clips stay until the admin removes them — the toggle governs
+        new clips only)."""
+        sess = session_for(resolve_device(request, response))
+        value = retain_audio.strip().lower() in ("1", "true", "yes", "on")
+        sess.ledger.set_retain_audio(value)
+        return {"retain_audio": value}
+
     @app.get("/state")
     def state(request: Request, response: Response):
         sess = session_for(resolve_device(request, response))
@@ -188,9 +236,64 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "entries": entries,
             "sales_count": sales_n,
             "sales_total": sales_total,
+            "retain_audio": sess.ledger.retain_audio,
             "egress_total": sess.recorder.total_bytes(),
             "egress_log": [dict(row) for row in sess.recorder.log()],
         }
+
+    # -------------------------------------------------- admin (field test)
+    # Token-gated export of one session's usage evidence — pulled with the
+    # participant's permission. No token configured = no admin surface.
+
+    def _admin_denied(request: Request):
+        if not settings.admin_token:
+            return JSONResponse(status_code=403, content={"error": "admin disabled"})
+        if request.headers.get("x-admin-token") != settings.admin_token:
+            return JSONResponse(status_code=401, content={"error": "bad token"})
+        return None
+
+    @app.get("/admin/sessions")
+    def admin_sessions(request: Request):
+        denied = _admin_denied(request)
+        if denied:
+            return denied
+        return {"sessions": [dict(r) for r in base_ledger.sessions_overview()]}
+
+    @app.get("/admin/export")
+    def admin_export(request: Request, session: str, what: str = "usage"):
+        denied = _admin_denied(request)
+        if denied:
+            return denied
+        scoped = base_ledger.scoped(session)
+        rows = scoped.usage_rows() if what == "usage" else scoped.all_transactions()
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        if rows:
+            writer.writerow(rows[0].keys())
+            writer.writerows([list(r) for r in rows])
+        return Response(
+            content=buf.getvalue(), media_type="text/csv",
+            headers={"Content-Disposition":
+                     f'attachment; filename="{session}-{what}.csv"'},
+        )
+
+    @app.get("/admin/audio")
+    def admin_audio(request: Request, session: str):
+        denied = _admin_denied(request)
+        if denied:
+            return denied
+        clip_dir = Path(rec_dir) / session if rec_dir else None
+        if clip_dir is None or not clip_dir.exists():
+            return JSONResponse(status_code=404, content={"error": "no retained clips"})
+        mem = io.BytesIO()
+        with zipfile.ZipFile(mem, "w") as bundle:
+            for clip in sorted(clip_dir.iterdir()):
+                bundle.write(clip, clip.name)
+        return Response(
+            content=mem.getvalue(), media_type="application/zip",
+            headers={"Content-Disposition":
+                     f'attachment; filename="{session}-clips.zip"'},
+        )
 
     if STATIC_DIR.exists():
         @app.get("/")
