@@ -1,0 +1,12 @@
+{
+  "name": "SautiLedger",
+  "short_name": "SautiLedger",
+  "description": "Talk your sales. The book writes itself.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f1e8",
+  "theme_color": "#0d9d64",
+  "icons": [
+    { "src": "/static/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

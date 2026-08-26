@@ -115,12 +115,17 @@ function renderLedger(entries, salesTotal) {
 
 // ---------------------------------------------------------------- chat
 
+function scrollToLatest() {
+  const sc = $("scroll");
+  sc.scrollTo({ top: sc.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+}
+
 function bubble(text, who, isQuestion) {
   const div = document.createElement("div");
   div.className = "bubble " + who + (isQuestion ? " question" : "");
   div.textContent = text;
   chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToLatest();
 }
 
 function speak(text) {
@@ -139,7 +144,7 @@ function showStatus(text) {
   statusBubble.className = "bubble sauti status";
   statusBubble.textContent = text;
   chat.appendChild(statusBubble);
-  chat.scrollTop = chat.scrollHeight;
+  scrollToLatest();
 }
 function clearStatus() {
   if (statusBubble) { statusBubble.remove(); statusBubble = null; }

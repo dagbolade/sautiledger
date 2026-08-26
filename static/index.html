@@ -3,13 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f1e8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SautiLedger">
+<link rel="manifest" href="/static/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/static/icon.png">
+<link rel="icon" type="image/png" href="/static/icon.png">
 <title>SautiLedger</title>
 <style>
   /* Self-contained: no frameworks, no CDN assets — must work with wifi off.
-     Warm-paper light theme: ink on cream, one deep money-green. Chosen for
-     sunlight legibility — this app lives outdoors, in market stalls.
-     Motion system: one spring for pops, one long ease for slides;
-     everything respects prefers-reduced-motion. */
+     App shell, not a webpage: fixed header, one scrolling region, a fixed
+     dock with the mic floating over it. Warm-paper light theme — ink on
+     cream, one deep money-green — chosen for sunlight legibility; this app
+     lives outdoors, in market stalls. Motion: one spring for pops, one
+     long ease for slides; prefers-reduced-motion turns it all off. */
   :root {
     --bg: #f5f1e8;
     --card: #ffffff;
@@ -22,7 +31,6 @@
     --green-tint: #e3f5ec;
     --amber: #b7791f;
     --amber-tint: #fdf3e2;
-    --r: 20px;
     --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px;
     --shadow: 0 10px 28px rgba(28, 36, 52, 0.09);
     --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -30,92 +38,99 @@
     --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html { height: 100%; }
   body {
-    background: var(--bg);
-    color: var(--ink); font-family: var(--font);
+    background: var(--bg); color: var(--ink); font-family: var(--font);
+    height: 100vh; height: 100dvh; overflow: hidden;
     display: flex; flex-direction: column;
     max-width: 480px; margin: 0 auto;
-    padding: var(--s3) var(--s3) calc(var(--s3) + env(safe-area-inset-bottom));
-    gap: var(--s3);
     font-size: 16px; line-height: 1.4;
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
-
-  /* staggered arrival: the page assembles itself, calm and quick */
   @keyframes enter {
     from { opacity: 0; transform: translateY(14px) scale(0.985); }
   }
-  #topbar  { animation: enter 0.45s var(--ease) backwards; }
-  #egress  { animation: enter 0.45s var(--ease) 0.05s backwards; }
-  #ledger  { animation: enter 0.45s var(--ease) 0.10s backwards; }
-  #controls{ animation: enter 0.45s var(--ease) 0.15s backwards; }
 
+  /* ---- fixed header ---- */
   #topbar {
+    flex: 0 0 auto;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 2px var(--s1) 0;
+    padding: calc(var(--s3) + env(safe-area-inset-top)) var(--s4) var(--s2);
+    animation: enter 0.45s var(--ease) backwards;
   }
   #brand {
     display: flex; align-items: center; gap: 9px;
-    font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em;
+    font-size: 1.08rem; font-weight: 800; letter-spacing: -0.01em;
   }
   #brand .dot {
     width: 10px; height: 10px; border-radius: 50%;
     background: var(--green); box-shadow: 0 0 0 4px var(--green-tint);
   }
   #mode {
-    font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em;
+    font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em;
     padding: 5px 12px; border-radius: 999px;
     transition: background 0.3s, color 0.3s;
   }
   #mode.offline { background: var(--green-tint); color: var(--green-deep); }
   #mode.cloud { background: var(--amber-tint); color: var(--amber); }
 
-  /* ---- egress: a slim, factual strip — tap for the full ledger ---- */
+  /* ---- egress: slim factual strip, tap for the privacy sheet ---- */
   #egress {
+    flex: 0 0 auto; margin: 0 var(--s4) var(--s2);
     background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 10px var(--s4);
-    display: flex; align-items: center; gap: var(--s3);
-    cursor: pointer; box-shadow: var(--shadow);
+    border-radius: 12px; padding: 8px var(--s3);
+    display: flex; align-items: center; gap: var(--s2);
+    cursor: pointer; box-shadow: 0 4px 14px rgba(28, 36, 52, 0.06);
     transition: transform 0.15s var(--ease), background 0.3s, border-color 0.3s;
+    animation: enter 0.45s var(--ease) 0.05s backwards;
   }
   #egress:active { transform: scale(0.985); }
   #egress.zero { background: var(--green-tint); border-color: #bfe7d4; }
-  #egress svg { flex: 0 0 20px; height: 20px; color: var(--muted); transition: color 0.3s; }
+  #egress svg { flex: 0 0 17px; height: 17px; color: var(--muted); transition: color 0.3s; }
   #egress.zero svg { color: var(--green-deep); }
   #egress .body { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; }
   #egress .label {
-    font-size: 0.64rem; font-weight: 700; letter-spacing: 0.1em;
+    font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em;
     color: var(--muted); text-transform: uppercase; white-space: nowrap;
   }
   #egress .value {
-    font-size: 0.95rem; font-weight: 800; font-variant-numeric: tabular-nums;
+    font-size: 0.85rem; font-weight: 800; font-variant-numeric: tabular-nums;
     color: var(--amber); transition: color 0.3s;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   #egress.zero .value { color: var(--green-deep); }
+  #egress .chev { color: var(--muted); font-size: 0.8rem; }
   #egress-total.flash { animation: egressFlash 0.7s var(--ease); }
   @keyframes egressFlash {
     0% { transform: scale(1.1); filter: brightness(0.7); }
     100% { transform: none; filter: none; }
   }
 
+  /* ---- the one scrolling region ---- */
+  #scroll {
+    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; gap: var(--s3);
+    padding: var(--s1) var(--s4) 70px; /* room for the floating mic */
+  }
+
   /* ---- ledger: the hero — the money is the interface ---- */
   #ledger {
+    flex: 0 0 auto;
     background: var(--card); border: 1px solid var(--line);
-    border-radius: var(--r); padding: var(--s4);
+    border-radius: 20px; padding: var(--s4);
     box-shadow: var(--shadow);
+    animation: enter 0.45s var(--ease) 0.1s backwards;
   }
   #ledger h2 {
     display: flex; flex-direction: column; gap: 2px;
-    font-size: 0.66rem; font-weight: 700; letter-spacing: 0.12em;
+    font-size: 0.64rem; font-weight: 700; letter-spacing: 0.12em;
     color: var(--muted); text-transform: uppercase;
   }
   #ledger h2 #total {
     display: inline-block;
-    font-size: 2.4rem; font-weight: 800; line-height: 1.1;
+    font-size: 2.5rem; font-weight: 800; line-height: 1.1;
     letter-spacing: -0.03em; color: var(--ink);
     font-variant-numeric: tabular-nums;
   }
@@ -123,11 +138,11 @@
   @keyframes totalBump {
     0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); }
   }
-  #entries { list-style: none; margin-top: var(--s3); max-height: 20vh; overflow-y: auto;
+  #entries { list-style: none; margin-top: var(--s3); max-height: 168px; overflow-y: auto;
              border-top: 1px solid var(--line); }
   #entries li {
     display: flex; align-items: center; gap: var(--s2);
-    padding: 9px 0; font-size: 0.97rem;
+    padding: 9px 0; font-size: 0.95rem;
     border-bottom: 1px solid #f0ece2;
   }
   #entries li:last-child { border-bottom: none; }
@@ -140,12 +155,12 @@
   #entries li .item { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis;
                       white-space: nowrap; font-weight: 600; }
   #entries li .chip {
-    flex: 0 0 auto; font-size: 0.7rem; font-weight: 700; color: var(--muted);
+    flex: 0 0 auto; font-size: 0.68rem; font-weight: 700; color: var(--muted);
     background: var(--card-2); border: 1px solid var(--line);
     border-radius: 999px; padding: 2px 9px;
   }
   #entries li .credit {
-    flex: 0 0 auto; font-size: 0.62rem; font-weight: 800; letter-spacing: 0.05em;
+    flex: 0 0 auto; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.05em;
     color: var(--amber);
   }
   #entries li .amt {
@@ -164,10 +179,7 @@
   #entries li .del:hover { color: var(--amber); transform: scale(1.25); }
 
   /* ---- chat ---- */
-  #chat {
-    flex: 1; overflow-y: auto; display: flex; flex-direction: column;
-    gap: var(--s2); padding: var(--s1) 2px;
-  }
+  #chat { display: flex; flex-direction: column; gap: var(--s2); }
   .bubble {
     max-width: 84%; padding: 10px 14px; border-radius: 18px;
     font-size: 1rem; line-height: 1.42;
@@ -192,50 +204,57 @@
                   animation: shimmer 1.2s ease-in-out infinite; }
   @keyframes shimmer { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.9; } }
 
-  /* ---- controls: voice is the product ---- */
-  #controls { display: flex; flex-direction: column; gap: var(--s2); align-items: center; }
+  /* ---- dock: fixed bottom bar with the mic floating over it ---- */
+  #dock {
+    flex: 0 0 auto; position: relative;
+    background: var(--card); border-top: 1px solid var(--line);
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -10px 30px rgba(28, 36, 52, 0.08);
+    padding: 62px var(--s4) calc(var(--s3) + env(safe-area-inset-bottom));
+    animation: enter 0.45s var(--ease) 0.15s backwards;
+  }
   #talk {
-    width: 124px; height: 124px; border-radius: 50%;
-    border: none;
+    position: absolute; top: -52px; left: 50%; margin-left: -52px;
+    width: 104px; height: 104px; border-radius: 50%;
+    border: 5px solid var(--bg);
     background: linear-gradient(180deg, var(--green), var(--green-deep));
     color: #ffffff; font-family: var(--font);
     display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 6px;
-    font-size: 0.7rem; font-weight: 800; letter-spacing: 0.07em;
+    justify-content: center; gap: 4px;
+    font-size: 0.58rem; font-weight: 800; letter-spacing: 0.07em;
     cursor: pointer; user-select: none; -webkit-user-select: none;
-    touch-action: none; position: relative;
-    box-shadow: 0 14px 30px rgba(13, 157, 100, 0.35);
+    touch-action: none;
+    box-shadow: 0 12px 26px rgba(13, 157, 100, 0.4);
     transition: transform 0.18s var(--spring), box-shadow 0.25s;
     animation: breathe 3.6s ease-in-out infinite;
   }
-  #talk svg { width: 38px; height: 38px; pointer-events: none; }
+  #talk svg { width: 32px; height: 32px; pointer-events: none; }
   #talk span { pointer-events: none; }
   #talk:active { transform: scale(0.92); }
   #talk.recording {
     background: linear-gradient(180deg, #12b876, var(--green));
     animation: none;
-    box-shadow: 0 6px 18px rgba(13, 157, 100, 0.45);
+    box-shadow: 0 6px 18px rgba(13, 157, 100, 0.5);
   }
   /* recording: two rings ripple outward — unmistakable "it dey hear you" */
   #talk::before, #talk::after {
-    content: ""; position: absolute; inset: -2px; border-radius: 50%;
+    content: ""; position: absolute; inset: -5px; border-radius: 50%;
     border: 2px solid var(--green); opacity: 0; pointer-events: none;
   }
   #talk.recording::before { animation: ring 1.5s ease-out infinite; }
   #talk.recording::after { animation: ring 1.5s ease-out 0.75s infinite; }
   @keyframes ring {
     from { transform: scale(1); opacity: 0.6; }
-    to { transform: scale(1.6); opacity: 0; }
+    to { transform: scale(1.55); opacity: 0; }
   }
-  /* idle: a slow breath so the eye finds the button without being nagged */
   @keyframes breathe {
-    0%, 100% { box-shadow: 0 14px 30px rgba(13, 157, 100, 0.35); }
-    50% { box-shadow: 0 14px 38px rgba(13, 157, 100, 0.5); }
+    0%, 100% { box-shadow: 0 12px 26px rgba(13, 157, 100, 0.4); }
+    50% { box-shadow: 0 12px 34px rgba(13, 157, 100, 0.55); }
   }
 
   #textbox { display: flex; gap: var(--s2); width: 100%; }
   #text {
-    flex: 1; background: var(--card); color: var(--ink);
+    flex: 1; background: var(--card-2); color: var(--ink);
     border: 1px solid var(--line); border-radius: 13px;
     /* 16px minimum or iOS zooms the whole page on focus */
     padding: 11px 14px; font-size: 16px; font-family: var(--font);
@@ -254,13 +273,39 @@
   }
   #send:active { transform: scale(0.93); }
 
-  /* ---- voice-clip retention consent: quiet but never hidden ---- */
+  /* ---- privacy sheet: consent + every transmission, one honest place ---- */
+  #modal {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; align-items: flex-end; justify-content: center;
+    background: rgba(28, 36, 52, 0); backdrop-filter: blur(0px);
+    visibility: hidden;
+    transition: background 0.28s, backdrop-filter 0.28s, visibility 0.28s;
+  }
+  #modal.open { visibility: visible; background: rgba(28, 36, 52, 0.4); backdrop-filter: blur(5px); }
+  #modal .sheet {
+    width: 100%; max-width: 480px; max-height: 84vh;
+    display: flex; flex-direction: column;
+    background: var(--bg);
+    border-radius: 24px 24px 0 0;
+    padding: 10px var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    transition: transform 0.34s var(--ease);
+    box-shadow: 0 -12px 40px rgba(28, 36, 52, 0.25);
+  }
+  #modal.open .sheet { transform: none; }
+  .grab {
+    width: 44px; height: 5px; border-radius: 999px;
+    background: var(--line); margin: 0 auto var(--s3);
+  }
+  #modal h2 { font-size: 1.12rem; font-weight: 800; margin-bottom: var(--s1); }
+  #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: var(--s3); }
   #consent {
     display: flex; align-items: center; gap: var(--s3);
     width: 100%; padding: var(--s3);
     background: var(--card); border: 1px solid var(--line);
     border-radius: 13px; cursor: pointer;
     font-size: 0.8rem; color: var(--muted); line-height: 1.35;
+    margin-bottom: var(--s3);
     transition: border-color 0.25s, color 0.25s;
   }
   #consent .consent-text { flex: 1; }
@@ -280,34 +325,7 @@
   }
   #consent.on .switch { background: var(--green); }
   #consent.on .knob { transform: translateX(20px); }
-
-  /* ---- transmission ledger: bottom sheet ---- */
-  #modal {
-    position: fixed; inset: 0; z-index: 10;
-    display: flex; align-items: flex-end; justify-content: center;
-    background: rgba(28, 36, 52, 0); backdrop-filter: blur(0px);
-    visibility: hidden;
-    transition: background 0.28s, backdrop-filter 0.28s, visibility 0.28s;
-  }
-  #modal.open { visibility: visible; background: rgba(28, 36, 52, 0.4); backdrop-filter: blur(5px); }
-  #modal .sheet {
-    width: 100%; max-width: 480px; max-height: 82vh;
-    display: flex; flex-direction: column;
-    background: var(--bg);
-    border-radius: 24px 24px 0 0;
-    padding: 10px var(--s4) calc(var(--s4) + env(safe-area-inset-bottom));
-    transform: translateY(100%);
-    transition: transform 0.34s var(--ease);
-    box-shadow: 0 -12px 40px rgba(28, 36, 52, 0.25);
-  }
-  #modal.open .sheet { transform: none; }
-  .grab {
-    width: 44px; height: 5px; border-radius: 999px;
-    background: var(--line); margin: 0 auto var(--s3);
-  }
-  #modal h2 { font-size: 1.12rem; font-weight: 800; margin-bottom: var(--s1); }
-  #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: var(--s3); }
-  #egress-rows { flex: 1; overflow-y: auto; min-height: 80px; }
+  #egress-rows { flex: 1; overflow-y: auto; min-height: 60px; }
   .erow {
     background: var(--card); border: 1px solid var(--line);
     border-radius: 13px; padding: var(--s3); margin-bottom: var(--s2);
@@ -320,8 +338,8 @@
   .erow .purpose { margin: var(--s1) 0; }
   .erow .disp { color: var(--muted); font-size: 0.76rem; }
   .empty {
-    color: var(--green-deep); text-align: center; padding: 40px 0;
-    font-size: 1.05rem; font-weight: 700;
+    color: var(--green-deep); text-align: center; padding: 34px 0;
+    font-size: 1.02rem; font-weight: 700;
   }
   #close {
     background: var(--ink); color: #ffffff; border: none;
@@ -334,12 +352,12 @@
 </style>
 </head>
 <body>
-  <div id="topbar">
+  <header id="topbar">
     <div id="brand"><span class="dot"></span>SautiLedger</div>
     <div id="mode" class="offline">OFFLINE</div>
-  </div>
+  </header>
 
-  <div id="egress" title="Tap to see every transmission">
+  <div id="egress" title="Tap for privacy: every transmission, and your choices">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/>
@@ -348,16 +366,18 @@
       <div class="label">Sent off this phone</div>
       <div class="value" id="egress-total">0.00 KB</div>
     </div>
+    <span class="chev">&#9662;</span>
   </div>
 
-  <div id="ledger">
-    <h2>Today's ledger <span id="total">&#8358;0</span></h2>
-    <ul id="entries"></ul>
-  </div>
+  <main id="scroll">
+    <div id="ledger">
+      <h2>Today's ledger <span id="total">&#8358;0</span></h2>
+      <ul id="entries"></ul>
+    </div>
+    <div id="chat"></div>
+  </main>
 
-  <div id="chat"></div>
-
-  <div id="controls">
+  <div id="dock">
     <button id="talk" aria-label="Hold to talk">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -372,18 +392,18 @@
       <input id="text" type="text" placeholder="or type am here…" autocomplete="off">
       <button id="send">Send</button>
     </div>
-    <label id="consent">
-      <span class="consent-text">Keep my voice clips make dem help test the speech model.
-      <small>Na only if you gree — you fit off am anytime. Clips stay for this app, nowhere else.</small></span>
-      <span class="switch"><input type="checkbox" id="retain"><span class="knob"></span></span>
-    </label>
   </div>
 
   <div id="modal">
     <div class="sheet">
       <div class="grab"></div>
-      <h2>Transmission ledger</h2>
-      <p class="sub">Every byte that ever left this device. Your money records are not on this list.</p>
+      <h2>Privacy</h2>
+      <p class="sub">Every byte that ever left this device is listed below. Your money records are not on this list.</p>
+      <label id="consent">
+        <span class="consent-text">Keep my voice clips make dem help test the speech model.
+        <small>Na only if you gree — you fit off am anytime. Clips stay for this app, nowhere else.</small></span>
+        <span class="switch"><input type="checkbox" id="retain"><span class="knob"></span></span>
+      </label>
       <div id="egress-rows"></div>
       <button id="close">Close</button>
     </div>
