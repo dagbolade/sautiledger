@@ -248,7 +248,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         days = 30 if period == "month" else 7
         since = (date.today() - timedelta(days=days - 1)).isoformat()
         label = f"Last {days} days · {since} to {date.today().isoformat()}"
-        owner = f"Trader account {ledger.session_id[:8]}"
+        # a short bank-style reference, never the raw session id — a
+        # non-technical reader should not meet a UUID fragment here
+        owner = f"Statement ref {ledger.session_id[:4].upper()}"
         page = build_statement_html(
             ledger.statement_rows(since), pack.currency, label, days, owner
         )
