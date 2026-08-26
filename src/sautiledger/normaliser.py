@@ -15,6 +15,9 @@ from .packs import Pack
 # "5.5k" survives as one token; "5,500" loses its comma first
 _TOKEN_RE = re.compile(r"\d+\.\d+k|[a-z0-9']+")
 _DIGIT_COMMA_RE = re.compile(r"(?<=\d),(?=\d)")
+# typed-shorthand glue: "1big egg" -> "1 big egg". Two-letter minimum so
+# "5k" / "5.5k" money tokens survive intact.
+_QTY_GLUE_RE = re.compile(r"(?<=\d)(?=[a-z]{2,})")
 
 # parse_money sentinels
 NO_MONEY = "no_money"
@@ -22,7 +25,11 @@ UNPARSEABLE = "unparseable"
 
 
 def tokenize(text: str) -> list[str]:
-    return _TOKEN_RE.findall(_DIGIT_COMMA_RE.sub("", text.lower()))
+    # written-shorthand register: "@5700" is the typed price marker —
+    # same tier as the spoken connectives (for/at/worth)
+    text = text.lower().replace("@", " at ")
+    text = _QTY_GLUE_RE.sub(" ", text)
+    return _TOKEN_RE.findall(_DIGIT_COMMA_RE.sub("", text))
 
 
 # ---------------------------------------------------------------- numbers
@@ -417,6 +424,18 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             # "item N" order: "groundnut 3 for 500" -> qty 3, item groundnut
             quantity = trail
             item_toks = item_toks[:-1]
+
+    if total_marked and quantity is None:
+        # typed-shorthand register: "Mr olaolu 1 big egg at 5700" — with an
+        # explicit price marker present, the first count-sized numeral is
+        # the quantity, and whatever precedes it is a buyer/narration
+        # prefix (names arrive ASR-mangled, never required to parse)
+        for idx, tok in enumerate(item_toks):
+            v = _num_value(tok, pack)
+            if v is not None and 1 <= v <= 99:
+                quantity = v
+                item_toks = item_toks[idx + 1:]
+                break
 
     if total_marked and quantity is None and len(money_toks) == 1 and item_toks:
         # amount-for-quantity order: "biscuits 350 for 2" = ₦350 for 2 —

@@ -18,8 +18,13 @@ reduplication_distributive: true
 digit_twin_thousands: true
 
 # "groundnut 3 FOR 500" — the connective marks 500 as an explicit total;
-# "fun" is the Yoruba equivalent ("mo taa ede FUN 300")
-price_connectives: [for, at, fun]
+# "fun" is the Yoruba equivalent ("mo taa ede FUN 300"); "worth"/"cost"
+# from field testing ("egg worth 12000"); "goes" pairs with "for" so
+# "goes for" falls out of the trailing-connective pop
+price_connectives: [for, at, fun, worth, cost, goes]
+
+# size words riding on item names: "1 big egg" — extra detail, not doubt
+descriptors: [big, small, medium, large]
 
 # multi-word item names known to the language — exempt from the
 # unknown-item confirmation guard

@@ -61,13 +61,39 @@ class Agent:
             if reply is not None:
                 return reply
             self.pending = None  # answer didn't fit — treat as a fresh utterance
+        was_confirming = False
         if self.awaiting_confirm:
             self.awaiting_confirm = False
+            was_confirming = True
             handled = self._handle_confirmation(text)
             if handled is not None:
                 return handled
         parse = normalise(text, self.pack, self.llm)
+        if (
+            was_confirming
+            and self.last_logged_id is not None
+            and parse.intent == "clarify"
+            and parse.item is None
+            and parse.amount is None
+            and parse.amount_each is None
+            and tokenize(text)[:1] == ["na"]
+        ):
+            # a copula-led confirm-time reply with nothing loggable in it
+            # ("Na Michael come") is a detail note on the entry, not a new
+            # transaction — the money already captured must survive. The
+            # copula is the cue (same rule as corrections); cue-less chatter
+            # still never touches the ledger.
+            return self._note_on_last(text)
         return self._dispatch(parse, text)
+
+    def _note_on_last(self, text: str) -> str:
+        row = self.ledger.append_note(self.last_logged_id, text)
+        if row is None:
+            return "Wetin you want make I log? Tell me the item and the amount, abeg."
+        what = row["item"] or "entry"
+        money = tools._money(row["amount"] or 0, row["currency"])
+        return (f"I don note am. The entry still stand: {what}, {money}. "
+                f"If something wrong, talk 'no, na …' make I fix am.")
 
     def _handle_confirmation(self, text: str) -> str | None:
         """A reply to '… Correct?' may reject, confirm, or carry new content
@@ -145,7 +171,9 @@ class Agent:
         new words (real products like "biscuits") log normally."""
         if not parse.item:
             return False
-        if len(parse.item.split()) <= 1:
+        # descriptors are detail, not doubt: "big egg" is one item word
+        core = [w for w in parse.item.split() if w not in self.pack.descriptors]
+        if len(core) <= 1:
             return False
         if parse.item in self.pack.multi_word_items:
             return False

@@ -41,6 +41,9 @@ class Pack:
     price_connectives: frozenset[str] = frozenset()
     # multi-word item names known to the language ("pure water")
     multi_word_items: frozenset[str] = frozenset()
+    # size/attribute words ("1 big egg") — bonus detail on an item name,
+    # never a reason to doubt it
+    descriptors: frozenset[str] = frozenset()
     # question markers: interrogative + sale trigger = query, not transaction
     interrogatives: list[str] = field(default_factory=list)
 
@@ -79,4 +82,5 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         price_connectives=frozenset(raw.get("price_connectives") or []),
         interrogatives=list(raw.get("interrogatives") or []),
         multi_word_items=frozenset(raw.get("multi_word_items") or []),
+        descriptors=frozenset(raw.get("descriptors") or []),
     )

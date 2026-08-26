@@ -176,3 +176,31 @@ def test_chatter_leaves_ledger_unchanged(agent):
         agent.pending = None  # each chatter line stands alone
     after = [dict(r) for r in _rows(agent)]
     assert after == before  # row count AND contents unchanged
+
+
+# (field round one) "worth" as a money connective — real model in the loop
+def test_worth_connective_logs_field(agent):
+    agent.handle("I sell egg worth 12000 naira")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["item"] == "egg"
+    assert rows[0]["amount"] == 12000
+
+
+# (field round one) typed shorthand: buyer name + glued qty + @price
+def test_shorthand_at_price_logs_field(agent):
+    agent.handle("Mr olaolu 1big egg @5700")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["quantity"] == 1
+    assert rows[0]["amount"] == 5700
+
+
+# (field round one) a garbled confirm reply must never lose captured money
+def test_confirm_note_keeps_money_field(agent):
+    agent.handle("I don sell 3 crayfish for 2000 naira")
+    agent.handle("Na Michale come")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["payment_status"] == "paid"
+    assert rows[0]["amount"] == 2000

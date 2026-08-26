@@ -290,6 +290,23 @@ class Ledger:
         ).fetchone()
         return row["total"]
 
+    def append_note(self, txn_id: int, note: str) -> sqlite3.Row | None:
+        """Attach a spoken detail note to a row's provenance ('Na Michael
+        come'). The note is labelled inside raw_utterance — auditable,
+        never silently merged into the parsed fields."""
+        row = self.conn.execute(
+            "SELECT * FROM transactions WHERE id = ? AND session_id = ?",
+            (txn_id, self.session_id),
+        ).fetchone()
+        if row is None:
+            return None
+        self.conn.execute(
+            "UPDATE transactions SET raw_utterance = raw_utterance || ? WHERE id = ?",
+            (f" [note: {note}]", txn_id),
+        )
+        self.conn.commit()
+        return row
+
     def statement_rows(self, since_iso: str) -> list[sqlite3.Row]:
         """Non-voided rows from a date onward — the statement's raw truth."""
         return self.conn.execute(
