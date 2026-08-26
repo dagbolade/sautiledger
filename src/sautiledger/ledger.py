@@ -1,5 +1,11 @@
 """SQLite ledger — plain SQL, stdlib sqlite3, no ORM.
 
+Every row belongs to a session (one visitor's book). A Ledger object is a
+session-scoped view: it shares one connection with its siblings but every
+read and write is filtered to its own session_id, so one trader's book can
+never leak into another's. Rows from before the multi-session era carry
+session_id 'default'.
+
 The egress_log table is created here too; egress.py writes to it.
 """
 
@@ -10,6 +16,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from .models import ParseResult
+
+DEFAULT_SESSION = "default"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS transactions (
@@ -24,7 +32,8 @@ CREATE TABLE IF NOT EXISTS transactions (
     currency       TEXT NOT NULL,
     payment_status TEXT NOT NULL DEFAULT 'paid',
     due            TEXT,
-    raw_utterance  TEXT
+    raw_utterance  TEXT,
+    session_id     TEXT NOT NULL DEFAULT 'default'
 );
 CREATE TABLE IF NOT EXISTS egress_log (
     id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,30 +41,54 @@ CREATE TABLE IF NOT EXISTS egress_log (
     destination TEXT NOT NULL,
     purpose     TEXT NOT NULL,
     bytes_sent  INTEGER NOT NULL,
-    disposition TEXT NOT NULL
+    disposition TEXT NOT NULL,
+    session_id  TEXT NOT NULL DEFAULT 'default'
 );
+CREATE INDEX IF NOT EXISTS idx_txn_session ON transactions(session_id);
+CREATE INDEX IF NOT EXISTS idx_egress_session ON egress_log(session_id);
 """
 
 _CORRECTABLE_FIELDS = {"amount", "amount_each", "item", "quantity", "unit", "payment_status"}
 
 
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Pre-session databases lack the session_id columns; add them in place.
+    Existing rows keep the 'default' tag so nothing already written moves."""
+    for table in ("transactions", "egress_log"):
+        cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        if cols and "session_id" not in cols:
+            conn.execute(
+                f"ALTER TABLE {table} ADD COLUMN session_id TEXT NOT NULL DEFAULT 'default'"
+            )
+
+
 class Ledger:
-    def __init__(self, path: str = "data/ledger.db"):
+    def __init__(self, path: str = "data/ledger.db", session_id: str = DEFAULT_SESSION):
         if path != ":memory:":
             Path(path).parent.mkdir(parents=True, exist_ok=True)
         # check_same_thread=False: FastAPI serves requests from a threadpool;
         # sqlite3 serialises access internally at this scale.
         self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row
+        _migrate(self.conn)
         self.conn.executescript(SCHEMA)
+        self.session_id = session_id
+
+    def scoped(self, session_id: str) -> "Ledger":
+        """A sibling view over the same database, filtered to another session."""
+        twin = object.__new__(Ledger)
+        twin.conn = self.conn
+        twin.session_id = session_id
+        return twin
 
     # ------------------------------------------------------------ writes
 
     def add_transaction(self, parse: ParseResult, raw_utterance: str) -> int:
         cur = self.conn.execute(
             """INSERT INTO transactions
-               (ts, type, item, quantity, unit, amount, amount_each, currency, raw_utterance)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               (ts, type, item, quantity, unit, amount, amount_each, currency,
+                raw_utterance, session_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 datetime.now().isoformat(timespec="seconds"),
                 parse.type or "sale",
@@ -66,6 +99,7 @@ class Ledger:
                 parse.amount_each,
                 parse.currency,
                 raw_utterance,
+                self.session_id,
             ),
         )
         self.conn.commit()
@@ -84,13 +118,13 @@ class Ledger:
         self.conn.commit()
         return self.last_transaction()
 
-    # ------------------------------------------------------------ reads
-
     def void_transaction(self, txn_id: int) -> sqlite3.Row | None:
         """Soft delete: the row stays in the DB marked 'voided' (auditable,
-        never silent) and drops out of every total and the UI list."""
+        never silent) and drops out of every total and the UI list. Only
+        rows in this session's book are reachable — no cross-book voiding."""
         row = self.conn.execute(
-            "SELECT * FROM transactions WHERE id = ?", (txn_id,)
+            "SELECT * FROM transactions WHERE id = ? AND session_id = ?",
+            (txn_id, self.session_id),
         ).fetchone()
         if row is None:
             return None
@@ -101,11 +135,20 @@ class Ledger:
         print(f"voided txn #{txn_id}: {row['item']} {row['amount']}", flush=True)
         return row
 
+    # ------------------------------------------------------------ reads
+
     def last_transaction(self) -> sqlite3.Row | None:
         return self.conn.execute(
             "SELECT * FROM transactions WHERE payment_status != 'voided' "
-            "ORDER BY id DESC LIMIT 1"
+            "AND session_id = ? ORDER BY id DESC LIMIT 1",
+            (self.session_id,),
         ).fetchone()
+
+    def has_logged_item(self, item: str) -> bool:
+        return self.conn.execute(
+            "SELECT 1 FROM transactions WHERE item = ? AND session_id = ? LIMIT 1",
+            (item, self.session_id),
+        ).fetchone() is not None
 
     def _since(self, period: str) -> str:
         today = date.today()
@@ -118,24 +161,27 @@ class Ledger:
     def sales_total(self, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'sale' AND payment_status != 'voided' AND ts >= ?""",
-            (self._since(period),),
+               FROM transactions WHERE type = 'sale' AND payment_status != 'voided'
+               AND session_id = ? AND ts >= ?""",
+            (self.session_id, self._since(period)),
         ).fetchone()
         return row["n"], row["total"]
 
     def expenses_total(self, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'expense' AND payment_status != 'voided' AND ts >= ?""",
-            (self._since(period),),
+               FROM transactions WHERE type = 'expense' AND payment_status != 'voided'
+               AND session_id = ? AND ts >= ?""",
+            (self.session_id, self._since(period)),
         ).fetchone()
         return row["n"], row["total"]
 
     def item_total(self, item: str, period: str) -> tuple[int, int]:
         row = self.conn.execute(
             """SELECT COUNT(*) AS n, COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE type = 'sale' AND payment_status != 'voided' AND item = ? AND ts >= ?""",
-            (item, self._since(period)),
+               FROM transactions WHERE type = 'sale' AND payment_status != 'voided'
+               AND item = ? AND session_id = ? AND ts >= ?""",
+            (item, self.session_id, self._since(period)),
         ).fetchone()
         return row["n"], row["total"]
 
@@ -143,21 +189,23 @@ class Ledger:
         row = self.conn.execute(
             """SELECT item, COALESCE(SUM(amount), 0) AS total
                FROM transactions
-               WHERE type = 'sale' AND payment_status != 'voided' AND item IS NOT NULL AND ts >= ?
+               WHERE type = 'sale' AND payment_status != 'voided' AND item IS NOT NULL
+               AND session_id = ? AND ts >= ?
                GROUP BY item ORDER BY total DESC LIMIT 1""",
-            (self._since(period),),
+            (self.session_id, self._since(period)),
         ).fetchone()
         return (row["item"], row["total"]) if row else None
 
     def credit_outstanding(self) -> int:
         row = self.conn.execute(
             """SELECT COALESCE(SUM(amount), 0) AS total
-               FROM transactions WHERE payment_status = 'credit'"""
+               FROM transactions WHERE payment_status = 'credit' AND session_id = ?""",
+            (self.session_id,),
         ).fetchone()
         return row["total"]
 
     def entries(self, period: str) -> list[sqlite3.Row]:
         return self.conn.execute(
-            "SELECT * FROM transactions WHERE ts >= ? ORDER BY id",
-            (self._since(period),),
+            "SELECT * FROM transactions WHERE session_id = ? AND ts >= ? ORDER BY id",
+            (self.session_id, self._since(period)),
         ).fetchall()

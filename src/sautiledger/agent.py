@@ -149,10 +149,7 @@ class Agent:
             return False
         if parse.item in self.pack.multi_word_items:
             return False
-        seen = self.ledger.conn.execute(
-            "SELECT 1 FROM transactions WHERE item = ? LIMIT 1", (parse.item,)
-        ).fetchone()
-        return seen is None
+        return not self.ledger.has_logged_item(parse.item)
 
     def _clarify_question(self, parse: ParseResult) -> str:
         if parse.candidates:

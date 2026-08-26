@@ -21,6 +21,8 @@ from urllib.parse import urlsplit
 
 import certifi
 
+from datetime import date
+
 from .ledger import Ledger
 
 # Outbound TLS uses certifi's CA bundle explicitly — NEVER the process
@@ -63,14 +65,16 @@ class EgressRecorder:
             raise EgressError(f"transmission to {destination} failed: {exc}") from exc
         finally:
             self.ledger.conn.execute(
-                """INSERT INTO egress_log (ts, destination, purpose, bytes_sent, disposition)
-                   VALUES (?, ?, ?, ?, ?)""",
+                """INSERT INTO egress_log
+                   (ts, destination, purpose, bytes_sent, disposition, session_id)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
                 (
                     datetime.now().isoformat(timespec="seconds"),
                     destination,
                     purpose,
                     len(data),
                     disposition,
+                    self.ledger.session_id,
                 ),
             )
             self.ledger.conn.commit()
@@ -91,24 +95,39 @@ class EgressRecorder:
             raise EgressError(f"transmission to {destination} failed: {exc}") from exc
         finally:
             self.ledger.conn.execute(
-                """INSERT INTO egress_log (ts, destination, purpose, bytes_sent, disposition)
-                   VALUES (?, ?, ?, ?, ?)""",
+                """INSERT INTO egress_log
+                   (ts, destination, purpose, bytes_sent, disposition, session_id)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
                 (datetime.now().isoformat(timespec="seconds"),
-                 destination, purpose, 0, disposition),
+                 destination, purpose, 0, disposition, self.ledger.session_id),
             )
             self.ledger.conn.commit()
 
     # ------------------------------------------------------------ reads
 
+    def sends_today(self, purpose: str) -> int:
+        """How many payload-carrying transmissions this session made today
+        for one purpose — feeds the per-session daily ASR cap that stops a
+        shared link from draining the API credits."""
+        row = self.ledger.conn.execute(
+            "SELECT COUNT(*) AS n FROM egress_log WHERE session_id = ? "
+            "AND purpose = ? AND bytes_sent > 0 AND ts >= ?",
+            (self.ledger.session_id, purpose, date.today().isoformat()),
+        ).fetchone()
+        return row["n"]
+
     def total_bytes(self) -> int:
         row = self.ledger.conn.execute(
-            "SELECT COALESCE(SUM(bytes_sent), 0) AS total FROM egress_log"
+            "SELECT COALESCE(SUM(bytes_sent), 0) AS total FROM egress_log "
+            "WHERE session_id = ?",
+            (self.ledger.session_id,),
         ).fetchone()
         return row["total"]
 
     def log(self) -> list:
         return self.ledger.conn.execute(
-            "SELECT * FROM egress_log ORDER BY id DESC"
+            "SELECT * FROM egress_log WHERE session_id = ? ORDER BY id DESC",
+            (self.ledger.session_id,),
         ).fetchall()
 
 

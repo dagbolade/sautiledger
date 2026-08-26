@@ -1,26 +1,45 @@
 """FastAPI app: POST /utterance (audio or text), GET /state, static UI.
 
+Every visitor gets their own book. A long-lived cookie names the device;
+each device id maps to a session — its own ledger view, agent turn-state,
+egress meter, and ASR client — so two traders on the same URL can never
+see or touch each other's records.
+
 Run: python -m uvicorn sautiledger.api:app --port 8090
 """
 
 from __future__ import annotations
 
+import re
+import secrets
+import threading
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, UploadFile
+from fastapi import FastAPI, File, Form, Request, Response, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .agent import Agent
-from .asr import FakeAsr, NotConfigured, SaharaAsyncAsr, SaharaCloudAsr
+from .asr import FakeAsr, SaharaAsyncAsr, SaharaCloudAsr
 from .audio import AudioUnusable, to_wav16k
 from .config import Settings, get_settings
 from .egress import EgressError, EgressRecorder
-from .ledger import Ledger
+from .ledger import DEFAULT_SESSION, Ledger
 from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
+
+DEVICE_COOKIE = "sauti_device"
+_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+_DEVICE_ID = re.compile(r"[0-9a-f]{16}")
+# in-memory sessions kept at once; oldest-idle is dropped beyond this
+# (its ledger rows persist — a returning cookie just gets a fresh session)
+MAX_LIVE_SESSIONS = 300
+# per-device transcriptions per day: enough for a full trading day, small
+# enough that a shared link cannot drain the ASR credits
+ASR_DAILY_CAP = 150
+_ASR_PURPOSE = "your voice clip, sent for transcription"
 
 
 def _make_llm(settings: Settings, recorder: EgressRecorder):
@@ -34,35 +53,67 @@ def _make_llm(settings: Settings, recorder: EgressRecorder):
     return ollama_if_available()
 
 
+class _Session:
+    def __init__(self, settings: Settings, pack, base_ledger: Ledger, device_id: str):
+        self.ledger = base_ledger.scoped(device_id)
+        self.recorder = EgressRecorder(self.ledger)
+        self.agent = Agent(pack, self.ledger, _make_llm(settings, self.recorder))
+        if settings.mode == "cloud":
+            asr_cls = SaharaAsyncAsr if settings.asr_path == "async" else SaharaCloudAsr
+            self.asr = asr_cls(self.recorder, settings.sahara_api_key)
+        else:
+            # Offline: FakeAsr stands in until the on-device engine lands —
+            # nothing touches the network in this mode.
+            self.asr = FakeAsr()
+        self.touched = 0
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     pack = load_pack(settings.pack)
-    ledger = Ledger(settings.db_path)
-    recorder = EgressRecorder(ledger)
-    agent = Agent(pack, ledger, _make_llm(settings, recorder))
+    base_ledger = Ledger(settings.db_path)
 
-    if settings.mode == "cloud":
-        if settings.asr_path == "async":
-            asr = SaharaAsyncAsr(recorder, settings.sahara_api_key)
-        else:
-            asr = SaharaCloudAsr(recorder, settings.sahara_api_key)
-    else:
-        # Offline: FakeAsr stands in until the on-device engine lands —
-        # nothing touches the network in this mode.
-        asr = FakeAsr()
+    sessions: dict[str, _Session] = {}
+    lock = threading.Lock()
+    clock = [0]  # monotonic touch counter for oldest-idle eviction
+
+    def session_for(device_id: str) -> _Session:
+        with lock:
+            sess = sessions.get(device_id)
+            if sess is None:
+                if len(sessions) >= MAX_LIVE_SESSIONS:
+                    oldest = min(sessions, key=lambda k: sessions[k].touched)
+                    del sessions[oldest]
+                sess = _Session(settings, pack, base_ledger, device_id)
+                sessions[device_id] = sess
+            clock[0] += 1
+            sess.touched = clock[0]
+            return sess
+
+    def resolve_device(request: Request, response: Response) -> str:
+        cookie = request.cookies.get(DEVICE_COOKIE, "")
+        if _DEVICE_ID.fullmatch(cookie):
+            return cookie
+        device_id = secrets.token_hex(8)
+        response.set_cookie(
+            DEVICE_COOKIE, device_id,
+            max_age=_COOKIE_MAX_AGE, httponly=True, samesite="lax",
+        )
+        return device_id
 
     app = FastAPI(title="SautiLedger")
     app.state.settings = settings
-    app.state.agent = agent
-    app.state.ledger = ledger
-    app.state.recorder = recorder
-    app.state.asr = asr
+    app.state.ledger = base_ledger
 
     @app.post("/utterance")
     async def utterance(
+        request: Request,
+        response: Response,
         text: str | None = Form(None),
         audio: UploadFile | None = File(None),
     ):
+        sess = session_for(resolve_device(request, response))
+        recorder, agent, asr = sess.recorder, sess.agent, sess.asr
         egress_before = recorder.total_bytes()
 
         def friendly(reply: str, error: str) -> dict:
@@ -81,6 +132,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             blob = await audio.read()
             content_type = audio.content_type or "unknown"
             if settings.mode == "cloud":
+                if recorder.sends_today(_ASR_PURPOSE) >= ASR_DAILY_CAP:
+                    return friendly(
+                        "Voice don reach im limit for today o. Type am instead, abeg.",
+                        "daily ASR cap reached",
+                    )
                 try:
                     blob, duration = to_wav16k(blob)
                 except AudioUnusable as exc:
@@ -111,16 +167,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         }
 
     @app.post("/void/{txn_id}")
-    def void(txn_id: int):
-        row = ledger.void_transaction(txn_id)
+    def void(txn_id: int, request: Request, response: Response):
+        sess = session_for(resolve_device(request, response))
+        # the scoped ledger only reaches this session's rows — a guessed id
+        # from another book 404s rather than voiding someone else's sale
+        row = sess.ledger.void_transaction(txn_id)
         if row is None:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
         return {"ok": True, "voided": txn_id}
 
     @app.get("/state")
-    def state():
-        entries = [dict(row) for row in ledger.entries("today")]
-        sales_n, sales_total = ledger.sales_total("today")
+    def state(request: Request, response: Response):
+        sess = session_for(resolve_device(request, response))
+        entries = [dict(row) for row in sess.ledger.entries("today")]
+        sales_n, sales_total = sess.ledger.sales_total("today")
         return {
             "mode": settings.mode,
             "pack": pack.name,
@@ -128,8 +188,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "entries": entries,
             "sales_count": sales_n,
             "sales_total": sales_total,
-            "egress_total": recorder.total_bytes(),
-            "egress_log": [dict(row) for row in recorder.log()],
+            "egress_total": sess.recorder.total_bytes(),
+            "egress_log": [dict(row) for row in sess.recorder.log()],
         }
 
     if STATIC_DIR.exists():
