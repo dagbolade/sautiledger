@@ -25,10 +25,19 @@
   body {
     background: var(--bg); color: var(--text); font-family: var(--font);
     display: flex; flex-direction: column;
-    max-width: 480px; margin: 0 auto; padding: var(--s3);
+    max-width: 480px; margin: 0 auto;
+    padding: var(--s3) var(--s3) calc(var(--s3) + env(safe-area-inset-bottom));
     gap: var(--s3);
     font-size: 16px; line-height: 1.4;
   }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+  #total.bump { animation: totalBump 0.4s ease-out; }
+  @keyframes totalBump {
+    0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); }
+  }
+  #ledger h2 #total { display: inline-block; }
 
   /* ---- egress panel: calm, factual, tappable ---- */
   #egress {
@@ -135,17 +144,28 @@
   /* ---- controls: voice is the product ---- */
   #controls { display: flex; flex-direction: column; gap: var(--s2); align-items: center; }
   #talk {
-    width: 112px; height: 112px; border-radius: 50%;
+    width: 118px; height: 118px; border-radius: 50%;
     border: 3px solid var(--accent); background: var(--panel);
     color: var(--accent); font-family: var(--font);
-    font-size: 0.8rem; font-weight: 800; letter-spacing: 0.06em;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 6px;
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em;
     cursor: pointer; user-select: none; -webkit-user-select: none;
-    touch-action: none; position: relative; transition: transform 0.1s;
+    touch-action: none; position: relative;
+    transition: transform 0.12s ease-out;
+    animation: breathe 3.4s ease-in-out infinite;
   }
-  #talk:active { transform: scale(0.97); }
+  #talk svg { width: 34px; height: 34px; pointer-events: none; }
+  #talk span { pointer-events: none; }
+  #talk:active { transform: scale(0.94); }
   #talk.recording {
     background: var(--accent); color: #06281c;
     animation: pulse 1.4s ease-out infinite;
+  }
+  /* idle: a slow breath so the eye finds the button without being nagged */
+  @keyframes breathe {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+    50% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0.09); }
   }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
@@ -155,7 +175,8 @@
   #text {
     flex: 1; background: var(--panel); color: var(--text);
     border: 1px solid var(--line); border-radius: 10px;
-    padding: 9px 12px; font-size: 0.9rem; font-family: var(--font);
+    /* 16px minimum or iOS zooms the whole page on focus */
+    padding: 10px 12px; font-size: 16px; font-family: var(--font);
   }
   #text::placeholder { color: var(--muted); }
   #send {
@@ -166,23 +187,39 @@
 
   /* ---- voice-clip retention consent: quiet but never hidden ---- */
   #consent {
-    display: flex; align-items: flex-start; gap: var(--s2);
-    width: 100%; padding: var(--s2) var(--s3);
+    display: flex; align-items: center; gap: var(--s3);
+    width: 100%; padding: var(--s3);
     background: var(--panel); border: 1px solid var(--line);
     border-radius: 10px; cursor: pointer;
-    font-size: 0.78rem; color: var(--muted); line-height: 1.35;
+    font-size: 0.8rem; color: var(--muted); line-height: 1.35;
+    transition: border-color 0.25s, color 0.25s;
   }
-  #consent input { margin-top: 2px; accent-color: var(--accent); }
-  #consent.on { border-color: rgba(52, 211, 153, 0.4); color: var(--text); }
-  #consent small { display: block; color: var(--muted); font-size: 0.7rem; }
+  #consent .consent-text { flex: 1; }
+  #consent.on { border-color: rgba(52, 211, 153, 0.45); color: var(--text); }
+  #consent small { display: block; color: var(--muted); font-size: 0.72rem; margin-top: 2px; }
+  #consent .switch {
+    flex: 0 0 46px; height: 26px; border-radius: 999px; position: relative;
+    background: var(--panel-2); border: 1px solid var(--line);
+    transition: background 0.25s, border-color 0.25s;
+  }
+  #consent .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  #consent .knob {
+    position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: var(--muted); pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.64, 1), background 0.22s;
+  }
+  #consent.on .switch { background: var(--accent-dim); border-color: rgba(52, 211, 153, 0.45); }
+  #consent.on .knob { transform: translateX(20px); background: var(--accent); }
 
   /* ---- egress ledger modal ---- */
   #modal {
     position: fixed; inset: 0; background: rgba(4, 8, 18, 0.94);
-    display: none; flex-direction: column; padding: var(--s4);
+    display: flex; flex-direction: column; padding: var(--s4);
     max-width: 480px; margin: 0 auto;
+    visibility: hidden; opacity: 0; transform: translateY(14px);
+    transition: opacity 0.22s ease-out, transform 0.22s ease-out, visibility 0.22s;
   }
-  #modal.open { display: flex; }
+  #modal.open { visibility: visible; opacity: 1; transform: none; }
   #modal h2 { font-size: 1.15rem; font-weight: 800; margin-bottom: var(--s1); }
   #modal p.sub { color: var(--muted); font-size: 0.85rem; margin-bottom: var(--s4); }
   #egress-rows { flex: 1; overflow-y: auto; }
@@ -229,15 +266,24 @@
   </div>
 
   <div id="controls">
-    <button id="talk">HOLD TO TALK</button>
+    <button id="talk" aria-label="Hold to talk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="2" width="6" height="12" rx="3"/>
+        <path d="M5 10v1a7 7 0 0 0 14 0v-1"/>
+        <line x1="12" y1="18" x2="12" y2="22"/>
+        <line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+      <span id="talk-label">HOLD TO TALK</span>
+    </button>
     <div id="textbox">
       <input id="text" type="text" placeholder="or type am here…" autocomplete="off">
       <button id="send">Send</button>
     </div>
     <label id="consent">
-      <input type="checkbox" id="retain">
-      <span>Keep my voice clips make dem help test the speech model.
+      <span class="consent-text">Keep my voice clips make dem help test the speech model.
       <small>Na only if you gree — you fit off am anytime. Clips stay for this app, nowhere else.</small></span>
+      <span class="switch"><input type="checkbox" id="retain"><span class="knob"></span></span>
     </label>
   </div>
 

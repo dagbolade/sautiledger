@@ -45,9 +45,35 @@ function renderEgress(total, log) {
   $("egress").classList.toggle("zero", zero);
 }
 
+const reduceMotion = window.matchMedia
+  && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// the total counts up to its new value — money arriving should feel like it
+let lastTotal = null;
+function renderTotal(newTotal) {
+  const el = $("total");
+  const show = (n) => { el.textContent = currency + Math.round(n).toLocaleString(); };
+  if (lastTotal === null || newTotal === lastTotal || reduceMotion) {
+    show(newTotal);
+    lastTotal = newTotal;
+    return;
+  }
+  const start = lastTotal, diff = newTotal - start, t0 = performance.now();
+  const step = (t) => {
+    const p = Math.min(1, (t - t0) / 450);
+    show(start + diff * (1 - Math.pow(1 - p, 3)));
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+  el.classList.remove("bump");
+  void el.offsetWidth; // restart the animation
+  el.classList.add("bump");
+  lastTotal = newTotal;
+}
+
 const seenRowIds = new Set();
 function renderLedger(entries, salesTotal) {
-  $("total").textContent = currency + (salesTotal || 0).toLocaleString();
+  renderTotal(salesTotal || 0);
   const list = $("entries");
   list.innerHTML = "";
   (entries || []).slice().reverse().forEach((e) => {
@@ -113,13 +139,13 @@ function clearStatus() {
 
 async function submit(formData, shownText) {
   if (shownText) bubble(shownText, "you");
-  showStatus("thinking…");
+  showStatus("I dey reason am…");
   try {
     const resp = await fetch("/utterance", { method: "POST", body: formData });
     const body = await resp.json();
     clearStatus();
     if (!resp.ok) {
-      bubble(body.error || "Something went wrong.", "sauti");
+      bubble(body.error || "Something spoil small. Abeg try am again.", "sauti");
       return;
     }
     if (!shownText && body.transcript) bubble(body.transcript, "you");
@@ -127,7 +153,7 @@ async function submit(formData, shownText) {
     speak(body.reply_text);
   } catch (err) {
     clearStatus();
-    bubble("No response from the app server.", "sauti");
+    bubble("Server no answer o. Check your network, then try again.", "sauti");
   }
   refreshState();
 }
@@ -183,26 +209,34 @@ async function startRecording() {
     recorder.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
       const blob = new Blob(chunks, { type: "audio/webm" });
-      if (blob.size < 1000) return; // accidental tap
+      if (blob.size < 1000) {
+        // accidental tap — teach the gesture instead of going silent
+        bubble("That one too short o. Press and hold am, talk finish, then leave am.", "sauti");
+        return;
+      }
       const form = new FormData();
       form.append("audio", blob, "utterance.webm");
       submit(form, null);
     };
     recorder.start();
+    if (navigator.vibrate) navigator.vibrate(25);
     $("talk").classList.add("recording");
-    $("talk").textContent = "LISTENING…";
-    showStatus("listening…");
+    $("talk-label").textContent = "LISTENING…";
+    showStatus("I dey hear you… leave am when you don talk finish.");
   } catch (err) {
-    bubble("Mic unavailable — type the utterance instead.", "sauti");
+    bubble("I no fit reach the mic o. Abeg type am for the box instead.", "sauti");
   }
 }
 
 function stopRecording() {
   clearStatus();
-  if (recorder && recorder.state === "recording") recorder.stop();
+  if (recorder && recorder.state === "recording") {
+    recorder.stop();
+    if (navigator.vibrate) navigator.vibrate(12);
+  }
   recorder = null;
   $("talk").classList.remove("recording");
-  $("talk").textContent = "HOLD TO TALK";
+  $("talk-label").textContent = "HOLD TO TALK";
 }
 
 const talk = $("talk");
@@ -241,7 +275,7 @@ let greetedEmpty = false;
   const state = await (await fetch("/state")).json().catch(() => null);
   if (!greetedEmpty && state && (state.entries || []).length === 0) {
     greetedEmpty = true;
-    bubble("Ledger empty. Oya, talk your first sale.", "sauti");
+    bubble("Ledger empty. Hold the green button, talk your first sale, then leave am.", "sauti");
   }
 })();
 setInterval(refreshState, 5000);
