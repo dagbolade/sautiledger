@@ -1,0 +1,11 @@
+# Railway deployment config. The service needs:
+#   - a volume mounted at /data (the ledger must survive redeploys)
+#   - env vars: SAHARA_API_KEY (required for cloud ASR),
+#     SAUTI_AGENT=hosted + HF_TOKEN (optional: enables the fallback model)
+[build]
+builder = "dockerfile"
+
+[deploy]
+healthcheckPath = "/state"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3

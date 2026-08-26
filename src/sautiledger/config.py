@@ -28,6 +28,11 @@ class Settings:
     mode: str  # "cloud" | "offline"
     sahara_api_key: str | None
     asr_path: str = "sync"  # "sync" | "async" (async: upload + poll)
+    # "auto": local Ollama if running, else grammar-only. "hosted" (remote
+    # inference for the fallback step) must be chosen explicitly — utterance
+    # text leaving the device is never a silent default.
+    agent: str = "auto"  # "auto" | "local" | "hosted" | "none"
+    hf_token: str | None = None
 
 
 def get_settings() -> Settings:
@@ -40,4 +45,6 @@ def get_settings() -> Settings:
         mode=mode,
         sahara_api_key=key,
         asr_path=os.environ.get("SAUTI_ASR", "sync"),
+        agent=os.environ.get("SAUTI_AGENT", "auto"),
+        hf_token=os.environ.get("HF_TOKEN") or None,
     )

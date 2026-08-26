@@ -80,3 +80,62 @@ def test_unknown_query_or_intent_degrades_to_clarify():
     ):
         result = llm_parse(GIBBERISH, PACK, CannedLlm(payload))
         assert result.intent == "clarify", payload
+
+
+# ------------------------------------------------------- hosted fallback
+
+
+def test_hosted_client_routes_through_egress_and_is_logged():
+    """A hosted fallback call is a remote transmission: it must go through
+    EgressRecorder (so it appears in the egress log) and return the
+    model's message content."""
+    from sautiledger.egress import EgressRecorder
+    from sautiledger.ledger import Ledger
+    from sautiledger.llm_fallback import HostedLlmClient
+
+    captured = {}
+
+    def fake_open(url, data, headers, timeout, method="POST"):
+        captured["url"] = url
+        captured["auth"] = headers.get("Authorization")
+        body = json.dumps(
+            {"choices": [{"message": {"content": '{"intent": "clarify"}'}}]}
+        ).encode()
+        return 200, body
+
+    ledger = Ledger(":memory:")
+    recorder = EgressRecorder(ledger, opener=fake_open)
+    client = HostedLlmClient(recorder, token="tok-123")
+
+    out = client.complete("some prompt")
+    assert out == '{"intent": "clarify"}'
+    assert captured["url"].startswith("https://router.huggingface.co/")
+    assert captured["auth"] == "Bearer tok-123"
+
+    log = recorder.log()
+    assert len(log) == 1
+    assert log[0]["purpose"] == "agent fallback (hosted model)"
+    assert log[0]["bytes_sent"] > 0
+    assert "delivered" in log[0]["disposition"]
+
+
+def test_hosted_needs_explicit_opt_in_and_token():
+    """"auto" never selects the hosted model — utterance text leaving the
+    device must be an explicit choice; and "hosted" without a token
+    degrades to grammar-only rather than crashing."""
+    from sautiledger.api import _make_llm
+    from sautiledger.config import Settings
+    from sautiledger.egress import EgressRecorder
+    from sautiledger.ledger import Ledger
+    from sautiledger.llm_fallback import HostedLlmClient
+
+    recorder = EgressRecorder(Ledger(":memory:"), opener=lambda *a, **k: (200, b"{}"))
+
+    def settings(agent, token):
+        return Settings(pack="pcm-yo-NG", db_path=":memory:", mode="offline",
+                        sahara_api_key=None, agent=agent, hf_token=token)
+
+    assert _make_llm(settings("none", "tok"), recorder) is None
+    assert _make_llm(settings("hosted", None), recorder) is None
+    hosted = _make_llm(settings("hosted", "tok"), recorder)
+    assert isinstance(hosted, HostedLlmClient)

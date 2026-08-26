@@ -68,6 +68,41 @@ class OllamaLlmClient:
             return json.loads(resp.read())["response"]
 
 
+class HostedLlmClient:
+    """Same model, hosted (Hugging Face inference router) — for containers
+    where keeping 3 GB of weights resident makes no sense. A remote call IS
+    egress, so it goes through EgressRecorder and lands in the egress log
+    like every other transmission. Selected only by explicit config
+    (SAUTI_AGENT=hosted), never silently."""
+
+    URL = "https://router.huggingface.co/v1/chat/completions"
+    MODEL = "meta-llama/Llama-3.2-3B-Instruct"
+
+    def __init__(self, recorder, token: str, model: str = MODEL):
+        self.recorder = recorder
+        self.token = token
+        self.model = model
+
+    def complete(self, prompt: str) -> str:
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 256,
+            "temperature": 0,
+        }).encode("utf-8")
+        _status, body = self.recorder.post(
+            self.URL,
+            purpose="agent fallback (hosted model)",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {self.token}",
+            },
+            timeout=30,
+        )
+        return json.loads(body)["choices"][0]["message"]["content"]
+
+
 def ollama_if_available(timeout: float = 0.5) -> OllamaLlmClient | None:
     """Local Ollama if running, else None (grammar-only). Localhost only —
     never egress."""

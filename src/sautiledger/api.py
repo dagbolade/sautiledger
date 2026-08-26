@@ -17,10 +17,21 @@ from .audio import AudioUnusable, to_wav16k
 from .config import Settings, get_settings
 from .egress import EgressError, EgressRecorder
 from .ledger import Ledger
-from .llm_fallback import ollama_if_available
+from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
+
+
+def _make_llm(settings: Settings, recorder: EgressRecorder):
+    """Fallback-model selection. "hosted" needs an explicit opt-in AND a
+    token; "auto" tries local Ollama and otherwise runs grammar-only —
+    utterance text never leaves the device by default."""
+    if settings.agent == "none":
+        return None
+    if settings.agent == "hosted":
+        return HostedLlmClient(recorder, settings.hf_token) if settings.hf_token else None
+    return ollama_if_available()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -28,7 +39,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     pack = load_pack(settings.pack)
     ledger = Ledger(settings.db_path)
     recorder = EgressRecorder(ledger)
-    agent = Agent(pack, ledger, ollama_if_available())
+    agent = Agent(pack, ledger, _make_llm(settings, recorder))
 
     if settings.mode == "cloud":
         if settings.asr_path == "async":
