@@ -12,6 +12,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "certifi>=2024.0",
     "av>=12.0",
+    "numpy>=1.26",  # av frame -> bytes without plane padding (audio.py)
 ]
 
 [project.optional-dependencies]
