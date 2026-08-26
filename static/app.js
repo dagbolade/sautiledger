@@ -292,9 +292,68 @@ $("modal").addEventListener("click", (e) => {
   if (e.target === $("modal")) $("modal").classList.remove("open");
 });
 
+// ------------------------------------------------- welcome guide
+// The landing experience lives in the app: three screens — what it is,
+// how to talk, and the data story with the consent choice made openly.
+
+const OB_KEY = "sauti_onboarded";
+let obStep = 0;
+
+function obSeen() {
+  try { return !!localStorage.getItem(OB_KEY); } catch (err) { return false; }
+}
+function obMarkSeen() {
+  try { localStorage.setItem(OB_KEY, "1"); } catch (err) { /* private mode */ }
+}
+
+function setObStep(n) {
+  obStep = n;
+  document.querySelectorAll(".ob-panel").forEach((p) =>
+    p.classList.toggle("on", Number(p.dataset.step) === n));
+  document.querySelectorAll(".dots span").forEach((d, i) =>
+    d.classList.toggle("on", i === n));
+  $("ob-next").textContent = n === 2 ? "Start" : "Next";
+}
+
+function showOnboard() { setObStep(0); $("onboard").classList.add("open"); }
+
+async function finishOnboard() {
+  obMarkSeen();
+  $("onboard").classList.remove("open");
+  if ($("retain-ob").checked) {
+    // an explicit yes during welcome; never posts a silent no
+    const form = new FormData();
+    form.append("retain_audio", "true");
+    try {
+      await fetch("/consent", { method: "POST", body: form });
+      consentAnnounced = true;
+    } catch (err) { /* sheet toggle remains the fallback */ }
+    refreshState();
+  }
+}
+
+$("ob-next").addEventListener("click", () => {
+  if (obStep < 2) setObStep(obStep + 1); else finishOnboard();
+});
+$("retain-ob").addEventListener("change", () => {
+  $("ob-consent").classList.toggle("on", $("retain-ob").checked);
+});
+document.querySelectorAll(".chip-ex").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    finishOnboard();
+    $("text").value = chip.textContent;
+    $("text").focus();
+  });
+});
+$("guide").addEventListener("click", () => {
+  $("modal").classList.remove("open");
+  showOnboard();
+});
+
 // ---------------------------------------------------------------- boot
 
 bubble("Oya, talk your sale make I write am down.", "sauti");
+if (!obSeen()) showOnboard();
 let greetedEmpty = false;
 (async () => {
   await refreshState();

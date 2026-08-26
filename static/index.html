@@ -349,6 +349,90 @@
     transition: transform 0.15s var(--spring);
   }
   #close:active { transform: scale(0.96); }
+  #guide {
+    background: none; border: none; color: var(--muted);
+    font-size: 0.8rem; font-family: var(--font); cursor: pointer;
+    text-decoration: underline; margin-top: var(--s2); padding: var(--s1);
+  }
+
+  /* ---- welcome: the landing experience, in the app ---- */
+  #onboard {
+    position: fixed; inset: 0; z-index: 30;
+    background: var(--bg);
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(var(--s5) + env(safe-area-inset-top)) var(--s5)
+             calc(var(--s5) + env(safe-area-inset-bottom));
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.3s var(--ease), visibility 0.3s;
+  }
+  #onboard.open { opacity: 1; visibility: visible; }
+  .ob-panel {
+    display: none; flex: 1; width: 100%; max-width: 420px;
+    flex-direction: column; gap: var(--s4); overflow-y: auto;
+  }
+  .ob-panel.on { display: flex; animation: obIn 0.4s var(--ease); }
+  @keyframes obIn { from { opacity: 0; transform: translateX(26px); } }
+  .ob-art { display: flex; justify-content: center; margin-top: var(--s4); }
+  .ob-art img { width: 92px; height: 92px; border-radius: 24px;
+                box-shadow: 0 14px 30px rgba(13, 157, 100, 0.3); }
+  .ob-panel h1 { font-size: 1.55rem; font-weight: 800; letter-spacing: -0.02em;
+                 text-align: center; }
+  .ob-panel .tag { text-align: center; color: var(--muted); font-size: 1rem;
+                   margin-top: -8px; }
+  .ob-points { list-style: none; display: flex; flex-direction: column; gap: var(--s2); }
+  .ob-points li {
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: var(--s3) var(--s4); font-size: 0.95rem; box-shadow: var(--shadow);
+  }
+  .ob-points li b { color: var(--green-deep); }
+  .ob-try { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--muted); margin-top: var(--s2); }
+  .chips { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .chip-ex {
+    background: var(--green-tint); color: var(--green-deep);
+    border: 1px solid #bfe7d4; border-radius: 999px;
+    padding: 8px 14px; font-size: 0.85rem; font-weight: 600;
+    font-family: var(--font); cursor: pointer;
+    transition: transform 0.15s var(--spring);
+  }
+  .chip-ex:active { transform: scale(0.94); }
+  .ob-consent {
+    background: var(--card); border: 1px solid var(--line); border-radius: 13px;
+    padding: var(--s3) var(--s4); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: var(--s3);
+    font-size: 0.9rem; line-height: 1.4;
+  }
+  .ob-consent .switch {
+    flex: 0 0 46px; height: 26px; border-radius: 999px; position: relative;
+    background: var(--line); transition: background 0.25s;
+  }
+  .ob-consent .switch input { position: absolute; opacity: 0; width: 100%; height: 100%;
+                              margin: 0; cursor: pointer; }
+  .ob-consent .knob {
+    position: absolute; top: 3px; left: 3px; width: 20px; height: 20px;
+    border-radius: 50%; background: #ffffff; pointer-events: none;
+    box-shadow: 0 1px 4px rgba(28, 36, 52, 0.3);
+    transition: transform 0.25s var(--spring);
+  }
+  .ob-consent.on .switch { background: var(--green); }
+  .ob-consent.on .knob { transform: translateX(20px); }
+  .ob-consent small { display: block; color: var(--muted); font-size: 0.74rem; }
+  #ob-footer {
+    width: 100%; max-width: 420px; display: flex; flex-direction: column;
+    gap: var(--s3); align-items: center; padding-top: var(--s3);
+  }
+  .dots { display: flex; gap: 7px; }
+  .dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--line);
+               transition: background 0.25s, transform 0.25s var(--spring); }
+  .dots span.on { background: var(--green); transform: scale(1.3); }
+  #ob-next {
+    width: 100%; background: var(--green); color: #ffffff; border: none;
+    border-radius: 14px; padding: 14px; font-size: 1.02rem; font-weight: 800;
+    font-family: var(--font); cursor: pointer;
+    box-shadow: 0 10px 24px rgba(13, 157, 100, 0.35);
+    transition: transform 0.15s var(--spring);
+  }
+  #ob-next:active { transform: scale(0.96); }
 </style>
 </head>
 <body>
@@ -406,6 +490,53 @@
       </label>
       <div id="egress-rows"></div>
       <button id="close">Close</button>
+      <button id="guide">See the welcome guide again</button>
+    </div>
+  </div>
+
+  <div id="onboard">
+    <div class="ob-panel" data-step="0">
+      <div class="ob-art"><img src="/static/icon.png" alt=""></div>
+      <h1>SautiLedger</h1>
+      <p class="tag">Talk your sales. The book writes itself.</p>
+      <ul class="ob-points">
+        <li><b>Speak as you dey speak</b> — Pidgin, Yoruba, English, mix am anyhow.</li>
+        <li><b>E dey keep your book</b> — sales, expenses, credit, all of am.</li>
+        <li><b>E dey do the maths</b> — ask am "wetin remain?" make e balance you.</li>
+      </ul>
+    </div>
+    <div class="ob-panel" data-step="1">
+      <h1>How to talk am</h1>
+      <ul class="ob-points">
+        <li><b>1.</b> Press the green button and hold am.</li>
+        <li><b>2.</b> Talk your sale, clear and complete.</li>
+        <li><b>3.</b> Leave the button — e go write am and read am back.</li>
+        <li>If e write am wrong, talk <b>"no, na …"</b> and repeat the correct one. E go fix am.</li>
+      </ul>
+      <p class="ob-try">Try one of these</p>
+      <div class="chips">
+        <button class="chip-ex">I sell 3 cup of garri for 600 naira</button>
+        <button class="chip-ex">Customer buy 2 crate of malt for 5000</button>
+        <button class="chip-ex">I buy pure water bag for 1200</button>
+        <button class="chip-ex">Wetin remain?</button>
+      </div>
+    </div>
+    <div class="ob-panel" data-step="2">
+      <h1>Your money records na your own</h1>
+      <ul class="ob-points">
+        <li><b>Your book stays private.</b> Only you fit see your ledger — nobody else.</li>
+        <li><b>Every byte wey leave your phone dey counted.</b> The green strip for the top shows am, always.</li>
+        <li><b>Voice clips</b> go to the speech engine make e hear you, then e delete am — unless you gree make we keep dem:</li>
+      </ul>
+      <label class="ob-consent" id="ob-consent">
+        <span>Keep my voice clips make dem help test the speech model.
+        <small>Na only if you gree — you fit change am anytime for Privacy.</small></span>
+        <span class="switch"><input type="checkbox" id="retain-ob"><span class="knob"></span></span>
+      </label>
+    </div>
+    <div id="ob-footer">
+      <div class="dots"><span class="on"></span><span></span><span></span></div>
+      <button id="ob-next">Next</button>
     </div>
   </div>
 
