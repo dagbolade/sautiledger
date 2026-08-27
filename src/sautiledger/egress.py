@@ -103,6 +103,16 @@ class EgressRecorder:
             )
             self.ledger.conn.commit()
 
+    # ------------------------------------------------------------ streams
+
+    def open_stream(self, url: str, *, purpose: str, headers: dict,
+                    connect=None) -> "LoggedStream":
+        """A measured, ledger-visible WebSocket. The row is written the
+        moment the stream opens (disposition 'stream in progress') and
+        finalised with byte totals when it closes — a crash mid-stream
+        still leaves the honest 'in progress' record behind."""
+        return LoggedStream(self, url, purpose, headers, connect)
+
     # ------------------------------------------------------------ reads
 
     def sends_today(self, purpose: str) -> int:
@@ -129,6 +139,80 @@ class EgressRecorder:
             "SELECT * FROM egress_log WHERE session_id = ? ORDER BY id DESC",
             (self.ledger.session_id,),
         ).fetchall()
+
+
+class LoggedStream:
+    def __init__(self, recorder: EgressRecorder, url: str, purpose: str,
+                 headers: dict, connect=None):
+        self.recorder = recorder
+        self.url = url
+        self.purpose = purpose
+        self.headers = {"User-Agent": "SautiLedger/0.1", **headers}
+        self._connect = connect or self._websockets_connect
+        self.ws = None
+        self.bytes_sent = 0
+        self.bytes_received = 0
+        self._row_id: int | None = None
+
+    @staticmethod
+    async def _websockets_connect(url: str, headers: dict):
+        import websockets  # the ONE sanctioned ws import (see import guard)
+
+        return await websockets.connect(
+            url, additional_headers=headers, ssl=_OUTBOUND_TLS, max_size=2 ** 22
+        )
+
+    async def __aenter__(self) -> "LoggedStream":
+        ledger = self.recorder.ledger
+        cur = ledger.conn.execute(
+            """INSERT INTO egress_log
+               (ts, destination, purpose, bytes_sent, disposition, session_id)
+               VALUES (?, ?, ?, 0, 'stream in progress', ?)""",
+            (datetime.now().isoformat(timespec="seconds"),
+             urlsplit(self.url).netloc, self.purpose, ledger.session_id),
+        )
+        ledger.conn.commit()
+        self._row_id = cur.lastrowid
+        try:
+            self.ws = await self._connect(self.url, self.headers)
+        except Exception as exc:
+            self._finalise(f"stream failed to open ({type(exc).__name__})")
+            raise EgressError(f"stream to {urlsplit(self.url).netloc} failed: {exc}") from exc
+        return self
+
+    async def send(self, data) -> None:
+        self.bytes_sent += len(data) if isinstance(data, (bytes, bytearray)) \
+            else len(str(data).encode("utf-8"))
+        await self.ws.send(data)
+
+    async def recv(self):
+        message = await self.ws.recv()
+        self.bytes_received += len(message) if isinstance(message, (bytes, bytearray)) \
+            else len(str(message).encode("utf-8"))
+        return message
+
+    def _finalise(self, disposition: str) -> None:
+        ledger = self.recorder.ledger
+        ledger.conn.execute(
+            "UPDATE egress_log SET bytes_sent = ?, disposition = ? WHERE id = ?",
+            (self.bytes_sent, disposition, self._row_id),
+        )
+        ledger.conn.commit()
+
+    async def __aexit__(self, exc_type, exc, tb) -> bool:
+        if self.ws is not None:
+            try:
+                await self.ws.close()
+            except Exception:
+                pass
+        if exc_type is None:
+            self._finalise(
+                f"stream closed; {self.bytes_received} bytes received back — "
+                f"audio deleted after transcription, nothing kept"
+            )
+        else:
+            self._finalise(f"stream ended early ({exc_type.__name__})")
+        return False
 
 
 def encode_multipart(

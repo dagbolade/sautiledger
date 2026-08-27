@@ -41,6 +41,9 @@ class Settings:
     # voice-out: "auto" = Sahara's Pidgin voice in cloud mode, browser
     # speechSynthesis otherwise; "browser" forces zero-egress voice
     tts: str = "auto"  # "auto" | "sahara" | "browser"
+    # live streaming transcription (words appear while talking); the
+    # push-to-talk POST path remains the fallback either way
+    stream: bool = True
 
 
 def get_settings() -> Settings:
@@ -58,4 +61,5 @@ def get_settings() -> Settings:
         recordings_dir=os.environ.get("SAUTI_RECORDINGS") or None,
         admin_token=os.environ.get("SAUTI_ADMIN_TOKEN") or None,
         tts=os.environ.get("SAUTI_TTS", "auto"),
+        stream=os.environ.get("SAUTI_STREAM", "1") not in ("0", "false", "no"),
     )

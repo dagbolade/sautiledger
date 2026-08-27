@@ -10,13 +10,16 @@ from pathlib import Path
 SRC = Path(__file__).resolve().parents[1] / "src" / "sautiledger"
 
 # No third-party HTTP client anywhere — egress.py itself uses urllib.
-BANNED_EVERYWHERE = {"requests", "httpx", "aiohttp", "urllib3", "websockets"}
+BANNED_EVERYWHERE = {"requests", "httpx", "aiohttp", "urllib3"}
 
 # Stdlib network modules: only in the egress wrapper, the localhost-Ollama
 # module, and phone.py (INBOUND serving + LAN-IP detection via a UDP
 # socket that never transmits — it hosts, it does not egress).
-NETWORK_MODULES = {"urllib", "http", "socket", "ftplib", "smtplib"}
+# "websockets" is the sanctioned streaming client: egress.py ONLY, where
+# every stream is measured and logged like any other transmission.
+NETWORK_MODULES = {"urllib", "http", "socket", "ftplib", "smtplib", "websockets"}
 NETWORK_ALLOWLIST = {"egress.py", "llm_fallback.py", "phone.py"}
+WEBSOCKETS_ALLOWLIST = {"egress.py"}
 
 
 def _imported_roots(path: Path) -> set[str]:
@@ -40,4 +43,9 @@ def test_no_http_client_outside_egress():
             assert not network, (
                 f"{path.name} imports {network} — only egress.py (remote) and "
                 f"llm_fallback.py (localhost Ollama) may touch the network"
+            )
+        if "websockets" in roots:
+            assert path.name in WEBSOCKETS_ALLOWLIST, (
+                f"{path.name} imports websockets — streaming goes through "
+                f"egress.py so every stream is logged"
             )

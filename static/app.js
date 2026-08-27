@@ -15,6 +15,7 @@ async function refreshState() {
     currency = CURRENCY_SIGNS[state.currency] || state.currency + " ";
     renderMode(state.mode);
     ttsMode = state.tts || "browser";
+    streamMode = !!state.stream;
     renderEgress(state.egress_total, state.egress_log);
     renderLedger(state.entries, state.sales_total);
     renderConsent(state.retain_audio);
@@ -238,6 +239,122 @@ function sendText() {
   submit(form, text);
 }
 
+// ------------------------------------------------- live streaming voice
+// Hold to talk and the words appear AS you speak: PCM goes up our
+// egress-logged relay to Sahara's streaming STT, partials come straight
+// back. Any failure falls back to the classic record-then-send path.
+
+let streamMode = false; // from /state
+let live = null;        // {ws, ctx, node, stream, bubble} while streaming
+
+function downsampleTo16k(f32, fromRate) {
+  const ratio = fromRate / 16000;
+  const out = new Int16Array(Math.floor(f32.length / ratio));
+  for (let i = 0; i < out.length; i++) {
+    const v = f32[Math.floor(i * ratio)] || 0;
+    out[i] = Math.max(-1, Math.min(1, v)) * 0x7fff;
+  }
+  return out;
+}
+
+function liveBubbleSet(text) {
+  if (!live) return;
+  if (!live.bubble) {
+    live.bubble = document.createElement("div");
+    live.bubble.className = "bubble you";
+    live.bubble.style.opacity = "0.7";
+    chat.appendChild(live.bubble);
+  }
+  live.bubble.textContent = text;
+  scrollToLatest();
+}
+
+async function startStreaming(stream) {
+  const proto = location.protocol === "https:" ? "wss://" : "ws://";
+  const ws = new WebSocket(proto + location.host + "/stream");
+  ws.binaryType = "arraybuffer";
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = ctx.createMediaStreamSource(stream);
+  const node = ctx.createScriptProcessor(4096, 1, 1);
+  live = { ws, ctx, node, stream, bubble: null, done: false };
+
+  node.onaudioprocess = (e) => {
+    if (!live || live.ws.readyState !== WebSocket.OPEN) return;
+    const pcm = downsampleTo16k(e.inputBuffer.getChannelData(0), ctx.sampleRate);
+    live.ws.send(pcm.buffer);
+  };
+
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch (err) { return; }
+    if (msg.type === "partial") {
+      liveBubbleSet(msg.text);
+    } else if (msg.type === "final") {
+      finishStreaming(msg);
+    } else if (msg.type === "error" || msg.type === "unavailable") {
+      teardownStreaming();
+      clearStatus();
+      if (msg.reply_text) { bubble(msg.reply_text, "sauti"); speak(msg.reply_text); }
+    }
+  };
+  ws.onerror = () => { teardownStreaming(); clearStatus(); };
+
+  await new Promise((resolve, reject) => {
+    ws.onopen = resolve;
+    ws.onclose = reject;
+    setTimeout(reject, 4000);
+  });
+  source.connect(node);
+  node.connect(ctx.destination);
+}
+
+function finishStreaming(msg) {
+  const b = live && live.bubble;
+  teardownStreaming();
+  clearStatus();
+  if (msg.transcript) {
+    if (b) { b.textContent = msg.transcript; b.style.opacity = "1"; }
+  } else if (b) {
+    b.remove();
+  }
+  bubble(msg.reply_text, "sauti", msg.reply_text.trim().endsWith("?"));
+  speak(msg.reply_text);
+  refreshState();
+}
+
+function teardownStreaming() {
+  if (!live) return;
+  const l = live;
+  live = null;
+  try { l.node.disconnect(); } catch (err) {}
+  try { l.ctx.close(); } catch (err) {}
+  try { l.stream.getTracks().forEach((t) => t.stop()); } catch (err) {}
+  if (l.ws.readyState === WebSocket.OPEN || l.ws.readyState === WebSocket.CLOSING) {
+    setTimeout(() => { try { l.ws.close(); } catch (err) {} }, 8000);
+  }
+}
+
+function stopStreaming() {
+  if (!live) return;
+  try { live.node.disconnect(); } catch (err) {}
+  try { live.stream.getTracks().forEach((t) => t.stop()); } catch (err) {}
+  if (live.ws.readyState === WebSocket.OPEN) {
+    live.ws.send(JSON.stringify({ type: "stop" }));
+    showStatus("I dey reason am…");
+    // if the final never lands, don't hang the conversation
+    const l = live;
+    setTimeout(() => {
+      if (live === l) {
+        teardownStreaming();
+        clearStatus();
+        bubble("Network wahala — talk am again, abeg.", "sauti");
+      }
+    }, 20000);
+  } else {
+    teardownStreaming();
+  }
+}
+
 // ---------------------------------------------------------------- push-to-talk
 
 let recorder = null;
@@ -246,6 +363,18 @@ let chunks = [];
 async function startRecording() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (streamMode) {
+      try {
+        await startStreaming(stream);
+        if (navigator.vibrate) navigator.vibrate(25);
+        $("talk").classList.add("recording");
+        $("talk-label").textContent = "LISTENING…";
+        showStatus("I dey hear you… leave am when you don talk finish.");
+        return;
+      } catch (err) {
+        teardownStreaming(); // relay unreachable — classic path takes over
+      }
+    }
     chunks = [];
     recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
     recorder.ondataavailable = (e) => chunks.push(e.data);
@@ -272,6 +401,13 @@ async function startRecording() {
 }
 
 function stopRecording() {
+  if (live) {
+    if (navigator.vibrate) navigator.vibrate(12);
+    $("talk").classList.remove("recording");
+    $("talk-label").textContent = "HOLD TO TALK";
+    stopStreaming();
+    return;
+  }
   clearStatus();
   if (recorder && recorder.state === "recording") {
     recorder.stop();

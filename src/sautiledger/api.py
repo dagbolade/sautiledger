@@ -10,9 +10,11 @@ Run: python -m uvicorn sautiledger.api:app --port 8090
 
 from __future__ import annotations
 
+import asyncio
 import csv
 import hashlib
 import io
+import json
 import re
 import secrets
 import threading
@@ -20,13 +22,16 @@ import zipfile
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, Request, Response, UploadFile
+from fastapi import FastAPI, File, Form, Request, Response, UploadFile, WebSocket
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
+from starlette.websockets import WebSocketDisconnect
 
 from .agent import Agent
-from .asr import FakeAsr, SaharaAsyncAsr, SaharaCloudAsr
-from .audio import AudioUnusable, to_wav16k
+from .asr import (LANGUAGE_CODES, FakeAsr, SaharaAsyncAsr, SaharaCloudAsr,
+                  SaharaStreamingAsr)
+from .audio import AudioUnusable, pcm16_to_wav, to_wav16k
 from .config import Settings, get_settings
 from .egress import EgressError, EgressRecorder
 from .ledger import DEFAULT_SESSION, Ledger
@@ -220,6 +225,136 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
         return {"ok": True, "voided": txn_id}
 
+    # -------------------------------------------------- live streaming voice
+    # Words appear while the trader is still talking: browser PCM chunks
+    # relay through an egress-logged WebSocket to Sahara's streaming STT;
+    # partials go straight back down. The POST path stays as fallback.
+
+    stream_ready = bool(settings.mode == "cloud" and settings.stream
+                        and settings.sahara_api_key)
+
+    @app.websocket("/stream")
+    async def stream_ws(ws: WebSocket):
+        await ws.accept()
+        device = ws.cookies.get(DEVICE_COOKIE, "")
+        if not stream_ready or not _DEVICE_ID.fullmatch(device):
+            await ws.send_json({"type": "unavailable"})
+            await ws.close()
+            return
+        sess = session_for(device)
+        ledger, recorder = sess.ledger, sess.recorder
+        if (recorder.sends_today(_ASR_PURPOSE)
+                + recorder.sends_today(SaharaStreamingAsr.STREAM_PURPOSE)) >= ASR_DAILY_CAP:
+            await ws.send_json({
+                "type": "error",
+                "reply_text": "Voice don reach im limit for today o. Type am instead, abeg.",
+            })
+            await ws.close()
+            return
+
+        egress_before = recorder.total_bytes()
+        sasr = SaharaStreamingAsr(recorder, settings.sahara_api_key,
+                                  LANGUAGE_CODES.get(pack.name, "pcm"))
+        pcm_all = bytearray()
+        final_text: list[str | None] = [None]
+        try:
+            async with sasr.stream() as up:
+
+                async def pump_up():
+                    ack = 0
+                    outbuf = bytearray()
+                    while True:
+                        msg = await ws.receive()
+                        if msg["type"] == "websocket.disconnect":
+                            raise WebSocketDisconnect(code=1000)
+                        chunk = msg.get("bytes")
+                        if chunk:
+                            pcm_all.extend(chunk)
+                            outbuf.extend(chunk)
+                            if len(outbuf) >= 4096:
+                                ack += 1
+                                await up.send(sasr.chunk_message(bytes(outbuf), ack))
+                                outbuf.clear()
+                        elif msg.get("text"):
+                            try:
+                                control = json.loads(msg["text"])
+                            except ValueError:
+                                continue
+                            if control.get("type") == "stop":
+                                if len(outbuf) >= 1024:  # protocol minimum chunk
+                                    ack += 1
+                                    await up.send(sasr.chunk_message(bytes(outbuf), ack))
+                                await up.send(sasr.COMMIT)
+                                return
+
+                async def pump_down():
+                    while True:
+                        kind, text = sasr.parse_event(await up.recv())
+                        if kind == "partial":
+                            await ws.send_json({"type": "partial", "text": text})
+                        elif kind == "final":
+                            final_text[0] = text
+                            return
+                        elif kind == "error":
+                            raise EgressError(text)
+
+                await asyncio.wait_for(
+                    asyncio.gather(pump_up(), pump_down()), timeout=290
+                )
+        except WebSocketDisconnect:
+            return
+        except Exception as exc:
+            print(f"stream ASR failed: {exc}", flush=True)
+            try:
+                await ws.send_json({
+                    "type": "error",
+                    "reply_text": "Network wahala — I no fit stream right now. "
+                                  "Try talk am again.",
+                })
+                await ws.close()
+            except Exception:
+                pass
+            return
+
+        transcript = (final_text[0] or "").strip()
+        saved_clip = None
+        if rec_dir and ledger.retain_audio and pcm_all:
+            clip_dir = Path(rec_dir) / ledger.session_id
+            clip_dir.mkdir(parents=True, exist_ok=True)
+            name = datetime.now().strftime("%Y%m%dT%H%M%S-%f") + ".wav"
+            (clip_dir / name).write_bytes(pcm16_to_wav(bytes(pcm_all)))
+            saved_clip = f"{ledger.session_id}/{name}"
+
+        if not transcript:
+            reply = "I no hear you well, abeg talk am again."
+            ledger.record_usage("voice", None, reply, "asr_empty", saved_clip)
+            await ws.send_json({
+                "type": "final", "transcript": "", "reply_text": reply,
+                "egress_delta": recorder.total_bytes() - egress_before,
+                "egress_total": recorder.total_bytes(),
+            })
+            await ws.close()
+            return
+
+        txn_before = ledger.max_txn_id()
+        voided_before = ledger.voided_count()
+        reply = await run_in_threadpool(sess.agent.handle, transcript)
+        if ledger.max_txn_id() > txn_before:
+            outcome = "logged"
+        elif ledger.voided_count() > voided_before:
+            outcome = "voided"
+        elif sess.agent.pending is not None:
+            outcome = "clarify"
+        else:
+            outcome = "reply"
+        ledger.record_usage("voice", transcript, reply, outcome, saved_clip)
+        await ws.send_json({
+            "type": "final", "transcript": transcript, "reply_text": reply,
+            "egress_delta": recorder.total_bytes() - egress_before,
+            "egress_total": recorder.total_bytes(),
+        })
+        await ws.close()
+
     # replies repeat constantly ("Noted. Ledger correct.") — cached audio
     # answers instantly, spends no credits, and egresses nothing
     tts_cache = (Path(settings.db_path).parent / "tts-cache"
@@ -278,6 +413,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "sales_total": sales_total,
             "retain_audio": sess.ledger.retain_audio,
             "tts": "sahara" if sess.tts is not None else "browser",
+            "stream": stream_ready,
             "egress_total": sess.recorder.total_bytes(),
             "egress_log": [dict(row) for row in sess.recorder.log()],
         }

@@ -51,3 +51,18 @@ def to_wav16k(blob: bytes) -> tuple[bytes, float]:
         w.setframerate(TARGET_RATE)
         w.writeframes(pcm)
     return buf.getvalue(), duration
+
+
+def pcm16_to_wav(pcm: bytes, sample_rate: int = 16000) -> bytes:
+    """Wrap raw PCM16 mono in a WAV container (for consented retention of
+    streamed audio — the same bytes the model heard, playable anywhere)."""
+    import io
+    import wave
+
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as out:
+        out.setnchannels(1)
+        out.setsampwidth(2)
+        out.setframerate(sample_rate)
+        out.writeframes(pcm)
+    return buf.getvalue()

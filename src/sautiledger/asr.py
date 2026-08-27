@@ -166,3 +166,65 @@ class SaharaOfflineAsr:
         raise NotImplementedError(
             "Sahara offline engine not yet available — this class is the swap point"
         )
+
+
+class SaharaStreamingAsr:
+    """Live transcription over Sahara's streaming WebSocket
+    (docs.voice.intron.io/docs/stt/streaming). This class only speaks the
+    message protocol; the connection itself is an egress-logged stream
+    from EgressRecorder.open_stream — asr.py never touches the network.
+
+    Contract: base64 PCM16 mono 16 kHz chunks (1-32 KB) as
+    INPUT_AUDIO_CHUNK; COMMIT ends the utterance; PARTIAL_TRANSCRIPT
+    events arrive as speech is recognised, COMMITTED_TRANSCRIPT carries
+    the final text. Max session 300 s.
+    """
+
+    URL = "wss://infer.voice.intron.io/stt/v1/stream"
+    STREAM_PURPOSE = "your voice, streamed live for transcription"
+    COMMIT = json.dumps({"message_type": "COMMIT"})
+    _ERRORS = {"INPUT_ERROR", "AUTHENTICATION_ERROR", "RESOURCE_EXHAUSTED",
+               "QUOTA_EXCEEDED", "CHUNCK_SIZE_TOO_SMALL", "CHUNK_SIZE_TOO_LARGE",
+               "INSUFFICIENT_AUDIO_ACTIVITY", "SESSION_TIME_LIMIT_EXCEEDED"}
+
+    def __init__(self, recorder: EgressRecorder, api_key: str | None,
+                 language_code: str = "pcm"):
+        if not api_key:
+            raise NotConfigured("SAHARA_API_KEY is not set")
+        self.recorder = recorder
+        self.api_key = api_key
+        self.language_code = language_code
+
+    def stream(self, connect=None):
+        url = (f"{self.URL}?sample_rate=16000&bit_rate=16&num_channels=1"
+               f"&use_language_asr_input={self.language_code}")
+        return self.recorder.open_stream(
+            url, purpose=self.STREAM_PURPOSE,
+            headers={"Authorization": f"Bearer {self.api_key}"},
+            connect=connect,
+        )
+
+    @staticmethod
+    def chunk_message(pcm: bytes, ack_id: int) -> str:
+        import base64
+
+        return json.dumps({
+            "message_type": "INPUT_AUDIO_CHUNK",
+            "audio_base_64": base64.b64encode(pcm).decode("ascii"),
+            "ack_id": ack_id,
+        })
+
+    @classmethod
+    def parse_event(cls, raw) -> tuple[str, str]:
+        try:
+            data = json.loads(raw)
+        except (ValueError, TypeError):
+            return ("info", "")
+        kind = data.get("message_type", "")
+        if kind == "PARTIAL_TRANSCRIPT":
+            return ("partial", data.get("transcript") or "")
+        if kind == "COMMITTED_TRANSCRIPT":
+            return ("final", data.get("transcript_text") or "")
+        if kind in cls._ERRORS:
+            return ("error", kind)
+        return ("info", kind)

@@ -13,6 +13,9 @@ dependencies = [
     "certifi>=2024.0",
     "av>=12.0",
     "numpy>=1.26",  # av frame -> bytes without plane padding (audio.py)
+    # the ONE sanctioned websocket client — used only inside egress.py,
+    # enforced by tests/test_import_guard.py
+    "websockets>=12.0",
 ]
 
 [project.optional-dependencies]
