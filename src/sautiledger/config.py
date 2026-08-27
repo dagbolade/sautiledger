@@ -38,6 +38,9 @@ class Settings:
     recordings_dir: str | None = None
     # unlocks /admin/* (field-test export); unset = admin surface disabled
     admin_token: str | None = None
+    # voice-out: "auto" = Sahara's Pidgin voice in cloud mode, browser
+    # speechSynthesis otherwise; "browser" forces zero-egress voice
+    tts: str = "auto"  # "auto" | "sahara" | "browser"
 
 
 def get_settings() -> Settings:
@@ -54,4 +57,5 @@ def get_settings() -> Settings:
         hf_token=os.environ.get("HF_TOKEN") or None,
         recordings_dir=os.environ.get("SAUTI_RECORDINGS") or None,
         admin_token=os.environ.get("SAUTI_ADMIN_TOKEN") or None,
+        tts=os.environ.get("SAUTI_TTS", "auto"),
     )

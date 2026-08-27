@@ -14,6 +14,7 @@ async function refreshState() {
     const state = await (await fetch("/state")).json();
     currency = CURRENCY_SIGNS[state.currency] || state.currency + " ";
     renderMode(state.mode);
+    ttsMode = state.tts || "browser";
     renderEgress(state.egress_total, state.egress_log);
     renderLedger(state.entries, state.sales_total);
     renderConsent(state.retain_audio);
@@ -128,13 +129,33 @@ function bubble(text, who, isQuestion) {
   scrollToLatest();
 }
 
-function speak(text) {
+let ttsMode = "browser"; // from /state: "sahara" = real Pidgin voice
+
+function browserSpeak(text) {
   // Local browser TTS: synthesised on-device, nothing egresses.
   if (!window.speechSynthesis) return;
   const u = new SpeechSynthesisUtterance(text);
   u.rate = 1.0;
   window.speechSynthesis.cancel();
   window.speechSynthesis.speak(u);
+}
+
+let currentVoice = null;
+async function speak(text) {
+  if (ttsMode !== "sahara") { browserSpeak(text); return; }
+  try {
+    const form = new FormData();
+    form.append("text", text);
+    const resp = await fetch("/tts", { method: "POST", body: form });
+    if (resp.status !== 200) { browserSpeak(text); return; }
+    const url = URL.createObjectURL(await resp.blob());
+    if (currentVoice) currentVoice.pause();
+    currentVoice = new Audio(url);
+    currentVoice.onended = () => URL.revokeObjectURL(url);
+    await currentVoice.play();
+  } catch (err) {
+    browserSpeak(text); // the voice never blocks the conversation
+  }
 }
 
 let statusBubble = null;

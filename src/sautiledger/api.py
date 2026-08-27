@@ -32,6 +32,7 @@ from .ledger import DEFAULT_SESSION, Ledger
 from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
 from .statement import build_statement_html
+from .tts import SaharaTts
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
 
@@ -70,6 +71,10 @@ class _Session:
             # Offline: FakeAsr stands in until the on-device engine lands —
             # nothing touches the network in this mode.
             self.asr = FakeAsr()
+        self.tts = None
+        if (settings.tts in ("auto", "sahara") and settings.mode == "cloud"
+                and settings.sahara_api_key):
+            self.tts = SaharaTts(self.recorder, settings.sahara_api_key)
         self.touched = 0
 
 
@@ -214,6 +219,25 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
         return {"ok": True, "voided": txn_id}
 
+    @app.post("/tts")
+    def tts(request: Request, response: Response, text: str = Form(...)):
+        """Reply audio in the Sahara Pidgin voice. 204 means 'use the
+        browser voice' — offline mode, no client, cap reached, or the
+        cloud call failing all degrade the same quiet way."""
+        sess = session_for(resolve_device(request, response))
+        if sess.tts is None:
+            return Response(status_code=204)
+        if sess.recorder.sends_today("your reply, sent to make the voice") >= 300:
+            return Response(status_code=204)
+        try:
+            audio = sess.tts.speak(text.strip()[:500])
+        except Exception as exc:  # voice is optional — any failure degrades
+            print(f"TTS failed: {exc}", flush=True)
+            return Response(status_code=204)
+        if not audio:
+            return Response(status_code=204)
+        return Response(content=audio, media_type="audio/wav")
+
     @app.post("/consent")
     def consent(request: Request, response: Response, retain_audio: str = Form(...)):
         """The voice-clip retention switch. Off by default; the visitor flips
@@ -238,6 +262,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "sales_count": sales_n,
             "sales_total": sales_total,
             "retain_audio": sess.ledger.retain_audio,
+            "tts": "sahara" if sess.tts is not None else "browser",
             "egress_total": sess.recorder.total_bytes(),
             "egress_log": [dict(row) for row in sess.recorder.log()],
         }

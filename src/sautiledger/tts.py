@@ -14,6 +14,7 @@ egress.py so the meter shows it.
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import tempfile
@@ -64,16 +65,44 @@ class PiperLocalTts:
 
 
 class SaharaTts:
-    """Swap point for Intron's Sahara TTS (docs.voice.intron.io/docs/tts/*).
+    """Intron's Sahara TTS — a real Pidgin voice for the readback.
 
-    Deliberately unimplemented: cloud TTS would transmit the reply text
-    (which echoes ledger amounts) off-device, breaking the audio-only
-    egress guarantee. If ever enabled, the request MUST go
-    through egress.EgressRecorder so the transmission ledger shows it.
+    The reply text echoes ledger amounts, so every call is a transmission:
+    both the generate POST and the audio fetch route through
+    EgressRecorder and appear in the transmission ledger. Verified
+    contract: voice_language "pcm" + voice_accent "pidgin"; the response
+    carries an audio_path URL to fetch.
     """
 
+    URL = "https://infer.voice.intron.io/tts/v1/generate"
+
+    def __init__(self, recorder, api_key: str, gender: str = "female",
+                 language: str = "pcm", accent: str = "pidgin"):
+        self.recorder = recorder
+        self.api_key = api_key
+        self.gender = gender
+        self.language = language
+        self.accent = accent
+
     def speak(self, text: str) -> bytes:
-        raise NotImplementedError(
-            "Sahara TTS not enabled: cloud TTS would egress ledger contents. "
-            "Wire through egress.EgressRecorder if this is ever enabled."
+        body = json.dumps({
+            "text": text[:1000],
+            "voice_language": self.language,
+            "voice_accent": self.accent,
+            "voice_gender": self.gender,
+        }).encode("utf-8")
+        _status, resp = self.recorder.post(
+            self.URL,
+            purpose="your reply, sent to make the voice",
+            data=body,
+            headers={"Authorization": f"Bearer {self.api_key}",
+                     "Content-Type": "application/json"},
+            timeout=60,
         )
+        audio_url = json.loads(resp)["data"]["audio_path"]
+        if audio_url.startswith("http://"):
+            audio_url = "https://" + audio_url[len("http://"):]
+        _status, audio = self.recorder.get(
+            audio_url, purpose="fetching the voice audio", headers={}, timeout=60
+        )
+        return audio
