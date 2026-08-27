@@ -1,0 +1,11 @@
+id,ts,session_id,input_mode,transcript,reply,outcome,audio_file
+3,2026-08-26T21:58:43,c6a5b712f707c2a4,voice,,"I no hear you well, abeg try again.",audio_unusable,
+5,2026-08-26T21:58:54,c6a5b712f707c2a4,voice,,"I no hear you well, abeg try again.",audio_unusable,
+7,2026-08-26T22:00:11,c6a5b712f707c2a4,voice,,Network wahala — I no fit reach the cloud right now. Try again small time.,asr_failed,
+13,2026-08-27T12:17:23,c6a5b712f707c2a4,voice,,"I no hear you well, abeg talk am again.",asr_empty,
+14,2026-08-27T12:18:16,c6a5b712f707c2a4,voice,Yeah total eggs purchased yesterday was 2935 so total egg sold was 285000 so I still have 10 crites left for yesterday that is on the 26,How much you sell am?,clarify,
+15,2026-08-27T12:18:44,c6a5b712f707c2a4,voice,570007,"Logged: was 285000 so still have 10 crites left for yesterday that is on, five hundred seventy thousand seven naira. Correct?",logged,
+16,2026-08-27T12:34:11,c6a5b712f707c2a4,text,5700,Wetin she buy? Talk the thing name.,clarify,
+17,2026-08-27T12:35:04,c6a5b712f707c2a4,voice,i sell i bought egg i bought egg yesterday at the rate of i bought egg yesterday total egg purchase is 2935 Total egg purchase 2935 so total egg sold yesterday is 2850 2850 so presently i still have 10 great left,How much you sell am?,clarify,
+18,2026-08-27T12:36:16,c6a5b712f707c2a4,text,"Total egg purchased is 293,500","Logged expense: egg bought egg yesterday at rate bought egg yesterday total egg purchase is 2935 total egg purchase 2935 so total egg sold yesterday is 2850 2850 so presently still have 10 great left, two hundred ninety three thousand five hundred naira. Correct?",logged,
+19,2026-08-27T12:38:09,c6a5b712f707c2a4,text,"Total egg sold is 285000 and I have 10 crate left, each crates is sold at the rate of 5700","Na five thousand seven hundred naira for each one, or five thousand seven hundred naira for everything?",clarify,

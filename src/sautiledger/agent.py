@@ -54,6 +54,8 @@ class Agent:
         self.pending: ParseResult | None = None
         self.awaiting_confirm = False
         self.last_logged_id: int | None = None
+        # strange-shape amount already queried once — repeating it is consent
+        self._odd_amount_offered: int | None = None
 
     def handle(self, text: str) -> str:
         if self.pending is not None:
@@ -135,11 +137,7 @@ class Agent:
                 parse = replace(parse, intent="clarify", question_about="amount")
                 self.pending = parse
                 return self._clarify_question(parse)
-            if self._needs_item_confirm(parse):
-                # suspicious item name: confirm BEFORE anything is written
-                self.pending = replace(parse, intent="clarify", question_about="item_confirm")
-                return f"Na {parse.item} you talk?"
-            return self._commit(parse, raw)
+            return self._gate_and_commit(parse, raw)
         if parse.intent == "query_ledger":
             return tools.query_ledger(
                 self.ledger, parse.query, parse.period, self.pack.currency, item=parse.item
@@ -156,6 +154,32 @@ class Agent:
         # clarify: hold the partial parse and ask
         self.pending = parse
         return self._clarify_question(parse)
+
+    # a real item name is a few words; a sentence in the item slot is a
+    # mis-parse ("was 285000 so still have 10 crites left…", production
+    # incident 2026-08-27) — never written, never read back as "Correct?"
+    _MAX_ITEM_WORDS = 4
+
+    def _item_is_garbled(self, item: str | None) -> bool:
+        if not item:
+            return False
+        core = [w for w in item.split() if w not in self.pack.descriptors]
+        return len(core) > self._MAX_ITEM_WORDS
+
+    def _gate_and_commit(self, parse: ParseResult, raw: str) -> str:
+        """The single gate in front of EVERY write — dispatch and every
+        pending-resolution path alike. A garbled item is refused outright:
+        offering 'Correct?' on an incoherent readback invites a tired yes
+        onto a corrupted row."""
+        if self._item_is_garbled(parse.item):
+            self.pending = None
+            return ("Wetin I hear no clear at all, so I no write anything. "
+                    "Abeg talk am again — just the item and the amount.")
+        if self._needs_item_confirm(parse):
+            # suspicious item name: confirm BEFORE anything is written
+            self.pending = replace(parse, intent="clarify", question_about="item_confirm")
+            return f"Na {parse.item} you talk?"
+        return self._commit(parse, raw)
 
     def _commit(self, parse: ParseResult, raw: str) -> str:
         reply = tools.log_transaction(self.ledger, parse, raw)
@@ -244,7 +268,7 @@ class Agent:
                 amount=chosen.get("total", chosen.get("amount")),
                 amount_each=chosen.get("amount_each"),
             )
-            return self._commit(filled, text)
+            return self._gate_and_commit(filled, text)
 
         if pending.question_about == "amount" and pending.item:
             money_toks = [t for t in lowered if is_moneyish(t, self.pack)]
@@ -252,15 +276,30 @@ class Agent:
             # and the distributive guard doesn't re-ask
             m = parse_money(money_toks, pending.quantity, self.pack, total_marked=True)
             if isinstance(m, dict) and "ambiguous" not in m:
+                amount = m.get("amount")
+                if (
+                    amount is not None and amount >= 10000 and amount % 50
+                    and amount != self._odd_amount_offered
+                ):
+                    # ASR digit-merge signature: spoken "5700" arrived as
+                    # "570007" (production incident 2026-08-27). Big and
+                    # not ending in a round figure — verify before writing.
+                    # Repeating the same figure accepts it: the trader's
+                    # word wins over the heuristic.
+                    self._odd_amount_offered = amount
+                    return (f"I hear {tools.spoken_number(amount)} naira — "
+                            f"that number get strange shape. Abeg talk the "
+                            f"amount one more time make I sure.")
+                self._odd_amount_offered = None
                 self.pending = None
                 filled = replace(
                     pending,
                     intent="log_transaction",
                     question_about=None,
-                    amount=m.get("amount"),
+                    amount=amount,
                     amount_each=m.get("amount_each"),
                 )
-                return self._commit(filled, text)
+                return self._gate_and_commit(filled, text)
 
         if pending.question_about == "item" and (pending.amount or pending.amount_each):
             words = [t for t in lowered
@@ -271,5 +310,5 @@ class Agent:
                     pending, intent="log_transaction", question_about=None,
                     item=" ".join(words),
                 )
-                return self._commit(filled, text)
+                return self._gate_and_commit(filled, text)
         return None

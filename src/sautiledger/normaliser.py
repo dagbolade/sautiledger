@@ -505,7 +505,10 @@ def normalise(utterance: str, pack: Pack, llm=None) -> ParseResult:
     The final fallback is a clarify, never a guess."""
     result = grammar_parse(utterance, pack)
     if result is not None:
-        if llm is not None and result.intent == "clarify" and result.question_about == "amount":
+        if (llm is not None and result.intent == "clarify"
+                and result.question_about == "amount" and result.candidates is None):
+            # candidates mean a DELIBERATE safety question (each or total?) —
+            # the fallback must never resolve that ambiguity on its own
             tokens = tokenize(utterance)
             # Widened fallback for narrated speech: >6 words, no deliberate
             # hard-money refusal in play. Never fires on the frozen clarify

@@ -80,12 +80,18 @@ def test_query_sums_ledger_exactly(agent):
     assert len(_rows(agent)) == 2  # queries never write
 
 
-# (b3) v2 flattened-distributive guard: both resolutions
+# (b3) v2 flattened-distributive guard: both resolutions. Since the
+# 2026-08-27 incident, pending-resolution commits pass the SAME unknown-item
+# confirm as direct ones — "pint garri" (ASR debris for "paint") is asked
+# about before the row is written, exactly like the unambiguous path.
 def test_flattened_guard_resolves_each(agent):
     reply = agent.handle("customer take 2 pint of garri 250")
     assert "each one" in reply and "?" in reply
     assert len(_rows(agent)) == 0
-    agent.handle("each")
+    reply = agent.handle("each")
+    assert reply == "Na pint garri you talk?"
+    assert len(_rows(agent)) == 0
+    agent.handle("yes")
     rows = _rows(agent)
     assert len(rows) == 1
     assert rows[0]["amount_each"] == 250 and rows[0]["amount"] == 500
@@ -94,7 +100,9 @@ def test_flattened_guard_resolves_each(agent):
 def test_flattened_guard_resolves_total(agent):
     agent.handle("customer take 2 pint of garri 250")
     assert len(_rows(agent)) == 0
-    agent.handle("na total")
+    reply = agent.handle("na total")
+    assert reply == "Na pint garri you talk?"
+    agent.handle("yes")
     rows = _rows(agent)
     assert len(rows) == 1
     assert rows[0]["amount"] == 250 and rows[0]["amount_each"] is None

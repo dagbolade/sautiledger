@@ -1,0 +1,3 @@
+id,ts,type,item,quantity,unit,amount,amount_each,currency,payment_status,due,raw_utterance,session_id
+6,2026-08-27T12:18:44,sale,was 285000 so still have 10 crites left for yesterday that is on,,,570007,,NGN,voided,,570007,c6a5b712f707c2a4
+7,2026-08-27T12:36:16,expense,egg bought egg yesterday at rate bought egg yesterday total egg purchase is 2935 total egg purchase 2935 so total egg sold yesterday is 2850 2850 so presently still have 10 great left,,,293500,,NGN,paid,,"Total egg purchased is 293,500",c6a5b712f707c2a4
