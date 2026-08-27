@@ -175,6 +175,17 @@ class Agent:
             self.pending = None
             return ("Wetin I hear no clear at all, so I no write anything. "
                     "Abeg talk am again — just the item and the amount.")
+        if parse.amount_suspect:
+            # deletion-class shape ("[ten] thousand" heard as bare
+            # "thousand"): echo the FULL amount before anything is written
+            self.pending = replace(parse, intent="clarify",
+                                   question_about="amount_confirm")
+            money = tools._money(parse.amount or parse.amount_each or 0,
+                                 parse.currency or self.pack.currency)
+            thing = (f"the {parse.item}"
+                     if parse.item and len(parse.item.split()) <= 3 else "am")
+            return (f"Make I sure first — na {money} for {thing}? "
+                    f"Talk 'yes' make I write am, or talk the correct amount.")
         if self._needs_item_confirm(parse):
             # suspicious item name: confirm BEFORE anything is written
             self.pending = replace(parse, intent="clarify", question_about="item_confirm")
@@ -235,6 +246,52 @@ class Agent:
         pending = self.pending
         lowered = tokenize(text)
 
+        if pending.question_about == "amount_confirm":
+            rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES)
+            if confirmed and not rest:
+                self.pending = None
+                return self._gate_and_commit(
+                    replace(pending, intent="log_transaction",
+                            question_about=None, amount_suspect=False), text
+                )
+            rest, rejected = _strip_leading(lowered, _NO_WORDS, _NO_PHRASES)
+            if rejected:
+                self.pending = None
+                rest = _strip_copula(rest)
+                if not rest:
+                    # keep the item, drop the doubted amount, ask cleanly
+                    self.pending = replace(pending, question_about="amount",
+                                           amount=None, amount_each=None,
+                                           amount_suspect=False)
+                    return self._clarify_question(self.pending)
+                # "no, na ten thousand" — the remainder is the REPLACEMENT
+                # amount for the same entry, never a fresh utterance
+                rest_money = [t for t in rest if is_moneyish(t, self.pack)]
+                if rest_money:
+                    m = parse_money(rest_money, pending.quantity, self.pack,
+                                    total_marked=True)
+                    if isinstance(m, dict) and "ambiguous" not in m and not m.get("suspect"):
+                        return self._gate_and_commit(
+                            replace(pending, intent="log_transaction",
+                                    question_about=None, amount_suspect=False,
+                                    amount=m.get("amount"),
+                                    amount_each=m.get("amount_each")), text
+                        )
+                return self.handle(" ".join(rest))
+            money_toks = [t for t in lowered if is_moneyish(t, self.pack)]
+            if money_toks:
+                m = parse_money(money_toks, pending.quantity, self.pack,
+                                total_marked=True)
+                if isinstance(m, dict) and "ambiguous" not in m and not m.get("suspect"):
+                    self.pending = None
+                    return self._gate_and_commit(
+                        replace(pending, intent="log_transaction",
+                                question_about=None, amount_suspect=False,
+                                amount=m.get("amount"),
+                                amount_each=m.get("amount_each")), text
+                    )
+            return None  # restated something else — parse it fresh
+
         if pending.question_about == "item_confirm":
             rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES)
             if confirmed and not rest:
@@ -276,6 +333,16 @@ class Agent:
             # and the distributive guard doesn't re-ask
             m = parse_money(money_toks, pending.quantity, self.pack, total_marked=True)
             if isinstance(m, dict) and "ambiguous" not in m:
+                if m.get("suspect"):
+                    # bare scale word as an ANSWER ("thousand") — echo the
+                    # full amount before writing, same as the direct path
+                    filled = replace(pending, amount=m.get("amount"),
+                                     amount_each=m.get("amount_each"),
+                                     amount_suspect=True)
+                    self.pending = replace(filled, question_about="amount_confirm")
+                    money = tools._money(filled.amount or 0, self.pack.currency)
+                    return (f"Make I sure first — na {money}? "
+                            f"Talk 'yes' make I write am, or talk the correct amount.")
                 amount = m.get("amount")
                 if (
                     amount is not None and amount >= 10000 and amount % 50

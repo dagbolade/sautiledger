@@ -212,3 +212,26 @@ def test_confirm_note_keeps_money_field(agent):
     assert len(rows) == 1
     assert rows[0]["payment_status"] == "paid"
     assert rows[0]["amount"] == 2000
+
+
+# (phase F) deletion-class shapes get the full-amount echo before commit…
+def test_deleted_multiplier_echo_before_commit_field(agent):
+    reply = agent.handle("I buy Abil thousand naira")
+    assert "one thousand naira" in reply
+    assert len(_rows(agent)) == 0
+    agent.handle("no, na ten thousand")
+    rows = _rows(agent)
+    assert len(rows) == 1
+    assert rows[0]["amount"] == 10000
+
+
+# …while legitimate amounts keep zero friction (the report's design bar)
+def test_legitimate_amounts_no_friction_field(agent):
+    reply = agent.handle("I don sell three derica of rice five thousand five")
+    assert "Make I sure" not in reply
+    assert _rows(agent)[0]["amount"] == 5500
+
+    reply = agent.handle("I buy fuel ten thousand naira")
+    assert "Make I sure" not in reply
+    rows = _rows(agent)
+    assert rows[-1]["amount"] == 10000

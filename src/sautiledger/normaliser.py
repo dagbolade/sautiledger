@@ -201,6 +201,16 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
     if amount is None and total_marked:
         # "for 50 naira": the connective marks even a small figure as money
         amount = _small_single_value(toks, pack)
+    # Deletion-class risk (workshop residual #1): a run that is ONE bare
+    # scale WORD ("thousand", "hundred", "egberun") is the signature of a
+    # deleted multiplier — "[ten] thousand" logging ₦1,000 for ₦10,000.
+    # Digits ("1000") and full phrases ("ten thousand") are never flagged.
+    suspect = (
+        len(toks) == 1
+        and toks[0] in pack.numbers
+        and pack.numbers[toks[0]] >= 100
+        and not toks[0].isdigit()
+    )
     if amount is not None:
         if each:
             return _each_result(amount)
@@ -215,7 +225,10 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
                     {"reading": "total", "amount": amount},
                 ]
             }
-        return {"amount": amount}
+        result = {"amount": amount}
+        if suspect:
+            result["suspect"] = True
+        return result
     if amount is None:
         # [SMALL, SMALL, TENS] without the reduplication rule (non-pcm packs)
         # stays the ambiguity trap: ask, never guess.
@@ -352,6 +365,12 @@ def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
 
 
 def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
+    # Deletion-class risk (workshop residual #2): a doubled correction
+    # trigger ("no no na…") transcribed with a single "no" falls through to
+    # a spurious sale. Traders do not open a sale with "no" — a
+    # negation-led log gets the explicit confirm instead of a silent write.
+    negation_lead = bool(tokens) and tokens[0] == "no"
+
     def consume_trigger(toks: list[str], phrases: list[str]) -> tuple[list[str], bool]:
         for phrase in phrases:
             i = _find(toks, phrase)
@@ -480,6 +499,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
         intent="log_transaction",
         amount=m.get("amount"),
         amount_each=m.get("amount_each"),
+        amount_suspect=bool(m.get("suspect")) or negation_lead,
         **base,
     )
 

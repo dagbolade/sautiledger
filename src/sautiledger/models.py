@@ -29,6 +29,10 @@ class ParseResult:
     new_value: object = None
     question_about: str | None = None
     candidates: list[dict] | None = None
+    # deletion-class ASR risk ("[ten] thousand" arriving as bare "thousand"):
+    # the amount parsed, but its shape says a word may have been dropped —
+    # the agent echoes the FULL amount for confirmation before committing
+    amount_suspect: bool = False
 
     def to_dict(self) -> dict:
         return asdict(self)
