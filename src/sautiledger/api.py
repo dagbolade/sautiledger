@@ -257,6 +257,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                   LANGUAGE_CODES.get(pack.name, "pcm"))
         pcm_all = bytearray()
         final_text: list[str | None] = [None]
+        last_partial = [""]
+        committed = asyncio.Event()
         try:
             async with sasr.stream() as up:
 
@@ -285,17 +287,35 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                                     ack += 1
                                     await up.send(sasr.chunk_message(bytes(outbuf), ack))
                                 await up.send(sasr.COMMIT)
+                                committed.set()
                                 return
 
                 async def pump_down():
+                    # Sahara's COMMIT finalisation currently answers
+                    # INPUT_ERROR (verified 2026-08-27; reported to Intron),
+                    # so the last partial IS the transcript when the
+                    # committed one never lands.
                     while True:
-                        kind, text = sasr.parse_event(await up.recv())
+                        try:
+                            raw = await asyncio.wait_for(
+                                up.recv(), timeout=35 if committed.is_set() else 240
+                            )
+                        except asyncio.TimeoutError:
+                            if committed.is_set() and last_partial[0]:
+                                final_text[0] = last_partial[0]
+                                return
+                            raise
+                        kind, text = sasr.parse_event(raw)
                         if kind == "partial":
+                            last_partial[0] = text
                             await ws.send_json({"type": "partial", "text": text})
                         elif kind == "final":
                             final_text[0] = text
                             return
                         elif kind == "error":
+                            if committed.is_set() and last_partial[0]:
+                                final_text[0] = last_partial[0]
+                                return
                             raise EgressError(text)
 
                 await asyncio.wait_for(

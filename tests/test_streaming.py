@@ -170,3 +170,43 @@ def test_stream_endpoint_unavailable_offline():
     client = TestClient(app)
     with client.websocket_connect("/stream") as ws:
         assert ws.receive_json() == {"type": "unavailable"}
+
+
+class _CommitBugUp(_FakeUp):
+    """Sahara's current behavior: partials flow, then COMMIT is answered
+    with INPUT_ERROR instead of COMMITTED_TRANSCRIPT."""
+
+    async def recv(self):
+        if not self.partial_sent:
+            self.partial_sent = True
+            return json.dumps({"message_type": "PARTIAL_TRANSCRIPT",
+                               "transcript": "i don sell 3 crayfish for 2000 naira"})
+        await self.committed.wait()
+        return json.dumps({"message_type": "INPUT_ERROR",
+                           "message": "Error processing data"})
+
+
+def test_commit_bug_falls_back_to_last_partial(monkeypatch):
+    class Sasr(_FakeSasr):
+        def __init__(self, recorder, api_key, language_code="pcm"):
+            self.up = _CommitBugUp()
+            _FakeSasr.last = self
+
+    monkeypatch.setattr(api_mod, "SaharaStreamingAsr", Sasr)
+    app = create_app(Settings(pack="pcm-yo-NG", db_path=":memory:",
+                              mode="cloud", sahara_api_key="key"))
+    client = TestClient(app)
+    client.get("/state")
+    device = client.cookies.get("sauti_device")
+
+    with client.websocket_connect(
+        "/stream", headers={"cookie": f"sauti_device={device}"}
+    ) as ws:
+        assert ws.receive_json()["type"] == "partial"
+        ws.send_bytes(b"\x00\x01" * 4096)
+        ws.send_text(json.dumps({"type": "stop"}))
+        final = ws.receive_json()
+
+    assert final["type"] == "final"
+    assert final["transcript"] == "i don sell 3 crayfish for 2000 naira"
+    assert client.get("/state").json()["sales_total"] == 2000
