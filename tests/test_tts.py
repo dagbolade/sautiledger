@@ -68,3 +68,32 @@ def test_tts_endpoint_degrades_to_browser_voice_offline():
         pack="pcm-yo-NG", db_path=":memory:", mode="offline", sahara_api_key=None)))
     assert client.get("/state").json()["tts"] == "browser"
     assert client.post("/tts", data={"text": "hello"}).status_code == 204
+
+
+def test_tts_cache_serves_repeats_without_egress(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+
+    import sautiledger.api as api_mod
+    from sautiledger.api import create_app
+    from sautiledger.config import Settings
+
+    calls = {"n": 0}
+
+    class FakeSahara:
+        def __init__(self, recorder, api_key, **kw):
+            pass
+
+        def speak(self, text):
+            calls["n"] += 1
+            return b"RIFFcachedwav"
+
+    monkeypatch.setattr(api_mod, "SaharaTts", FakeSahara)
+    client = TestClient(create_app(Settings(
+        pack="pcm-yo-NG", db_path=str(tmp_path / "app.db"),
+        mode="cloud", sahara_api_key="key")))
+
+    first = client.post("/tts", data={"text": "Noted. Ledger correct."})
+    second = client.post("/tts", data={"text": "Noted. Ledger correct."})
+    assert first.status_code == second.status_code == 200
+    assert first.content == second.content == b"RIFFcachedwav"
+    assert calls["n"] == 1  # the repeat came from the cache, not the cloud

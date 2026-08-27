@@ -11,6 +11,7 @@ Run: python -m uvicorn sautiledger.api:app --port 8090
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import re
 import secrets
@@ -219,6 +220,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
         return {"ok": True, "voided": txn_id}
 
+    # replies repeat constantly ("Noted. Ledger correct.") — cached audio
+    # answers instantly, spends no credits, and egresses nothing
+    tts_cache = (Path(settings.db_path).parent / "tts-cache"
+                 if settings.db_path != ":memory:" else None)
+
     @app.post("/tts")
     def tts(request: Request, response: Response, text: str = Form(...)):
         """Reply audio in the Sahara Pidgin voice. 204 means 'use the
@@ -227,15 +233,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sess = session_for(resolve_device(request, response))
         if sess.tts is None:
             return Response(status_code=204)
+        text = text.strip()[:500]
+        cached = None
+        if tts_cache is not None:
+            cached = tts_cache / (hashlib.sha256(text.encode()).hexdigest() + ".wav")
+            if cached.exists():
+                return Response(content=cached.read_bytes(), media_type="audio/wav")
         if sess.recorder.sends_today("your reply, sent to make the voice") >= 300:
             return Response(status_code=204)
         try:
-            audio = sess.tts.speak(text.strip()[:500])
+            audio = sess.tts.speak(text)
         except Exception as exc:  # voice is optional — any failure degrades
             print(f"TTS failed: {exc}", flush=True)
             return Response(status_code=204)
         if not audio:
             return Response(status_code=204)
+        if cached is not None:
+            cached.parent.mkdir(parents=True, exist_ok=True)
+            cached.write_bytes(audio)
         return Response(content=audio, media_type="audio/wav")
 
     @app.post("/consent")
