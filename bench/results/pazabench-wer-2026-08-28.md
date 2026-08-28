@@ -24,7 +24,12 @@ sh-ZW planned on Shona). Column order is the leaderboard's own WER ranking.
    Alphabetically the table runs Nyankole → Nyungwe → Oromo → Sesotho; there
    is no Pidgin entry of any kind. SautiLedger's benchmark evaluates the
    dominant contact language of West African commerce that the leading
-   low-resource ASR leaderboard does not yet cover.
+   low-resource ASR leaderboard does not yet cover. (Precision note,
+   verified 28 Aug: facebook's omnilingual-ASR *claims* `pcm_Latn` among
+   its 1,672 supported languages — so the gap is in public *evaluation*,
+   not claimed coverage. Phrase it as: "no public leaderboard currently
+   evaluates Nigerian Pidgin; our benchmark provides that measurement,
+   including the first Pidgin numbers for omnilingual-ASR we know of.")
 2. **No Intron/Sahara model appears among the evaluated models.** Our report
    is therefore the only place (we know of) where Sahara is measured
    side-by-side with the PazaBench model families on this speech.
