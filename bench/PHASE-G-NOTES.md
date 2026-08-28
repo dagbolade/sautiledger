@@ -13,9 +13,9 @@ Plan, pending David's sign-off on the third-model decision:
 | **sahara-v2 / v2.5** | the model under test | API, key in hand; v2.5 migration gated on Intron's reply |
 | **whisper-large-v3** | strong general open model, offline | cached from workshop bench |
 | **whisper-small** | lightweight floor | cached |
-| **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | proposed THIRD model — open weights on HF |
+| **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | **CONFIRMED third model (David, 28 Aug).** No Windows fairseq2 wheels (pip ResolutionImpossible) and no HF-hosted inference — runs in WSL2 Ubuntu-24.04 (installed on this machine). CTC-300M variant: 1.3 GiB, ~2 GiB RAM, CPU-friendly |
 | **Nemotron 3.5 ASR (0.6B)** | masterclass tie-in; nvidia-nemo family ranks 11/16 on PazaBench | optional bonus row — see feasibility below |
-| **frontier API (Gemini vs OpenAI)** | closed-model comparator | awaiting David's key choice; Intron may provide credits ("stay on the lookout" — Tobi) |
+| **Gemini (frontier API)** | closed-model comparator | **CONFIRMED (David, 28 Aug): his Gemini key** — goes in .env as GEMINI_API_KEY, never committed; benchmark-only, never wired into the app. Intron may still provide credits ("stay on the lookout" — Tobi) |
 
 **Nemotron feasibility (investigated 28 Aug, decision for David):**
 open weights (OpenMDW-1.1), 600M params ≈ 2.4 GB, runs via HF
