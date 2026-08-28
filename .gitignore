@@ -19,6 +19,7 @@ bench/corpus/*/raw/
 bench/corpus/afriswitch-sample/
 bench/results/*
 !bench/results/REPORT.md
+!bench/results/pazabench-wer-2026-08-28.md
 
 # python
 .venv/
