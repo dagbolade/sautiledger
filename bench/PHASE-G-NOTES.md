@@ -43,6 +43,10 @@ Questions worth asking (in priority order):
    masterclass materialise?
 5. Benchmark report: any required template, or is the
    Intron-Multimodal-Benchmarking repo the reference?
+6. Can the API response expose a model/version field? We measured
+   deterministic same-clip output changes between 5 Aug and 2 Sep —
+   version labels matter for benchmark reproducibility. (Also good
+   product feedback for the report.)
 
 ## 1. Model line-up
 
@@ -51,7 +55,23 @@ Plan, pending David's sign-off on the third-model decision:
 
 | Model | Role | Status |
 |---|---|---|
-| **sahara v2.5** | the model under test | CONFIRMED 2 Sep (David): current API access IS v2.5 — no migration, the app and Phase G both run it. Report labels: workshop bench = "Sahara (API, 5 Aug snapshot)", Phase G = "Sahara v2.5" |
+| **sahara v2.5** | the model under test | VERIFIED 2 Sep, three ways: (1) intron.io states v2.5 is the current release (12 bilingual mixing models, streaming ASR/TTS endpoints — the v2.5-era features our key already uses); (2) David's confirmation; (3) **same-clip probes prove the backend changed since 5 Aug** (deterministic — repeat calls identical). Report labels: workshop bench = "Sahara (API, 5 Aug snapshot)", Phase G = "Sahara v2.5". No version field in API responses — see Q&A Q6 |
+
+**Same-clip evidence, 5 Aug cache vs 2 Sep live (frozen tier-a clips):**
+
+| clip | truth | Sahara 5 Aug | Sahara 2 Sep (v2.5) | shift |
+|---|---|---|---|---|
+| case01 | I don sell three derica of rice five thousand five | "I don sell 3 derica of rice 5,500." | "I don't sell 3D liquor of rice, 50,005." | **regression**: negation inversion + item garble + amount 5,500→50,005 |
+| case03 | I buy fuel ten thousand naira | "i buy fuel thousand naira" (deleted "ten") | "Abuye Fuel N 10,000" | **amount FIXED** (the deletion-class miss that motivated Phase F); verb garbled |
+| case05 | sell garri egberun meta | "sell garri ebenometa" | "Selgari Egbengometa" | wash (garbled both times) |
+| case08 | abeg how much I don make today | "Abeg, how much I don make today?" | identical, perfect | unchanged |
+
+Read: NOT a wholesale regression — per-clip shifts go both directions.
+This is precisely why the Sep 8 full frozen-corpus re-run exists; no
+conclusions from 4 clips. Two operational notes: (a) the field week is
+running on v2.5 — watch the dashboard for corruption-class changes in
+the sister/Idowu sessions; (b) our Phase F suspect-amount gate would
+catch case01's "50,005" shape (strange-shape guard: ≥10k, odd remainder).
 | **whisper-large-v3** | strong general open model, offline | cached from workshop bench |
 | **whisper-small** | lightweight floor | cached |
 | **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | **CONFIRMED third model (David, 28 Aug) — and WORKING in WSL.** No Windows fairseq2 wheels and no HF-hosted inference; installed in WSL2 Ubuntu-24.04 venv `~/omni` (kenlm skipped — optional LM decoder needing a C++ toolchain; libsndfile shimmed from the soundfile wheel via `LD_LIBRARY_PATH=~/omni/shimlib`; fairseq2 0.6 + fairseq2n 0.6+cpu + torch 2.8.0 CPU + numpy 1.26). Verified: 1,672 supported languages incl. `pcm_Latn`, `yor_Latn`, `hau_Latn`, `ibo_Latn`, `swh_Latn`, `sna_Latn`. NOTE: it CLAIMS Pidgin — so our gap claim is about public *evaluation* (no leaderboard measures Pidgin), and our report delivers the first Pidgin numbers for this model. CTC-300M variant: 1.3 GiB, ~2 GiB RAM. **Smoke test 28 Aug (CTC-300M, CPU, tier-a case01):** ground truth "I don sell three derica of rice five thousand five" → transcribed "i don sow three the reca of rice" in 21.1s incl. model load — **the money phrase was deleted entirely.** Exactly the deletion-class corruption our task-completion metric exists to expose; a strong early signal for the report. Caveats to carry: this is the smallest variant with greedy decoding (kenlm LM decoder not installed); PazaBench's "omnilingual" column is presumably the larger variant — verify which before quoting. Bench plan: run CTC-300M + LLM-1B (~6 GB RAM, feasible); 7B variants do not fit in 24 GB RAM on CPU |
