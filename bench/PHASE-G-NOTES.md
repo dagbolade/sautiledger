@@ -24,9 +24,12 @@ Intron-Multimodal-Benchmarking repo, checked 2 Sep): they report **WER/CER
 both normalized and raw** — ours will too; and their own ASR roster
 includes **Meta OmniCTC/OmniLLM and Google Gemini** — our model lineup
 mirrors the organisers' methodology, which is worth one sentence in the
-report. Extra corpus option: LyngualLabs/YorubaEnglish-CodeSwitching-TTS
-(HF) — read-speech Yoruba-English pairs usable as a clean eval tier;
-assess at corpus-freeze time, license unlisted so check before use.
+report. LyngualLabs/YorubaEnglish-CodeSwitching-TTS (verified 2 Sep): a
+**TTS MODEL** (VoxCPM2 fine-tune, weights + synthetic demo wavs,
+CC-BY-NC-4.0) — no human audio with ground-truth transcripts, so NOT
+ASR-benchmark material. Related-work honourable mention only (evidence
+the Yoruba-English code-switching ecosystem is growing); it does not
+enter the corpus.
 
 ## 0b. Live Q&A — Thu 3 Sep, 12:00–1:00pm WAT (Google Meet, link in email)
 
