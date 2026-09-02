@@ -1,0 +1,117 @@
+# Shona / English mix — USD (integer CENTS: "five dollars fifty" = 550)
+# NATIVE-CORRECTED 2026-09-02: every transaction form below comes from the
+# validator's corrected recording script (packs/sh-ZW-recording-script.md).
+# She chose US dollars and English numbers throughout — the pack encodes
+# what she actually wrote, nothing invented. Recordings pending; the pack
+# does NOT ship to production until her clips pass the frozen test tier.
+name: sh-ZW
+description: Shona / English mix
+currency: USD
+currency_words: []
+# concord/possessive connectives riding between item and price
+# ("bag REchibage NE forty five dollars", "cups DZE rice");
+# achiita/dzinoita/inoita = "costing/making" price verbs
+connectives: [dze, dzi, re, ne, ye, e, che, achiita, dzinoita, inoita, yairi]
+fillers: [pasi, asi, usanyore, zvese, chese, ndipe, ini]
+
+# NOT validated for Shona — off until the native speaker confirms
+reduplication_distributive: false
+digit_twin_thousands: false
+
+price_connectives: [ne, ye, e, achiita, dzinoita, inoita, for, at]
+
+descriptors: [big, small, medium, large]
+multi_word_items: [maplastic bags]
+interrogatives: [marii, chii]
+
+# She used English numbers in every line — the code-switched register is
+# the real one. Shona numerals can be added when she validates them.
+numbers:
+  one: 1
+  two: 2
+  three: 3
+  four: 4
+  five: 5
+  six: 6
+  seven: 7
+  eight: 8
+  nine: 9
+  ten: 10
+  twenty: 20
+  thirty: 30
+  forty: 40
+  fifty: 50
+  sixty: 60
+  seventy: 70
+  eighty: 80
+  ninety: 90
+  hundred: 100
+  thousand: 1000
+
+k_words: [k]
+# "hwani" = the native each-marker ("two fifty hwani" = 250 each) —
+# from her corrections of cases 3 and 5
+each_words: [hwani, each]
+hard_money_words: []
+
+# "forty five DOLLARS" -> 4500 cents; "madhora" = Shona plural (unvalidated
+# but harmless: only activates if spoken)
+major_unit_words: [dollars, dollar, madhora]
+# concord prefixes that glue onto numbers: "NEfive", "YEten", "Ethree",
+# "NEone" — all four attested in her corrected text
+number_prefixes: [ne, ye, e, che]
+
+# singular before plural: the FIRST unit hit wins, and "bag re maplastic
+# bags" must bind the leading "bag", not the trailing "bags"
+units:
+  bag: bag
+  bags: bag
+  cup: cup
+  cups: cup
+  bucket: bucket
+  buckets: bucket
+  mabuckets: bucket
+  crate: crate
+  crates: crate
+  macrates: crate
+  kg: kg
+  kilo: kg
+  box: box
+  boxes: box
+
+# "ndatengesa" = I sold; "atora" = took (customer atora = customer take)
+sale_triggers: [ndatengesa, customer atora, atora, sold, sell]
+# "ndatenga" = I bought (distinct token from ndatengesa)
+expense_triggers: [ndatenga, bought]
+# "zvinyore pasi" = write it down ("zvinyre" = her typed spelling, kept
+# so the typed register matches her text)
+log_triggers: [zvinyore, zvinyre, nyora]
+
+queries:
+  - phrase: ndawana marii
+    query: profit_or_sales_total
+  - phrase: chandatengesa kupfuura
+    query: top_item
+
+summary_triggers: [tapedza basa, ndipe summary, summary]
+recap_triggers: [ledger]
+
+corrections:
+  # "Aiwa — yairi five dollars kwete five fifty"
+  - trigger: aiwa
+    field: amount
+  # "Iyoyo yanga iri CHIKWERETI — anobhadhara musiwe Friday"
+  - trigger: chikwereti
+    field: payment_status
+    value: credit
+correction_stop_words: [kwete, not]
+
+periods:
+  nhasi: today
+  today: today
+  week rino: this_week
+  week ino: this_week
+  this week: this_week
+  nezuro: yesterday
+
+days: [monday, tuesday, wednesday, thursday, friday, saturday, sunday]

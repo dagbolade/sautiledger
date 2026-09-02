@@ -46,6 +46,13 @@ class Pack:
     descriptors: frozenset[str] = frozenset()
     # question markers: interrogative + sale trigger = query, not transaction
     interrogatives: list[str] = field(default_factory=list)
+    # minor-unit currencies (sh-ZW, USD): "forty five DOLLARS" multiplies
+    # into cents; "five dollars fifty" = 550. Empty for major-unit packs.
+    major_unit_words: frozenset = frozenset()
+    # Bantu concord prefixes that glue onto code-switched numbers
+    # ("NEfive dollars", "YEten") — split only when the remainder is a
+    # known number word, never elsewhere
+    number_prefixes: frozenset = frozenset()
 
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
@@ -83,4 +90,6 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         interrogatives=list(raw.get("interrogatives") or []),
         multi_word_items=frozenset(raw.get("multi_word_items") or []),
         descriptors=frozenset(raw.get("descriptors") or []),
+        major_unit_words=frozenset(raw.get("major_unit_words") or []),
+        number_prefixes=frozenset(raw.get("number_prefixes") or []),
     )

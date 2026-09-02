@@ -57,6 +57,7 @@ def is_moneyish(tok: str, pack: Pack) -> bool:
         or tok in pack.k_words
         or tok in pack.each_words
         or tok in pack.hard_money_words
+        or tok in pack.major_unit_words
     )
 
 
@@ -72,8 +73,50 @@ def _cls(v: int) -> str:
     return "OTHER"
 
 
+def _plain_value(toks: list[str], pack: Pack) -> int | None:
+    """A pure number-word run: tens+small composition ("forty five" -> 45)
+    plus the cents pair ("one fifty" -> 150). None for anything else."""
+    if not toks:
+        return None
+    vals = []
+    for t in toks:
+        v = _num_value(t, pack)
+        if v is None:
+            return None
+        vals.append(v)
+    comp: list[int] = []
+    for v in vals:
+        if comp and _cls(comp[-1]) == "TENS" and _cls(v) == "SMALL":
+            comp[-1] += v
+        else:
+            comp.append(v)
+    if len(comp) == 1:
+        return comp[0]
+    if len(comp) == 2 and _cls(comp[0]) == "SMALL" and _cls(comp[1]) == "TENS":
+        return comp[0] * 100 + comp[1]
+    return None
+
+
 def _money_value(toks: list[str], pack: Pack) -> int | None:
     """Value a plain (non-reduplicated) money phrase, or None."""
+    # Minor-unit currency word (native-validated sh-ZW forms): "forty five
+    # DOLLARS" = 4500 cents; "five dollars fifty" = 550; "one fifty
+    # dollars" = 150 (already cents-complete, the word is just currency).
+    if pack.major_unit_words:
+        idx = [i for i, t in enumerate(toks) if t in pack.major_unit_words]
+        if len(idx) > 1:
+            return None
+        if idx:
+            i = idx[0]
+            left = _plain_value(toks[:i], pack)
+            if left is None:
+                return None
+            if i + 1 == len(toks):
+                return left * 100 if left < 100 else left
+            right = _plain_value(toks[i + 1:], pack)
+            if right is None or left >= 100 or right >= 100:
+                return None
+            return left * 100 + right
     seq: list[tuple[str, int | None]] = []
     for t in toks:
         kv = _knum_value(t)
@@ -507,9 +550,31 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
 # ---------------------------------------------------------------- entry
 
 
+def _split_glued(tokens: list[str], pack: Pack) -> list[str]:
+    """Bantu concord prefixes glue onto code-switched numbers ("NEfive
+    dollars", "YEten"). Split ONLY when the remainder is a known number or
+    currency word — 'enzungu' (e + groundnuts) is never touched."""
+    if not pack.number_prefixes:
+        return tokens
+    out = []
+    for tok in tokens:
+        repl = tok
+        if _num_value(tok, pack) is None and tok not in pack.major_unit_words:
+            for p in sorted(pack.number_prefixes, key=len, reverse=True):
+                rest = tok[len(p):]
+                if tok.startswith(p) and rest and (
+                    _num_value(rest, pack) is not None
+                    or rest in pack.major_unit_words
+                ):
+                    repl = rest
+                    break
+        out.append(repl)
+    return out
+
+
 def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
     """Deterministic parse. None means the grammar has no reading at all."""
-    tokens = tokenize(utterance)
+    tokens = _split_glued(tokenize(utterance), pack)
     for attempt in (_try_correction, _try_query, _try_recap, _try_interrogative, _try_summary, _try_transaction):
         result = attempt(tokens, pack)
         if result is not None:

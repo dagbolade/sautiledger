@@ -1,0 +1,210 @@
+{
+  "_readme": [
+    "sh-ZW normaliser test spec — SEPARATE from the frozen normaliser_tests.json.",
+    "Amounts are integer CENTS (USD): 'five dollars fifty' = 550.",
+    "PROVENANCE: utterances drafted by an AI assistant from the pcm-yo-NG case",
+    "pattern and CORRECTED by a native Shona speaker on 2026-09-02 (see",
+    "packs/sh-ZW-recording-script.md). Texts below are her corrected wording",
+    "verbatim (punctuation dropped; 'Zvinyre' kept as she typed it).",
+    "Her recordings of these same sentences become the frozen sh-ZW audio tier;",
+    "the pack does not ship until those clips pass."
+  ],
+  "packs": {
+    "sh-ZW": "Shona / English mix, USD cents"
+  },
+  "cases": [
+    {
+      "id": 1,
+      "pack": "sh-ZW",
+      "utterance": "Ndatengesa three cups dze rice nefive dollars fifty",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "rice",
+        "quantity": 3,
+        "unit": "cup",
+        "amount": 550,
+        "currency": "USD"
+      },
+      "note": "glued connective NEfive; dollars-then-cents = 550"
+    },
+    {
+      "id": 2,
+      "pack": "sh-ZW",
+      "utterance": "Ndatengesa one bag rechibage ne forty five dollars",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "rechibage",
+        "quantity": 1,
+        "unit": "bag",
+        "amount": 4500,
+        "currency": "USD"
+      },
+      "note": "'forty five dollars' multiplies to cents; item keeps her concord form"
+    },
+    {
+      "id": 3,
+      "pack": "sh-ZW",
+      "utterance": "Customer atora two mabuckets enzungu achiita two fifty hwani",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "enzungu",
+        "quantity": 2,
+        "unit": "bucket",
+        "amount_each": 250,
+        "amount": 500,
+        "currency": "USD"
+      },
+      "note": "HWANI = each (her correction); 'two fifty' = $2.50 = 250 cents"
+    },
+    {
+      "id": 4,
+      "pack": "sh-ZW",
+      "utterance": "Ndatengesa matomatisi ethree dollars",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "matomatisi",
+        "amount": 300,
+        "currency": "USD"
+      },
+      "note": "glued Ethree splits; enzungu/matomatisi themselves never split"
+    },
+    {
+      "id": 5,
+      "pack": "sh-ZW",
+      "utterance": "Two crates dzemazai dzinoita ten dollars hwani",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "dzemazai",
+        "quantity": 2,
+        "unit": "crate",
+        "amount_each": 1000,
+        "amount": 2000,
+        "currency": "USD"
+      },
+      "note": "no verb trigger — unit anchors it, like pcm case 7"
+    },
+    {
+      "id": 6,
+      "pack": "sh-ZW",
+      "utterance": "Ndatengesa shuga one kg neone fifty dollars",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "sale",
+        "item": "shuga",
+        "quantity": 1,
+        "unit": "kg",
+        "amount": 150,
+        "currency": "USD"
+      },
+      "note": "'one fifty dollars' is cents-complete (150) — dollars is currency, not x100"
+    },
+    {
+      "id": 7,
+      "pack": "sh-ZW",
+      "utterance": "Ndatenga fuel yeten dollars",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "expense",
+        "item": "fuel",
+        "amount": 1000,
+        "currency": "USD"
+      },
+      "note": "ndatenga (bought) vs ndatengesa (sold) — distinct tokens; glued YEten"
+    },
+    {
+      "id": 8,
+      "pack": "sh-ZW",
+      "utterance": "Ndatenga bag re maplastic bags ne two dollars",
+      "expect": {
+        "intent": "log_transaction",
+        "type": "expense",
+        "item": "maplastic bags",
+        "unit": "bag",
+        "amount": 200,
+        "currency": "USD"
+      },
+      "note": "leading 'bag' binds as the unit; 'maplastic bags' survives as the item"
+    },
+    {
+      "id": 9,
+      "pack": "sh-ZW",
+      "utterance": "Ndawana marii nhasi",
+      "expect": {
+        "intent": "query_ledger",
+        "query": "profit_or_sales_total",
+        "period": "today"
+      },
+      "note": "nhasi = today"
+    },
+    {
+      "id": 10,
+      "pack": "sh-ZW",
+      "utterance": "Chii chandatengesa kupfuura zvese week rino",
+      "expect": {
+        "intent": "query_ledger",
+        "query": "top_item",
+        "period": "this_week"
+      },
+      "note": "chandatengesa is a different token from ndatengesa — no false sale"
+    },
+    {
+      "id": 11,
+      "pack": "sh-ZW",
+      "utterance": "Tapedza basa ndipe summary",
+      "expect": {
+        "intent": "daily_summary",
+        "period": "today"
+      },
+      "note": "her wording for close-the-day"
+    },
+    {
+      "id": 12,
+      "pack": "sh-ZW",
+      "utterance": "Aiwa yairi five dollars kwete five fifty",
+      "expect": {
+        "intent": "correct_last_entry",
+        "field": "amount",
+        "new_value": 500,
+        "currency": "USD"
+      },
+      "note": "AIWA opens the correction; KWETE stops the money scan (= 'not')"
+    },
+    {
+      "id": 13,
+      "pack": "sh-ZW",
+      "utterance": "Iyoyo yanga iri chikwereti anobhadhara musiwe Friday",
+      "expect": {
+        "intent": "correct_last_entry",
+        "field": "payment_status",
+        "new_value": "credit",
+        "due": "friday"
+      },
+      "note": "chikwereti = credit"
+    },
+    {
+      "id": 14,
+      "pack": "sh-ZW",
+      "utterance": "Zvinyre pasi asi usanyore zvese",
+      "expect": {
+        "intent": "clarify",
+        "question_about": "missing_transaction_details"
+      },
+      "note": "write-it-down with no details — ask, never guess (her typed spelling kept)"
+    },
+    {
+      "id": 15,
+      "pack": "sh-ZW",
+      "utterance": "Ndatengesa chibage chese",
+      "expect": {
+        "intent": "clarify",
+        "question_about": "amount"
+      },
+      "note": "sold-out-the-maize, no amount spoken — mirror of frozen pcm case 21"
+    }
+  ]
+}

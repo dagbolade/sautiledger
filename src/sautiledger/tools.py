@@ -46,7 +46,20 @@ def spoken_number(n: int) -> str:
     return " ".join(parts)
 
 
+# minor-unit currencies store integer CENTS (sh-ZW markets quote USD)
+_MINOR_UNIT = {"USD": ("dollar", "dollars", "cent", "cents")}
+
+
 def _money(amount: int, currency: str) -> str:
+    if currency in _MINOR_UNIT:
+        one, many, c_one, c_many = _MINOR_UNIT[currency]
+        d, c = divmod(amount, 100)
+        parts = []
+        if d:
+            parts.append(f"{spoken_number(d)} {one if d == 1 else many}")
+        if c:
+            parts.append(f"{spoken_number(c)} {c_one if c == 1 else c_many}")
+        return " ".join(parts) or f"zero {many}"
     return f"{spoken_number(amount)} {_CURRENCY_WORDS.get(currency, currency)}"
 
 
