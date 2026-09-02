@@ -34,8 +34,7 @@ enter the corpus.
 ## 0b. Live Q&A — Thu 3 Sep, 12:00–1:00pm WAT (Google Meet, link in email)
 
 Questions worth asking (in priority order):
-1. Sahara v2.5: how do challenge participants get access / is the current
-   API already v2.5? (Phase E is gated on this.)
+1. ~~Sahara v2.5 access~~ ANSWERED 2 Sep: current API access is v2.5.
 2. Streaming STT: COMMITTED_TRANSCRIPT bug + 10–35s partial latency — is a
    fix landing before Demo Day? (We have traces to share.)
 3. Benchmark audios (bonus): preferred format/metadata schema for the
@@ -52,7 +51,7 @@ Plan, pending David's sign-off on the third-model decision:
 
 | Model | Role | Status |
 |---|---|---|
-| **sahara-v2 / v2.5** | the model under test | API, key in hand; v2.5 migration gated on Intron's reply |
+| **sahara v2.5** | the model under test | CONFIRMED 2 Sep (David): current API access IS v2.5 — no migration, the app and Phase G both run it. Report labels: workshop bench = "Sahara (API, 5 Aug snapshot)", Phase G = "Sahara v2.5" |
 | **whisper-large-v3** | strong general open model, offline | cached from workshop bench |
 | **whisper-small** | lightweight floor | cached |
 | **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | **CONFIRMED third model (David, 28 Aug) — and WORKING in WSL.** No Windows fairseq2 wheels and no HF-hosted inference; installed in WSL2 Ubuntu-24.04 venv `~/omni` (kenlm skipped — optional LM decoder needing a C++ toolchain; libsndfile shimmed from the soundfile wheel via `LD_LIBRARY_PATH=~/omni/shimlib`; fairseq2 0.6 + fairseq2n 0.6+cpu + torch 2.8.0 CPU + numpy 1.26). Verified: 1,672 supported languages incl. `pcm_Latn`, `yor_Latn`, `hau_Latn`, `ibo_Latn`, `swh_Latn`, `sna_Latn`. NOTE: it CLAIMS Pidgin — so our gap claim is about public *evaluation* (no leaderboard measures Pidgin), and our report delivers the first Pidgin numbers for this model. CTC-300M variant: 1.3 GiB, ~2 GiB RAM. **Smoke test 28 Aug (CTC-300M, CPU, tier-a case01):** ground truth "I don sell three derica of rice five thousand five" → transcribed "i don sow three the reca of rice" in 21.1s incl. model load — **the money phrase was deleted entirely.** Exactly the deletion-class corruption our task-completion metric exists to expose; a strong early signal for the report. Caveats to carry: this is the smallest variant with greedy decoding (kenlm LM decoder not installed); PazaBench's "omnilingual" column is presumably the larger variant — verify which before quoting. Bench plan: run CTC-300M + LLM-1B (~6 GB RAM, feasible); 7B variants do not fit in 24 GB RAM on CPU |
