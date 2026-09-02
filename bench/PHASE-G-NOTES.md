@@ -1,7 +1,46 @@
-# Phase G — benchmark & report prep notes (updated 28 Aug, post-masterclass)
+# Phase G — benchmark & report prep notes (updated 2 Sep, post-registration)
 
 Working checklist for the Sep 8–12 re-benchmark and report. Deadline
-context: submission 15 Sep, winners 1 Oct.
+context: **submission 15 Sep 11:59pm WAT**, winners 1 Oct.
+**ONE submission per access token — no second entry. Assemble everything,
+review, submit once.** (Token lives in David's email; never in this repo.)
+
+## 0. Official rubric (from the 2 Sep registration email) — weights drive effort
+
+| Criterion | Weight | Our answer |
+|---|---|---|
+| **Code-Switching Benchmark Quality** | **30%** | the Phase G report — "a rigorous report matters more than a polished pitch" (their words). Highest weight = highest effort |
+| Product Quality & Fit | 25% | live PWA, agentic loop, field-tested by real traders |
+| Real-World Impact | 20% | market traders = meaningful population; real field data |
+| Technical Execution | 15% | egress architecture, latency work, streaming, P0 gate |
+| Ethics, Safety & Inclusion | 10% | consent-gated bundle tool, never-guess invariant, ₦570,007 audit trail |
+
+Submission checklist (all six): solution description · demo video
+(unlisted YouTube) · docs · benchmark report (3+ models incl. Sahara) ·
+ethics/inclusion note · optional consented benchmark audios (bonus).
+
+Alignment with Intron's own benchmarking practice (their
+Intron-Multimodal-Benchmarking repo, checked 2 Sep): they report **WER/CER
+both normalized and raw** — ours will too; and their own ASR roster
+includes **Meta OmniCTC/OmniLLM and Google Gemini** — our model lineup
+mirrors the organisers' methodology, which is worth one sentence in the
+report. Extra corpus option: LyngualLabs/YorubaEnglish-CodeSwitching-TTS
+(HF) — read-speech Yoruba-English pairs usable as a clean eval tier;
+assess at corpus-freeze time, license unlisted so check before use.
+
+## 0b. Live Q&A — Thu 3 Sep, 12:00–1:00pm WAT (Google Meet, link in email)
+
+Questions worth asking (in priority order):
+1. Sahara v2.5: how do challenge participants get access / is the current
+   API already v2.5? (Phase E is gated on this.)
+2. Streaming STT: COMMITTED_TRANSCRIPT bug + 10–35s partial latency — is a
+   fix landing before Demo Day? (We have traces to share.)
+3. Benchmark audios (bonus): preferred format/metadata schema for the
+   optional consented samples?
+4. Did the frontier-API credits (Gemini/OpenAI) Tobi mentioned at the
+   masterclass materialise?
+5. Benchmark report: any required template, or is the
+   Intron-Multimodal-Benchmarking repo the reference?
 
 ## 1. Model line-up
 
