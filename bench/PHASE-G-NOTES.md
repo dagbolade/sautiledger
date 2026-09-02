@@ -33,20 +33,35 @@ enter the corpus.
 
 ## 0b. Live Q&A — Thu 3 Sep, 12:00–1:00pm WAT (Google Meet, link in email)
 
-Questions worth asking (in priority order):
-1. ~~Sahara v2.5 access~~ ANSWERED 2 Sep: current API access is v2.5.
-2. Streaming STT: COMMITTED_TRANSCRIPT bug + 10–35s partial latency — is a
-   fix landing before Demo Day? (We have traces to share.)
-3. Benchmark audios (bonus): preferred format/metadata schema for the
-   optional consented samples?
-4. Did the frontier-API credits (Gemini/OpenAI) Tobi mentioned at the
-   masterclass materialise?
-5. Benchmark report: any required template, or is the
-   Intron-Multimodal-Benchmarking repo the reference?
+Questions — FACT-CHECKED 2 Sep evening, every premise re-verified live:
+1. ~~Sahara v2.5 access~~ ANSWERED: current API access is v2.5 (verified
+   three ways, see §1).
+2. **Streaming STT (re-verified TONIGHT on v2.5, real-time-paced probe):**
+   COMMIT is still answered with INPUT_ERROR "Error processing data"
+   instead of COMMITTED_TRANSCRIPT, and first partial arrived +10.3s
+   after commit. Ask: is a fix scheduled before Demo Day? (Traces in
+   hand; the partial also read "I don sell 3 rice 500" — streaming
+   quality trails the sync path on the same clip.)
+3. **Benchmark audios (bonus):** your Intron-Multimodal-Benchmarking repo
+   defines meta_data_transcription.csv as `audio_path, duration, text,
+   language, source` — should the optional consented audio submission
+   follow that schema? And since it includes `text`: are name-scrubbed
+   transcripts acceptable? (Our de-identification withholds transcripts
+   by default because market speech contains buyer names.)
+4. Frontier-API credits (Gemini/OpenAI) Tobi mentioned at the masterclass
+   — did they materialise? (Unverifiable from here; watch WhatsApp too.)
+5. Benchmark report: the email says "pros and cons of each" model — is
+   the Multimodal-Benchmarking repo's normalisation the expected one for
+   WER/CER comparability across teams, or may teams use their own
+   documented normaliser? (Ours is public in the repo.)
 6. Can the API response expose a model/version field? We measured
    deterministic same-clip output changes between 5 Aug and 2 Sep —
-   version labels matter for benchmark reproducibility. (Also good
-   product feedback for the report.)
+   version labels matter for benchmark reproducibility. (Also product
+   feedback for the report.)
+7. **NEW — credits:** SESSION_CREATED reports credit_balance 4.24 on our
+   key (seen twice tonight). Phase G needs a few hundred Sahara calls
+   (frozen corpus + AfriSwitch + field clips + streaming tests). How do
+   challenge participants get topped up for benchmarking?
 
 ## 1. Model line-up
 
