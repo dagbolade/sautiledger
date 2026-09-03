@@ -115,3 +115,65 @@ def test_cueless_chatter_during_confirm_never_touches_the_row():
     agent.handle("my friend how your body today")
     after = [dict(r) for r in agent.ledger.entries("today")]
     assert after == before  # no note, no void — cue-less chatter is inert
+
+
+# ---------------- 4. field round two: the wholesale register (2026-09-02,
+# sister's session — "200 per one", "4000 per pack", item "per" logged)
+
+
+def test_per_one_answer_resolves_pending_amount():
+    agent = _agent()
+    reply = agent.handle("I don sell choco ball")
+    assert "How much" in reply
+    reply = agent.handle("200 per one")
+    # unknown 2-word item still confirms before commit — then logs cleanly
+    assert reply == "Na choco ball you talk?"
+    agent.handle("yes")
+    rows = agent.ledger.entries("today")
+    assert len(rows) == 1
+    assert rows[0]["item"] == "choco ball"
+    assert rows[0]["amount_each"] == 200
+
+
+def test_per_pack_prices_each_pack():
+    r = grammar_parse("i buy choco ball 4000 per pack", PACK)
+    assert r.intent == "log_transaction"
+    assert r.type == "expense"
+    assert r.item == "choco ball"
+    assert r.unit == "pack"
+    assert r.amount_each == 4000
+
+
+def test_trailing_copula_never_enters_the_item():
+    # production row "choco ball pack is" (2026-08-29) — the copula is a
+    # price marker, not part of the name
+    r = grammar_parse("choco ball pack is 4000", PACK)
+    assert r.item == "choco ball"
+    assert r.unit == "pack"
+    assert r.amount == 4000
+
+
+def test_function_word_item_never_logs():
+    # production row "Logged: per, fifty naira" (2026-09-02) — an item made
+    # only of function words keeps the money and asks for the thing
+    agent = _agent()
+    reply = agent.handle("i don sell per for 200")
+    assert reply == "Wetin she buy? Talk the thing name."
+    assert agent.ledger.entries("today") == []
+    agent.handle("chips")
+    rows = agent.ledger.entries("today")
+    assert len(rows) == 1
+    assert rows[0]["item"] == "chips"
+    assert rows[0]["amount"] == 200
+
+
+def test_bare_per_one_never_becomes_one_naira():
+    r = grammar_parse("i don sell garri per one", PACK)
+    assert r.intent == "clarify"
+    assert r.amount is None and r.amount_each is None
+
+
+def test_frozen_each_shapes_unchanged():
+    # "one five each" (frozen case 7 shape) must not lose its trailing five
+    r = grammar_parse("two mudu of elubo one five each", PACK)
+    assert r.amount_each == 1500 and r.amount == 3000

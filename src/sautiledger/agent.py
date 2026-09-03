@@ -11,7 +11,8 @@ from dataclasses import replace
 from . import tools
 from .ledger import Ledger
 from .models import ParseResult
-from .normaliser import grammar_parse, is_moneyish, normalise, parse_money, tokenize
+from .normaliser import (_num_value, grammar_parse, is_moneyish, normalise,
+                         parse_money, tokenize)
 from .packs import Pack
 
 _YES_WORDS = {"yes", "yeah", "yep", "correct", "ok", "okay", "sure"}
@@ -175,6 +176,13 @@ class Agent:
             self.pending = None
             return ("Wetin I hear no clear at all, so I no write anything. "
                     "Abeg talk am again — just the item and the amount.")
+        if self._item_is_junk(parse.item):
+            # an "item" made only of function words ('per', 'is' — production
+            # row "Logged: per, fifty naira", 2026-09-02) is a mis-parse,
+            # never a product: keep the captured money, ask for the thing
+            self.pending = replace(parse, intent="clarify",
+                                   question_about="item", item=None)
+            return "Wetin she buy? Talk the thing name."
         if parse.amount_suspect:
             # deletion-class shape ("[ten] thousand" heard as bare
             # "thousand"): echo the FULL amount before anything is written
@@ -198,6 +206,19 @@ class Agent:
         self.last_logged_id = row["id"] if row else None
         self.awaiting_confirm = True  # the readback ends "Correct?"
         return reply
+
+    def _item_is_junk(self, item: str | None) -> bool:
+        """True when every word of the item is a function word or a number —
+        connective debris that landed in the item slot, never a product."""
+        if not item:
+            return False
+        func = (self.pack.fillers | self.pack.connectives
+                | self.pack.each_words | self.pack.k_words
+                | self.pack.price_connectives | self.pack.currency_words)
+        return all(
+            w in func or _num_value(w, self.pack) is not None
+            for w in item.split()
+        )
 
     def _needs_item_confirm(self, parse: ParseResult) -> bool:
         """Multi-word item names the pack has never heard of and this ledger

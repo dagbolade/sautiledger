@@ -20,8 +20,10 @@ digit_twin_thousands: true
 # "groundnut 3 FOR 500" — the connective marks 500 as an explicit total;
 # "fun" is the Yoruba equivalent ("mo taa ede FUN 300"); "worth"/"cost"
 # from field testing ("egg worth 12000"); "goes" pairs with "for" so
-# "goes for" falls out of the trailing-connective pop
-price_connectives: [for, at, fun, worth, cost, goes]
+# "goes for" falls out of the trailing-connective pop. is/na/be/dey:
+# field round two — a trailing copula ("choco ball pack IS 4000") is a
+# price marker, never part of the item name
+price_connectives: [for, at, fun, worth, cost, goes, is, na, be, dey]
 
 # size words riding on item names: "1 big egg" — extra detail, not doubt
 descriptors: [big, small, medium, large]
@@ -62,7 +64,9 @@ numbers:
   marun: 5
 
 k_words: [k]
-each_words: [each]
+# "per" — field round two: the wholesale register prices by the piece
+# ("200 per one", "4000 per pack")
+each_words: [each, per]
 # Yoruba subtractive/vigesimal money phrases the grammar refuses to value.
 # Seeing one of these means: clarify, never guess (CLAUDE.md rule 3).
 hard_money_words: [egbeje, egbeta, egbewa, o, din, owo]
@@ -82,6 +86,10 @@ units:
   crates: crate
   packet: packet
   packets: packet
+  pack: pack
+  packs: pack
+  piece: piece
+  pieces: piece
   sachet: sachet
   sachets: sachet
   tin: tin

@@ -218,6 +218,12 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
     toks = [t for t in tokens if t not in pack.each_words]
     if not toks:
         return UNPARSEABLE
+    # Wholesale register (field round two): "200 PER ONE" — the trailing
+    # 'one' names the unit being priced, not part of the amount
+    if each and len(toks) >= 2 and _num_value(toks[-1], pack) == 1:
+        toks = toks[:-1]
+    if each and len(toks) == 1 and _num_value(toks[0], pack) == 1:
+        return UNPARSEABLE  # bare "per one" carries no amount at all
 
     def _each_result(value: int) -> dict:
         result: dict = {"amount_each": value}
