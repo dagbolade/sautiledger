@@ -72,21 +72,63 @@ Plan, pending David's sign-off on the third-model decision:
 |---|---|---|
 | **sahara v2.5** | the model under test | VERIFIED 2 Sep, three ways: (1) intron.io states v2.5 is the current release (12 bilingual mixing models, streaming ASR/TTS endpoints — the v2.5-era features our key already uses); (2) David's confirmation; (3) **same-clip probes prove the backend changed since 5 Aug** (deterministic — repeat calls identical). Report labels: workshop bench = "Sahara (API, 5 Aug snapshot)", Phase G = "Sahara v2.5". No version field in API responses — see Q&A Q6 |
 
-**Same-clip evidence, 5 Aug cache vs 2 Sep live (frozen tier-a clips):**
+**Same-clip evidence, 5 Aug cache vs 3 Sep live — CORRECTED after full
+docs read.** The first version of this table (2 Sep evening) was
+contaminated: those probes passed `language=pcm`, but the documented
+field is `use_language_asr_input` — the wrong name is silently ignored
+and the calls defaulted to ENGLISH ASR (hence the anglicised "I don't
+sell 3D liquor of rice, 50,005"). The app itself was never affected:
+asr.py has used `use_language_asr_input` in both sync and async paths
+all along. Corrected table, right param, deterministic (repeat calls
+identical):
 
-| clip | truth | Sahara 5 Aug | Sahara 2 Sep (v2.5) | shift |
+| clip | truth | Sahara 5 Aug | Sahara 3 Sep (v2.5, pcm) | shift |
 |---|---|---|---|---|
-| case01 | I don sell three derica of rice five thousand five | "I don sell 3 derica of rice 5,500." | "I don't sell 3D liquor of rice, 50,005." | **regression**: negation inversion + item garble + amount 5,500→50,005 |
-| case03 | I buy fuel ten thousand naira | "i buy fuel thousand naira" (deleted "ten") | "Abuye Fuel N 10,000" | **amount FIXED** (the deletion-class miss that motivated Phase F); verb garbled |
-| case05 | sell garri egberun meta | "sell garri ebenometa" | "Selgari Egbengometa" | wash (garbled both times) |
-| case08 | abeg how much I don make today | "Abeg, how much I don make today?" | identical, perfect | unchanged |
+| case01 | I don sell three derica of rice five thousand five | "I don sell 3 derica of rice 5,500." | "I don sell 3 of rice 500" | drift: "derica" dropped; amount 5,500→500 |
+| case03 | I buy fuel ten thousand naira | "i buy fuel thousand naira" (deleted "ten") | "I buy fuel0 naira" | drift: number mangled into "fuel0" |
 
-Read: NOT a wholesale regression — per-clip shifts go both directions.
-This is precisely why the Sep 8 full frozen-corpus re-run exists; no
-conclusions from 4 clips. Two operational notes: (a) the field week is
-running on v2.5 — watch the dashboard for corruption-class changes in
-the sister/Idowu sessions; (b) our Phase F suspect-amount gate would
-catch case01's "50,005" shape (strange-shape guard: ≥10k, odd remainder).
+Read: real backend drift under correct parameters — smaller than the
+contaminated table suggested, but present on both clips, and still
+money-corrupting shapes (both would clarify/gate in our grammar, not
+log wrong). The Sep 8 frozen-corpus run quantifies it properly. The
+English-default outputs are ALSO useful: they show what any integrator
+who typos the param name silently gets — worth a product-feedback line
+(unknown form fields are accepted silently; suggest rejecting unknown
+`use_*` fields or echoing effective config).
+
+**Full docs read (3 Sep, docs.voice.intron.io — all STT + TTS pages):**
+- **TTS accent: our call is ALREADY the documented optimum.** Accent
+  values are language-named; for Pidgin the pair is voice_language
+  "pcm" + voice_accent "pidgin" (male/female) — exactly what
+  SaharaTts sends. Igbo/yoruba/hausa accents exist for those languages;
+  there is no separate generic "nigerian" accent. NO CODE CHANGE.
+- TTS Generate: text limit 4096 chars (we truncate at 1000 — fine),
+  `output_audio_format` wav|opus (opus = smaller fetch, optional
+  optimisation), 30 req/min, 120s→503 with Get-Text-Status fallback.
+- **TTS Streaming (NEW)**: wss://infer.voice.intron.io/tts/v1/stream —
+  INPUT_TEXT_CHUNK (10–100 chars) / FETCH_AUDIO_CHUNK / COMMIT, 48 kHz
+  mono 16-bit base64. Demo Day option for lower-latency readback.
+- STT sync: new documented knobs — **`use_disable_llm_corrections`
+  (default FALSE, i.e. LLM post-processing is ON by default)**,
+  `use_diarization`, `use_category`, `use_template_id`. Benchmark plan:
+  score Sahara as-deployed (default) as the primary row, raw
+  (TRUE) as a secondary row — the LLM corrections are plausibly where
+  digit-formatting shifts come from.
+- STT Question Answering: get_answer=TRUE turns sync upload into
+  audio-in→LLM-answer-out. Not for us (our agent is deterministic by
+  design — one report sentence contrasting the approaches).
+- **Code-switching pairs confirmed (12)**: Pidgin-EN, Yoruba-EN,
+  Hausa-EN, Igbo-EN, Swahili-EN, Zulu-EN, Akan-EN, Amharic-EN,
+  Luganda-EN, Wolof-EN, Afrikaans-EN + Kinyarwanda-EN-FR trilingual —
+  matches all our assumptions for pcm/yo/ha/sw.
+- **Shona gap: `sn` is an STT language and a TTS language (shona
+  accent, male/female) but is NOT in the 12 code-switch pairs.** Her
+  corrected utterances are heavily mixed ("Ndatengesa three cups dze
+  rice nefive dollars fifty") — expect degraded Sahara accuracy on the
+  sh-ZW tier and SAY SO in advance in the report (a falsifiable
+  prediction is good science); AfriSwitch ships Shona at CMI 24.55, so
+  the data exists — product feedback: promote Shona to a code-switch
+  pair.
 | **whisper-large-v3** | strong general open model, offline | cached from workshop bench |
 | **whisper-small** | lightweight floor | cached |
 | **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | **CONFIRMED third model (David, 28 Aug) — and WORKING in WSL.** No Windows fairseq2 wheels and no HF-hosted inference; installed in WSL2 Ubuntu-24.04 venv `~/omni` (kenlm skipped — optional LM decoder needing a C++ toolchain; libsndfile shimmed from the soundfile wheel via `LD_LIBRARY_PATH=~/omni/shimlib`; fairseq2 0.6 + fairseq2n 0.6+cpu + torch 2.8.0 CPU + numpy 1.26). Verified: 1,672 supported languages incl. `pcm_Latn`, `yor_Latn`, `hau_Latn`, `ibo_Latn`, `swh_Latn`, `sna_Latn`. NOTE: it CLAIMS Pidgin — so our gap claim is about public *evaluation* (no leaderboard measures Pidgin), and our report delivers the first Pidgin numbers for this model. CTC-300M variant: 1.3 GiB, ~2 GiB RAM. **Smoke test 28 Aug (CTC-300M, CPU, tier-a case01):** ground truth "I don sell three derica of rice five thousand five" → transcribed "i don sow three the reca of rice" in 21.1s incl. model load — **the money phrase was deleted entirely.** Exactly the deletion-class corruption our task-completion metric exists to expose; a strong early signal for the report. Caveats to carry: this is the smallest variant with greedy decoding (kenlm LM decoder not installed); PazaBench's "omnilingual" column is presumably the larger variant — verify which before quoting. Bench plan: run CTC-300M + LLM-1B (~6 GB RAM, feasible); 7B variants do not fit in 24 GB RAM on CPU |
