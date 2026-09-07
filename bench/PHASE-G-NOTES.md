@@ -170,7 +170,10 @@ misbehaves.
 - AfriSwitch confirmed at **14 languages** on 28 Aug (Kinyarwanda, Amharic,
   Zulu, Igbo, Yoruba, Hausa, Pidgin, Oromo, Swahili, Shona, French, Tswana,
   Luganda, Afrikaans). Tobi: growing to 16 "by end of week or next week" —
-  **re-pull and re-count immediately before the corpus freeze on Sep 8.**
+  **RE-CHECKED 7 Sep (freeze eve): still 14 languages, 54.41h/16,602
+  utterances, last modified 3 Aug — the 16-language expansion has not
+  shipped, and no new intronhealth datasets exist (whole org listed).
+  Freeze on the 14-language version, cited by its 3 Aug state.**
 - Shona: 3.86 h / 1,155 utterances / CMI 24.55 — real coverage. If the
   native-speaker session happens (human task), sh-ZW becomes the fifth
   validated tier-a pack, built exactly like pcm-yo-NG.
