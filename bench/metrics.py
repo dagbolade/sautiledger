@@ -17,6 +17,7 @@ been written to someone's money records — the failure that matters).
 from __future__ import annotations
 
 import re
+import unicodedata
 
 from sautiledger.normaliser import is_moneyish, normalise, parse_money, tokenize
 from sautiledger.packs import Pack
@@ -24,10 +25,19 @@ from sautiledger.packs import Pack
 # ---------------------------------------------------------------- WER
 
 
+def fold_diacritics(text: str) -> str:
+    """'ẹgbẹrùn mẹ́ta' -> 'egberun meta'. Some models (omnilingual) emit
+    proper Yoruba diacritics; scoring must not punish orthographic
+    faithfulness the ground truth lacks. A no-op on ASCII output, so
+    workshop-era scores are unchanged."""
+    return "".join(c for c in unicodedata.normalize("NFD", text)
+                   if not unicodedata.combining(c))
+
+
 def normalize_text(text: str) -> list[str]:
     """jiwer-standard: lowercase, strip punctuation (apostrophes too, so
-    "don't" -> "dont"), collapse whitespace."""
-    return re.findall(r"[a-z0-9]+", text.lower().replace("'", ""))
+    "don't" -> "dont"), collapse whitespace; diacritics folded first."""
+    return re.findall(r"[a-z0-9]+", fold_diacritics(text).lower().replace("'", ""))
 
 
 def wer(truth: str, hyp: str, normalized: bool = True) -> float:
@@ -158,10 +168,13 @@ def transaction_metrics(expected_parse: dict, hyp_text: str, pack: Pack) -> dict
 
 
 def score_clip(truth: str, hyp: str, expected_parse: dict, pack: Pack) -> dict:
+    # the app's tokenizer is ASCII (Sahara's output dialect); fold the hyp
+    # once so diacritic-faithful models reach the grammar as themselves
+    folded = fold_diacritics(hyp)
     return {
         "wer": round(wer(truth, hyp), 4),
         "wer_raw": round(wer(truth, hyp, normalized=False), 4),
-        "numeric_accuracy": numeric_accuracy(expected_parse, hyp, pack),
+        "numeric_accuracy": numeric_accuracy(expected_parse, folded, pack),
         "flags": transcription_flags(truth, hyp),
-        **transaction_metrics(expected_parse, hyp, pack),
+        **transaction_metrics(expected_parse, folded, pack),
     }

@@ -25,7 +25,7 @@ SAHARA_SYNC_URL = "https://infer.voice.intron.io/file/v1/upload/sync"
 # Pidgin-English=pcm, Yoruba-English=yo, Hausa-English=ha, Swahili-English=sw.
 # The mixed pcm-yo-NG pack maps to pcm (Sahara's strongest Pidgin model);
 # pass "yo" per-clip for Yoruba-dominant audio if it benchmarks better.
-LANGUAGE_CODES = {"pcm-yo-NG": "pcm", "sw-KE": "sw", "ha-NG": "ha"}
+LANGUAGE_CODES = {"pcm-yo-NG": "pcm", "sw-KE": "sw", "ha-NG": "ha", "sh-ZW": "sn"}
 
 
 class NotConfigured(RuntimeError):

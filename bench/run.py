@@ -184,7 +184,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm", action="store_true", help="actually spend API credits")
     parser.add_argument("--fake", action="store_true", help="dry-run the pipeline with fake models")
-    parser.add_argument("--frontier", default="openai", choices=["openai", "gemini", "whisper-small"])
+    parser.add_argument("--frontier", default="gemini", choices=["gemini", "openai", "whisper-small"])
     parser.add_argument("--tier", default=None, help="run one corpus tier only")
     parser.add_argument("--estimate-whisper", action="store_true", help="time whisper on one clip")
     args = parser.parse_args()
