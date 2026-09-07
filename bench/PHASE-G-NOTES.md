@@ -129,6 +129,24 @@ who typos the param name silently gets — worth a product-feedback line
   prediction is good science); AfriSwitch ships Shona at CMI 24.55, so
   the data exists — product feedback: promote Shona to a code-switch
   pair.
+
+## sh-ZW audio tier — ARRIVED 7 Sep, scripted 15 frozen-ready
+
+34 recordings received ("Ruwa 2"–"Ruwa 35"). Content-matched via
+omnilingual (sna_Latn, local): **Ruwa 2–16 = script cases 1–15 in exact
+order** (validator bonus: she says "zvinyora" for case 14 — the proper
+form; our log_triggers already carry it). Converted to 01–15.wav in
+bench/corpus/sh-clips/, all 15 pass quality gates; originals in
+raw/ (gitignored — voice never committed). Manifest now holds ONLY the
+15 scoreable rows; the sha at tomorrow's run is the sh freeze.
+
+**Ruwa 17–35 = 19 UNSCRIPTED short clips** (1.8–4.8s) — from the
+fragments: greetings, haggling, market chatter ("kumaketwa kudhura",
+tomato-freshness talk). A gift of a wild tier, but unscoreable until
+SHE transcribes them (David to ask: "type what you said in each of
+Ruwa 17–35, numbered"). When her texts arrive they become an sh-wild
+tier with its own freeze; several look like pure chatter — perfect
+ledger-must-stay-untouched cases.
 | **whisper-large-v3** | strong general open model, offline | cached from workshop bench |
 | **whisper-small** | lightweight floor | cached |
 | **facebook omnilingual-ASR** | strongest open model on our languages (PazaBench WER 0.29–0.51 on Hausa/Igbo/Yoruba/Swahili/Shona) | **CONFIRMED third model (David, 28 Aug) — and WORKING in WSL.** No Windows fairseq2 wheels and no HF-hosted inference; installed in WSL2 Ubuntu-24.04 venv `~/omni` (kenlm skipped — optional LM decoder needing a C++ toolchain; libsndfile shimmed from the soundfile wheel via `LD_LIBRARY_PATH=~/omni/shimlib`; fairseq2 0.6 + fairseq2n 0.6+cpu + torch 2.8.0 CPU + numpy 1.26). Verified: 1,672 supported languages incl. `pcm_Latn`, `yor_Latn`, `hau_Latn`, `ibo_Latn`, `swh_Latn`, `sna_Latn`. NOTE: it CLAIMS Pidgin — so our gap claim is about public *evaluation* (no leaderboard measures Pidgin), and our report delivers the first Pidgin numbers for this model. CTC-300M variant: 1.3 GiB, ~2 GiB RAM. **Smoke test 28 Aug (CTC-300M, CPU, tier-a case01):** ground truth "I don sell three derica of rice five thousand five" → transcribed "i don sow three the reca of rice" in 21.1s incl. model load — **the money phrase was deleted entirely.** Exactly the deletion-class corruption our task-completion metric exists to expose; a strong early signal for the report. Caveats to carry: this is the smallest variant with greedy decoding (kenlm LM decoder not installed); PazaBench's "omnilingual" column is presumably the larger variant — verify which before quoting. Bench plan: run CTC-300M + LLM-1B (~6 GB RAM, feasible); 7B variants do not fit in 24 GB RAM on CPU |
