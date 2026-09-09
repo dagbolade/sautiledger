@@ -185,12 +185,24 @@ misbehaves.
 ## 3. CMI framing (correction, verbatim rule)
 
 Per Tobi directly: **low CMI = leans toward one dominant language with
-fewer explicit switches; high CMI = more balanced mixing.** The Pidgin
-subset (CMI 4.19, lowest on the table) must be described as
-"Pidgin-dominant with comparatively fewer explicit switches to English
-within this dataset" — never "barely code-switched". (Checked 28 Aug: the
-over-claim does not appear anywhere in the workshop REPORT.md or README;
-this rule guards the NEW report's text.)
+fewer explicit switches; high CMI = more balanced mixing.** That reading
+of the metric still holds.
+
+**OBSOLETE FIGURE — do not repeat it.** This note previously said the
+Pidgin subset sat at CMI 4.19, lowest on the table, and must be described
+as "Pidgin-dominant with comparatively fewer explicit switches". The
+7 September re-publication recomputed the metrics and **Pidgin is now
+30.15 — among the *highest* in the corpus**, i.e. the most balanced
+mixing, not the least. Any sentence built on the old figure is now wrong
+in the opposite direction. Shona is unchanged at 24.55.
+
+Two rules follow:
+1. **Never cite a CMI figure without saying which release it came from.**
+   Our tier-b sample predates 7 Sep 21:25 UTC; the current card does not
+   describe our clips.
+2. The safe framing for any subset is descriptive and dated — "in the
+   release we sampled, Pidgin showed CMI 4.19" — never a claim about the
+   language itself. "Barely code-switched" remains banned regardless.
 
 ## 4. Report structure — lead with task completion
 
