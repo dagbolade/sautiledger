@@ -30,11 +30,19 @@ email (never stored in this repo).
 ## What the benchmark satisfies
 
 The rule is Sahara plus **two or more** other speech models. We compare
-**four ASR systems** — `sahara-v2.5`, `whisper-large-v3`, `whisper-small`,
-and Meta's `omnilingual-ctc-300m` — plus a frozen 5 August Sahara snapshot
-used as a drift control (not counted as a system), and **two TTS
-configurations** benchmarked by round trip, because Intron confirmed on
-9 September that teams using TTS should benchmark it too.
+**seven ASR systems** — `sahara-v2.5`, Microsoft `mai-transcribe-2`,
+OpenAI `gpt-4o-transcribe`, NVIDIA `parakeet-tdt`, Google `chirp-3`,
+`whisper-large-v3` and Meta's `omnilingual-ctc-300m` — plus a frozen
+5 August Sahara snapshot used as a drift control (not counted as a
+system), and **two TTS configurations** benchmarked by round trip, because
+Intron confirmed on 9 September that teams using TTS should benchmark it
+too.
+
+`whisper-small` was retired: it had been a placeholder for a frontier
+model we had no key for, and was replaced by MAI-Transcribe-2 rather than
+left in as filler. `whisper-large-v3` stays as the open-model baseline.
+The report states this so the swap cannot read as dropping an
+inconvenient result.
 
 ---
 

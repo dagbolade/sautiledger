@@ -112,8 +112,40 @@ accuracy path, not a dependency of record-keeping.
 - **Field findings became fixes**, twice: price connectives and a typed
   shorthand register in round one; the wholesale register (`per pack`,
   `200 per one`) in round two, taken directly from a trader's transcripts.
-- **Benchmarked against five ASR systems** on a frozen corpus of natively
-  recorded code-switched market speech — see `bench/results/REPORT.md`.
+- **Benchmarked against six other speech systems** on a frozen 70-clip
+  corpus of natively recorded code-switched market speech — Sahara v2.5,
+  Microsoft MAI-Transcribe-2, OpenAI GPT-4o-transcribe, NVIDIA
+  Parakeet-TDT, Google Chirp-3, Whisper-large-v3 and Meta's
+  omnilingual-ASR — plus a round-trip TTS benchmark. Full results:
+  [`bench/results/REPORT.md`](../bench/results/REPORT.md).
+
+### What the benchmark told us, including the inconvenient part
+
+Measured on transactions actually recorded correctly, **no single model
+wins, and the leader flips with the language**:
+
+| | Pidgin/Yoruba | Shona |
+|---|---|---|
+| best | MAI-Transcribe-2 — 60% exact, 0% corrupted | **Sahara v2.5 — 27% exact, 0% corrupted** |
+| Sahara | 47% exact, 7% corrupted (3rd) | best, double the nearest frontier model |
+| frontier models on Shona | — | 7–13% exact, three of them corrupting amounts |
+
+Sahara is **not** the strongest system on its own flagship Pidgin/Yoruba
+pair, and we report that plainly. The pattern that explains it is
+linguistic distance from English: Pidgin is lexically English-adjacent so
+strong general recognisers cope with it, while Shona is not and they
+collapse there. Code-switch-specific training is worth most exactly where
+general models are worst.
+
+**Why the product still runs on Sahara.** It has the best WER on every
+tier; it is the only system that leads on Shona, and the only one whose
+errors on Shona stayed *safe* (zero corrupted amounts); it renders
+Pidgin's perfective `I don sell` without inverting it into `I don't
+sell`; and it is the only vendor here that also provides TTS in the same
+Nigerian voice register, which our readback depends on. The honest
+engineering conclusion is that a production deployment should **route by
+language** — and the benchmark is what tells us that, which is the point
+of running one properly rather than as a formality.
 
 ## Prior work
 

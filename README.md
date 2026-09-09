@@ -117,12 +117,13 @@ in US dollars spoken as *"two fifty"* for $2.50.
 
 ## Benchmark
 
-`bench/` holds a standalone harness comparing **Sahara v2.5,
-whisper-large-v3, whisper-small and Meta's omnilingual-ASR** (plus the
-frozen 5 August Sahara snapshot, as a drift control) across a frozen
-corpus of three tiers: natively recorded Pidgin/Yoruba market speech,
-natively recorded Shona market speech, and AfriSwitch broadcast
-code-switching. A separate round-trip harness benchmarks **TTS**
+`bench/` holds a standalone harness comparing **seven speech systems** —
+Sahara v2.5, Microsoft MAI-Transcribe-2, OpenAI GPT-4o-transcribe, NVIDIA
+Parakeet-TDT, Google Chirp-3, Whisper-large-v3 and Meta's omnilingual-ASR
+(plus a frozen 5 August Sahara snapshot as a drift control) — across a
+frozen 70-clip corpus of three tiers: natively recorded Pidgin/Yoruba
+market speech, natively recorded Shona market speech, and AfriSwitch
+broadcast code-switching. A separate round-trip harness benchmarks **TTS**
 (`bench/tts_bench.py`). Beyond WER and CER, it measures what matters for
 money:
 
@@ -143,9 +144,27 @@ python -m bench.tts_bench --confirm            # TTS round-trip benchmark
 Local models are memory-hungry, so each runs in its own pass and a final
 `--score-only` pass assembles the report from cache.
 
-Report renders to `bench/results/REPORT.md` with the manifest hash frozen
-before the first run. Sahara's failures, if any, are reported unedited —
-the claim under test is downstream safety, not raw perfection.
+Report renders to [`bench/results/REPORT.md`](bench/results/REPORT.md)
+with the manifest hash frozen before the first run. Sahara's failures are
+reported unedited — the claim under test is downstream safety, not raw
+perfection.
+
+**Headline result: no model wins everywhere, and the leader flips with the
+language.** On Pidgin/Yoruba, Microsoft's MAI-Transcribe-2 records the
+most transactions exactly (60%, zero corrupted) ahead of GPT-4o-transcribe
+(53%) and Sahara (47%). On Shona the ordering inverts — Sahara leads at
+27% with zero corrupted amounts, double the best frontier system, three of
+which start corrupting amounts there. The pattern is linguistic distance
+from English: Pidgin is lexically English-adjacent so general recognisers
+cope, Shona is not and they collapse. An earlier draft of this benchmark,
+run against a weaker field, concluded there was "one viable ASR"; a
+stronger field falsified that, and the report says so.
+
+The TTS round trip earned its keep immediately: it caught the app
+**speaking its own punctuation** to the trader ("Logged expense**:** fuel"
+came back as "Log the expense *call on*"), which was corrupting the amount.
+Fixed and re-measured — hallucination 0.117 → 0.000, amount survival
+91% → 100%.
 
 ## Changelog: post-benchmark product iterations
 
