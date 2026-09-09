@@ -40,9 +40,17 @@ PROS_CONS = {
     ),
     "whisper-large-v3": (
         "**Pros:** strong general-purpose local model, fully offline, no per-call cost. "
-        "**Cons:** anglicises code-switched speech — the error class that corrupts "
-        "amounts downstream — and inverts Pidgin's perfective 'I don sell' into the "
-        "negated 'I don't sell', which reverses the meaning of a sale."
+        "**Cons:** three failure modes that matter here. It anglicises code-switched "
+        "speech; it inverts Pidgin's perfective 'I don sell' into the negated "
+        "'I don't sell', reversing the meaning of a sale; and on low-resource "
+        "African audio it **hallucinates its own training data** — two Shona clips "
+        "returned \"Thank you for watching my video\" and \"Thank you for watching. "
+        "This is Mrs. Jessie.\", fluent English sentences with no relationship to "
+        "the audio. Most seriously, it turned a *correction* into a corrupted "
+        "amount: the utterance \"Aiwa yairi five dollars kwete five fifty\" (\"no, "
+        "it was five dollars, **not** five fifty\") was transcribed as "
+        "\"$5, kwete $5.50\" and parsed to log 550 — the exact figure the trader "
+        "was correcting away from."
     ),
     "whisper-small": (
         "**Pros:** fast, offline, tiny. **Cons:** weakest on accented code-switched "
@@ -95,6 +103,10 @@ def _mean(values) -> float:
 def render() -> Path:
     data = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))
     rows = data["results"]
+    # sahara-v2.5-raw produced byte-identical transcripts to sahara-v2.5 (see
+    # §4): keep it out of the model tables so a duplicate cannot pad the
+    # comparison, and report the attempted ablation as the null result it is.
+    rows = [r for r in rows if r["model"] != "sahara-v2.5-raw"]
     models = sorted({r["model"] for r in rows})
     tiers = sorted({r["tier"] for r in rows})
 
@@ -162,6 +174,31 @@ def render() -> Path:
                 f"| **{_pct([r['amount_corrupted'] for r in g])}** "
                 f"| {_pct([r['numeric_accuracy'] for r in g])} |")
         add("")
+
+    add("### Reading the primary result")
+    add("")
+    add("**(a) Only one model produces a usable ledger from this speech.** On the "
+        "native-recorded tiers Sahara records several times more transactions "
+        "exactly than either Whisper, and the gap is not a matter of polish: the "
+        "Whisper transcripts of Pidgin and Shona market speech are frequently not "
+        "parseable as transactions at all. For this application there is currently "
+        "one viable ASR, and it is the one trained on this speech.")
+    add("")
+    add("**(b) The corruption inversion.** A weaker model can post a *lower* "
+        "amount-corrupted rate than a stronger one — not because it is safer, but "
+        "because its output is noise the grammar refuses to parse, which the agent "
+        "turns into a clarifying question. A plausible-but-wrong transcript is more "
+        "dangerous than an obviously garbled one, because only the plausible one "
+        "survives parsing and reaches the ledger. Downstream safety has to be "
+        "engineered; it cannot be inferred from accuracy.")
+    add("")
+    add("**(c) An honest caveat on our own metric.** Where the expected outcome is "
+        "*clarify*, a garbled transcript also produces *clarify*, and scores as an "
+        "exact match. One Whisper row earns 'exact' on a Shona clip by hallucinating "
+        "\"Thank you for watching. This is Mrs. Jessie.\" — which our grammar "
+        "correctly refuses to log. The credit is real (nothing wrong was written) "
+        "but it is not comprehension, and we flag it rather than bank it.")
+    add("")
 
     # ---------------------------------------------------------------- 2
     add("## 2. Standard transcription metrics (WER / CER)")
@@ -239,26 +276,34 @@ def render() -> Path:
     add("")
 
     # ---------------------------------------------------------------- 4
-    add("## 4. Ablation: does Sahara's LLM post-correction help or hurt?")
+    add("## 4. An attempted ablation, reported as a null result")
     add("")
-    add("Sahara's sync endpoint applies LLM corrections to transcripts **by "
-        "default** (`use_disable_llm_corrections` defaults to FALSE — found by "
-        "reading the API documentation in full, not stated in any tutorial). Every "
-        "integrator therefore benchmarks a recogniser *plus a rewriter* without "
-        "necessarily knowing it. We measured both configurations on identical audio.")
+    add("Sahara's documentation states that the sync endpoint applies LLM "
+        "corrections to transcripts **by default** (`use_disable_llm_corrections`, "
+        "default FALSE). If true, every integrator benchmarks a recogniser *plus a "
+        "rewriter* without necessarily knowing it — a confound worth isolating. We "
+        "therefore ran the entire corpus twice, identical audio, with the flag "
+        "unset and set to `TRUE`.")
     add("")
-    pair = [m for m in models if m.startswith("sahara-v2.5")]
-    if len(pair) == 2:
-        add("| Configuration | WER (norm) | CER (norm) | Transaction exact | **Amount corrupted** |")
-        add("|---|---|---|---|---|")
-        for model in pair:
-            g_all = sel(model=model)
-            g_gt = sel(model=model, gt_only=True)
-            add(f"| `{model}` | {_mean([r['wer'] for r in g_all]):.3f} "
-                f"| {_mean([r.get('cer', 0) for r in g_all]):.3f} "
-                f"| {_pct([r['exact_match'] for r in g_gt])} "
-                f"| **{_pct([r['amount_corrupted'] for r in g_gt])}** |")
-        add("")
+    add("**The two runs produced byte-identical transcripts on all 70 clips.** "
+        "Every metric matches to three decimals, so the ablation yields no signal "
+        "and we report it as a null result rather than as a second model. We "
+        "verified this is not a client-side bug by issuing both requests directly "
+        "against the API: same audio, same output. A third request supplying an "
+        "invalid value (`use_disable_llm_corrections=BANANA`) was also accepted "
+        "with HTTP 200 and the same transcript, which suggests the field is not "
+        "being read on this path — consistent with the silently-ignored-field "
+        "behaviour reported in §9.")
+    add("")
+    add("Two readings are consistent with the evidence and we cannot distinguish "
+        "them from outside: either the flag is not wired on this endpoint, or LLM "
+        "correction is not applied for this language configuration in the first "
+        "place, so disabling it changes nothing. Either way the practical "
+        "conclusion for integrators is the same: **the documented control does not "
+        "currently change what you get.** The `sahara-v2.5` rows above are "
+        "therefore the as-deployed configuration, and no separate 'raw' row is "
+        "presented — including one would inflate our model count with a duplicate.")
+    add("")
 
     # ---------------------------------------------------------------- 5
     add("## 5. A prediction registered in advance: Shona")
@@ -286,6 +331,35 @@ def render() -> Path:
                 f"| {_pct([r['exact_match'] for r in sg])} "
                 f"| **{_pct([r['amount_corrupted'] for r in sg])}** |")
         add("")
+    add("**Outcome: the prediction holds, and the mechanism is visible in the "
+        "transcripts.** Sahara transcribes the Shona *lexicon* well — `ndatengesa`, "
+        "`matomatisi`, `chikwereti`, `rechibage`, `enzungu`, `dzemazai` all come "
+        "back intact or near-intact. What collapses is precisely the "
+        "**code-switched English money phrase**:")
+    add("")
+    add("| she said | Sahara heard |")
+    add("|---|---|")
+    add("| \"…ne**five dollars fifty**\" | `ne50` |")
+    add("| \"ne **forty five dollars**\" | `ne45 vose` |")
+    add("| \"**ethree dollars**\" | `etridos` |")
+    add("| \"**yeten dollars**\" | `yetendo` |")
+    add("| \"ne **two dollars**\" | `netudle` |")
+    add("")
+    add("The currency word is swallowed into the numeral and the amount is lost. "
+        "That is exactly the failure a language supported for transcription but "
+        "*not* for code-switching would produce, and it is why we registered the "
+        "prediction in advance rather than after seeing the data.")
+    add("")
+    add("**Two things follow, and they are the argument of this whole report.** "
+        "First, WER hides it: Shona WER is close to our Pidgin tier, so a "
+        "transcription-only benchmark would call this language 'supported' and move "
+        "on. The task-completion metric exposes it immediately. Second, the safety "
+        "layer converts the gap into a question rather than a wrong number — Sahara "
+        "on Shona records **0% amount-corrupted and 100% amount-safe**, because "
+        "when the price phrase collapses the grammar refuses to guess and asks. "
+        "The ASR is not yet good enough for Shona commerce; the *product* is "
+        "already safe for it.")
+    add("")
     add("The Shona corpus was built the same way the Pidgin/Yoruba one was: a "
         "native speaker rewrote every drafted sentence into what a trader would "
         "actually say, chose the currency register (US dollars, spoken as "

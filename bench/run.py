@@ -184,6 +184,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm", action="store_true", help="actually spend API credits")
     parser.add_argument("--fake", action="store_true", help="dry-run the pipeline with fake models")
+    parser.add_argument("--models", default=None,
+                        help="comma-separated model names to run (default: all). "
+                             "Local models are memory-hungry — run them in "
+                             "separate passes, then --score-only.")
+    parser.add_argument("--score-only", action="store_true",
+                        help="score every cached transcript and render the "
+                             "report; loads no model and spends nothing")
     parser.add_argument("--frontier", default="gemini", choices=["gemini", "openai", "whisper-small"])
     parser.add_argument("--tier", default=None, help="run one corpus tier only")
     parser.add_argument("--estimate-whisper", action="store_true", help="time whisper on one clip")
@@ -207,6 +214,10 @@ def main() -> None:
         estimate_whisper(clips)
         return
 
+    if args.score_only:
+        run_score_only(clips, manifest_hash)
+        return
+
     # spend estimate: every audio tier, per cloud model
     per_tier = {}
     for clip in present:
@@ -226,7 +237,8 @@ def main() -> None:
     if not args.confirm:
         print("Dry run only. Re-run with --confirm to transcribe (or --fake for the report pipeline).")
         sys.exit(0)
-    run_real(present, manifest_hash, args.frontier)
+    run_real(present, manifest_hash, args.frontier,
+             only=args.models.split(",") if args.models else None)
 
 
 def _score(model_name: str, clip: dict, hyp: str) -> dict:
@@ -280,10 +292,37 @@ def run_fake(clips: list[dict], manifest_hash: str) -> None:
     _write_and_report(results, manifest_hash, notes, len(clips), 0)
 
 
-def run_real(present: list[dict], manifest_hash: str, frontier: str) -> None:
+def run_score_only(clips: list[dict], manifest_hash: str) -> None:
+    """Score every cached transcript — no model is loaded, nothing is sent.
+    Lets each model run in its own memory-light pass, then one scoring pass
+    assembles the whole report."""
+    by_id = {c["id"]: c for c in clips}
+    results: list[dict] = []
+    raw_root = RESULTS_DIR / "raw"
+    for model_dir in sorted(p for p in raw_root.iterdir() if p.is_dir()):
+        n = 0
+        for cache in sorted(model_dir.glob("*.json")):
+            clip = by_id.get(cache.stem)
+            if clip is None:
+                continue  # cached under an id no longer in the frozen corpus
+            hyp = json.loads(cache.read_text(encoding="utf-8"))["transcript"]
+            results.append(_score(model_dir.name, clip, hyp))
+            n += 1
+        print(f"[{model_dir.name}] scored {n} cached transcripts")
+    notes = [
+        "Scored from cached transcripts: every model pass ran separately (local "
+        "models are memory-hungry), then one scoring pass assembled the report. "
+        "No transcript was re-fetched, so the numbers are reproducible without "
+        "re-spending API credits."
+    ]
+    _write_and_report(results, manifest_hash, notes, len(clips), 0)
+
+
+def run_real(present: list[dict], manifest_hash: str, frontier: str,
+             only: list[str] | None = None) -> None:
     from .bench_asr import build_models
 
-    models, notes = build_models(frontier)
+    models, notes = build_models(frontier, only=only)
     results: list[dict] = []
     for model in models:
         raw_dir = RESULTS_DIR / "raw" / model.name

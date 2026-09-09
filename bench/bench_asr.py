@@ -200,23 +200,39 @@ def _to_wsl_path(path: Path) -> str:
     return p
 
 
-def build_models(frontier: str) -> tuple[list, list[str]]:
+def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, list[str]]:
     """Returns (models, notes). frontier: gemini | openai | whisper-small.
     If no frontier key materialises, whisper-small substitutes and the
-    report says so honestly."""
+    report says so honestly.
+
+    `only` names the models to build. Each local model holds its weights in
+    RAM for the whole pass, so building all of them at once exhausts memory
+    on a laptop — run them in separate passes and score from cache.
+    """
     notes: list[str] = []
-    models: list = [
-        SaharaBench(),
-        SaharaRawBench(),
-        WhisperLocalBench("large-v3"),
-        OmnilingualBench(),
-    ]
+    wanted = set(only) if only else None
+
+    def want(name: str) -> bool:
+        return wanted is None or name in wanted
+
+    models: list = []
+    if want("sahara-v2.5"):
+        models.append(SaharaBench())
+    if want("sahara-v2.5-raw"):
+        models.append(SaharaRawBench())
+    if want("whisper-large-v3"):
+        models.append(WhisperLocalBench("large-v3"))
+    if want("omnilingual-ctc-300m"):
+        models.append(OmnilingualBench())
     if frontier == "openai" and os.environ.get("OPENAI_API_KEY"):
-        models.append(OpenAiBench())
+        if want("gpt-4o-transcribe"):
+            models.append(OpenAiBench())
     elif frontier == "gemini" and os.environ.get("GEMINI_API_KEY"):
-        models.append(GeminiBench())
+        if want("gemini-3-flash"):
+            models.append(GeminiBench())
     else:
-        models.append(WhisperLocalBench("small"))
+        if want("whisper-small"):
+            models.append(WhisperLocalBench("small"))
         notes.append(
             "No frontier API key was available; whisper-small substitutes as the "
             "frontier model. This is a weaker baseline than Gemini/GPT-4o-transcribe."
