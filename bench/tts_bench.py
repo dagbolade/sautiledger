@@ -202,10 +202,13 @@ def main() -> None:
         notes.append(
             f"Round-trip judge was {judge.name}, not the stronger "
             "whisper-large-v3: the benchmark machine is a CPU-only laptop and the "
-            "larger judge exhausted memory. A weaker judge raises the absolute "
-            "error of EVERY system equally, so the comparison between TTS systems "
-            "holds; the absolute numbers are an upper bound on round-trip error, "
-            "not a measure of the voices alone."
+            "larger judge exhausted memory. Absolute figures are therefore an "
+            "upper bound on round-trip error, not a measure of the voices alone. "
+            "We assume a weaker judge inflates both systems similarly, but that "
+            "is an assumption we have not tested — a recogniser can be "
+            "differentially worse on one accent — so the before/after on a fixed "
+            "voice is the soundest comparison here, and the between-voice "
+            "difference should be read as indicative only."
         )
     (RESULTS_DIR / "tts_metrics.json").write_text(
         json.dumps({"judge": judge.name, "notes": notes, "results": results},

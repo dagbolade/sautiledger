@@ -5,14 +5,34 @@
 Our users are market traders handing their money records to software. The
 commitments below are implemented and testable, not aspirational.
 
-## 1. Privacy: the money never leaves the device
+## 1. Privacy: where the money records actually live
 
-The ledger is local SQLite. Sales, expenses, credit and customer notes are
-never transmitted anywhere — not to us, not to a model, not to a vendor.
-The only data that ever leaves is **audio**, sent for transcription, and
-**reply text**, sent to generate the spoken confirmation.
+Sales, expenses, credit and customer notes are never transmitted to any
+third party — not to a model, not to a vendor. The only data that ever
+leaves the application is **audio**, sent for transcription, and **reply
+text**, sent to generate the spoken confirmation.
 
-This is enforced structurally rather than promised:
+**Where the ledger is stored depends on how the app is deployed, and we
+state both rather than claiming the stronger one:**
+
+- **Self-hosted** (`make phone` — the intended production shape): the
+  SQLite ledger is on the trader's own device. Nothing but audio and reply
+  text crosses the network.
+- **Hosted demo** (the Railway instance our field testers used): the
+  SQLite ledger is on a server volume that we operate, and the utterance
+  reaches our backend on its way to Sahara. Per-device cookies give each
+  trader a separate ledger from every other trader; **they do not make the
+  storage phone-local.** A trader using the hosted instance is trusting us
+  as an operator.
+
+We ran the hosted instance because it was the only way to get real traders
+using the app from their own phones, without installing anything, inside
+the challenge window. That was a deliberate trade of storage locality for
+testability, and the honest description of it belongs here rather than in
+a footnote. For a real deployment the self-hosted mode is the one we would
+ship, and the code path is identical.
+
+The following are enforced structurally, in both modes:
 
 - Exactly one module (`egress.py`) may open a network connection. A test
   in the suite parses every other module's AST and fails the build if any

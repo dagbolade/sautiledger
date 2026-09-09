@@ -97,10 +97,19 @@ numerals) are pack-gated and provably inert for every other language.
 the network, enforced by an AST import guard in the test suite. Every
 transmission — every clip, every TTS request, every streamed byte — is
 recorded and shown to the user in plain language. The money records
-themselves never leave the device.
+themselves are never sent to any vendor or model.
 
-**6. Offline-first.** The ledger is local SQLite. Cloud ASR is the
-accuracy path, not a dependency of record-keeping.
+**6. Offline-first, with the deployment caveat stated.** The ledger is
+SQLite and the app runs without a network for everything except
+transcription — cloud ASR is the accuracy path, not a dependency of
+record-keeping. **Where that SQLite file sits depends on the deployment**:
+self-hosted (`make phone`) it is on the trader's own device; on the hosted
+demo our field testers used, it is on a server volume we operate, with
+per-device cookies isolating each trader's ledger from the others but not
+making the storage phone-local. We ran the hosted instance because it was
+the only way to get real traders using the app from their own phones
+inside the challenge window. The self-hosted mode is what we would ship,
+and it is the same code path.
 
 ## Evidence it works
 

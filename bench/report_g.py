@@ -23,9 +23,10 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 PROS_CONS = {
     "sahara-v2.5": (
-        "**Pros:** the best WER on every tier, the only system that leads on "
-        "**Shona** (27% transactions exact, zero corruption — double the best "
-        "frontier model), and one of only two that render Nigerian Pidgin's "
+        "**Pros:** the best WER on every tier; **tied first on Shona** with "
+        "Meta's omnilingual-ASR (both 27% transactions exact, both zero "
+        "corruption — double the best frontier system), and one of only two that "
+        "render Nigerian Pidgin's "
         "perfective `I don sell` without inverting it into `I don't sell`. Ships "
         "TTS in the same voice register, so the readback speaks the user's "
         "language. **Cons:** it is *not* the strongest on its own flagship "
@@ -100,13 +101,11 @@ PROS_CONS = {
         "that renders Yoruba numerals with correct diacritics. **Cons:** no Windows "
         "build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes "
         "phonetically rather than semantically — it hears the words but drops or "
-        "mangles the digits that a ledger depends on. **Coverage caveat:** it is "
-        "the only model here without full corpus coverage — inference ran at "
-        "roughly 1–2 minutes per clip on a CPU-only laptop and the pass was "
-        "terminated twice by memory pressure, so its rows are scored on the "
-        "clips that completed and the denominators are shown. That operational "
-        "cost is itself a finding: an open model you can self-host is only free "
-        "if you have the hardware to run it."
+        "mangles the digits that a ledger depends on. **Operational cost:** "
+        "full coverage was reached, but only after two passes were terminated by "
+        "memory pressure on a CPU-only laptop, at roughly 1–2 minutes per clip "
+        "against seconds for the hosted APIs. An open model you can self-host is "
+        "only free if you have the hardware to run it."
     ),
     "gemini-3-flash": (
         "Frontier multimodal model with audio input. **Cons:** cloud-only, and "
@@ -156,7 +155,13 @@ def render() -> Path:
     # sahara-v2.5-raw produced byte-identical transcripts to sahara-v2.5 (see
     # §4): keep it out of the model tables so a duplicate cannot pad the
     # comparison, and report the attempted ablation as the null result it is.
-    rows = [r for r in rows if r["model"] != "sahara-v2.5-raw"]
+    # sahara-v2.5-raw: byte-identical duplicate (§4).
+    # whisper-small: retired for Phase 2 — it was a stand-in for a frontier
+    # model we had no key for, it never ran on the Shona tier, and
+    # MAI-Transcribe-2 replaces it. Its workshop-era numbers remain in
+    # REPORT-workshop-2026-08.md; keeping it here would both pad the count
+    # and average over a different clip set.
+    rows = [r for r in rows if r["model"] not in ("sahara-v2.5-raw", "whisper-small")]
     models = sorted({r["model"] for r in rows})
     tiers = sorted({r["tier"] for r in rows})
 
@@ -184,7 +189,7 @@ def render() -> Path:
     add("")
     add(f"**{n_clips} clips** across three tiers · **{len(live)} speech systems "
         f"compared** (`{'`, `'.join(live)}`), plus a frozen 5 August Sahara "
-        "snapshot retained as a drift control rather than as a fifth system.")
+        "snapshot retained as a drift control and not counted among them.")
     add("")
     for note in data.get("notes", []):
         add(f"> **Note:** {note}")
@@ -480,11 +485,14 @@ def render() -> Path:
     add("**Two things follow.** First, WER hid the failure and the "
         "task-completion metric exposed it — which is why the ordering of this "
         "report is not cosmetic. Second, the safety "
-        "layer converts the gap into a question rather than a wrong number — Sahara "
-        "on Shona records **0% amount-corrupted and 100% amount-safe**, because "
-        "when the price phrase collapses the grammar refuses to guess and asks. "
-        "The ASR is not yet good enough for Shona commerce; the *product* is "
-        "already safe for it.")
+        "layer converts the gap into a question rather than a wrong number — on "
+        "these 15 Shona clips Sahara produced **no corrupted amounts and 15/15 "
+        "amount-safe outcomes**, because when the price phrase collapses the "
+        "grammar refuses to guess and asks. Fifteen clips from one speaker "
+        "cannot establish that the design *is* safe for Shona commerce; what "
+        "they show is that on every failure we observed, the failure mode was a "
+        "question rather than a wrong number — which is the behaviour the design "
+        "intends, tested where the ASR is weakest.")
     add("")
     add("**The comparison across the two native tiers is where this benchmark "
         "earns its keep.** Sahara ranks *third* on Pidgin/Yoruba (47% exact, "
@@ -493,14 +501,19 @@ def render() -> Path:
         "amounts). The frontier models do not degrade gently on Shona — they "
         "collapse, and three of them start corrupting amounts as they do.")
     add("")
-    add("The most economical explanation is **linguistic distance from English**. "
-        "Nigerian Pidgin shares most of its lexicon with English, so a strong "
-        "general recogniser can approximate it; Shona does not, and there the "
-        "Africa-trained model is the only one that holds up. If that reading is "
-        "right, the value of code-switch-specific training is *largest exactly "
-        "where general models are worst* — which is an argument for the "
-        "challenge's premise, but a more specific and more testable one than "
-        "\"African models are better at African speech\".")
+    add("**A hypothesis, not a demonstrated cause.** The most economical "
+        "explanation we can offer is *linguistic distance from English*: Pidgin "
+        "shares most of its lexicon with English, so a strong general recogniser "
+        "can approximate it, while Shona does not. If that reading were right, "
+        "code-switch-specific training would be worth most exactly where general "
+        "models are worst. **This benchmark cannot establish it.** Our two "
+        "native tiers differ not only in language but in speaker, gender, "
+        "microphone, room and recording session — one Nigerian man and one "
+        "Zimbabwean woman, fifteen clips each. Any of those could produce the "
+        "same reversal. What is measured here is that **the ranking changed**; "
+        "why it changed would need matched speakers across languages, or the "
+        "same speakers across both, which is the obvious next experiment and one "
+        "we have not run.")
     add("")
     add("The per-clip transcripts add a nuance the aggregate hides: on Shona the "
         "two systems split the sentence between them. Sahara recovers the Shona "
@@ -660,9 +673,13 @@ def render() -> Path:
         add("")
         add("**What the round trip can and cannot tell you.** The judge is an ASR "
             "system, so these numbers measure a *chain* — voice plus recogniser — "
-            "not the voice alone, and a weaker judge raises every system's error "
-            "equally. We therefore read the comparison between systems, and the "
-            "before/after above, as the signal; the absolute WER is an upper bound. "
+            "not the voice alone. We assume a weaker judge inflates both systems' "
+            "error similarly, but that assumption is untested and need not hold: a "
+            "recogniser can be differentially better on one accent than another, "
+            "and both voices here are Sahara's, differing only in accent setting. "
+            "The **before/after on a fixed voice and a fixed judge** is therefore "
+            "the soundest reading in this section; the between-voice comparison is "
+            "weaker, and the absolute WER weaker still. "
             "The readback also exists to be checked by a **human ear**, which "
             "handles accented speech far better than a small ASR model, so these "
             "figures are conservative by construction.")
@@ -766,12 +783,30 @@ def render() -> Path:
         "penalising a model for orthographic faithfulness the reference lacks "
         "would be a bias in *our* instrument. The fold is a no-op on ASCII output, "
         "so it does not advantage any model.")
-    add("- **Caveats.** Small n per tier; tier-a is a single speaker and tier-sh is "
-        "a single speaker, so their WERs describe those voices, not their "
-        "languages. No frontier API model was available (no key); whisper-small "
-        "substitutes and is labelled as a floor. Sahara failures are reported "
-        "unedited — the claim under test is downstream safety, not vendor "
-        "perfection.")
+    add("- **What the transaction metric does and does not measure.** Each "
+        "transcript is passed through the shipped *normaliser* — the "
+        "deterministic grammar — and the resulting ParseResult is compared to "
+        "the expected one. It is **not** a simulation of the full conversation: "
+        "the agent's commit gate, its unknown-item and suspicious-amount "
+        "confirmations, the user's \"yes\"/\"no\" turn, and the actual database "
+        "write are not exercised. Those gates can only convert a bad parse into "
+        "a question, so a real session would corrupt no more often than these "
+        "figures suggest — but \"amount corrupted\" should be read as *the "
+        "parser would have produced a wrong amount*, not as *a wrong row reached "
+        "a ledger*.")
+    add("- **Caveats on generalisation.** Small n per tier (15 clips each on the "
+        "native tiers). Tier-a is one Nigerian male speaker and tier-sh is one "
+        "Zimbabwean female speaker, each recorded on their own device in their "
+        "own room — so **language is confounded with speaker, microphone and "
+        "acoustic environment**, and no cross-tier comparison here isolates the "
+        "language. Sahara failures are reported unedited — the claim under test "
+        "is downstream safety, not vendor perfection.")
+    add("- **Retired model.** `whisper-small` appeared in our August workshop "
+        "benchmark as a placeholder for a frontier model we had no key for. With "
+        "frontier ASR available it is replaced by MAI-Transcribe-2 rather than "
+        "left in as filler; it also never ran on the Shona tier, so it could not "
+        "join the comparison that matters most here. Its workshop-era numbers "
+        "remain in `REPORT-workshop-2026-08.md`.")
     add("")
 
     out = RESULTS_DIR / "REPORT.md"

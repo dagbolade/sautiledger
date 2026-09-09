@@ -12,7 +12,8 @@ Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 
 A trader says *"I don sell three derica of rice five thousand five"* — Pidgin
 grammar, Yoruba numerals, market units, money slang — and the agent logs
-₦5,500 to a ledger that lives on her phone, reads the entry back for
+₦5,500 to a ledger that lives on her own device when self-hosted (see
+"Two deployment modes" below), reads the entry back for
 confirmation, and answers *"abeg how much I don make today"* from local
 SQLite. Her financial life never exists anywhere but her own device.
 
@@ -21,13 +22,33 @@ SQLite. Her financial life never exists anywhere but her own device.
 Most voice agents ship your audio, your transcript, your conversation
 history, and their own reasoning to someone's server. SautiLedger ships
 **the audio clip** (to Sahara ASR) and, when the spoken readback is
-enabled, **the reply sentence** (to Sahara TTS) — and nothing else. Two
-rules from [CONSTRAINTS.md](CONSTRAINTS.md) make that a property of the
-code, not a promise:
+enabled, **the reply sentence** (to Sahara TTS) — and nothing else, to
+nobody else.
 
-1. **Your money records never leave the device.** The ledger, parses,
-   queries, and agent reasoning are local; only the audio clip and the
-   spoken reply text are transmitted, each one logged.
+### Two deployment modes, and the difference matters
+
+**Be precise about this, because the two are not the same:**
+
+| | Where the ledger lives | What leaves it |
+|---|---|---|
+| **Self-hosted** (`make phone`, the intended production shape) | SQLite on the trader's own device | audio clip + reply text, to Sahara only |
+| **Hosted demo** ([Railway](https://sautiledger-production.up.railway.app), what our field testers used) | SQLite on a server volume we operate | same — plus the utterance reaches our backend to get there |
+
+The offline-first architecture is real and is what the self-hosted mode
+does. **The hosted demo is not phone-local storage**, and we do not claim
+it is: we run it so testers could use the app from a phone without
+installing anything, which was the only way to get real market usage
+inside the challenge window. Per-device cookies isolate each trader's
+ledger from every other trader's; they do not move the storage onto the
+phone. A trader running the hosted instance is trusting us as an operator,
+exactly as they would any web app.
+
+Two rules from [CONSTRAINTS.md](CONSTRAINTS.md) hold in **both** modes,
+and are properties of the code rather than promises:
+
+1. **Money records go to no third party.** The ledger, parses, queries and
+   agent reasoning are never transmitted to any vendor or model; only the
+   audio clip and the spoken reply text are, each one logged.
    `tests/test_import_guard.py` walks the AST of every module and fails
    the build if anything except `egress.py` can reach the network.
 2. **Every transmission is logged** — timestamp, destination, purpose,

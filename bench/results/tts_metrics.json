@@ -3,7 +3,7 @@
   "notes": [
     "piper-local (offline neural TTS) was not benchmarked: no Nigerian Pidgin voice model exists for Piper, and an en_US voice cannot pronounce the code-switched readback. Set PIPER_VOICE to include it.",
     "Browser speechSynthesis (the app's fallback voice) is NOT measurable here: Chrome renders it straight to the audio device with no capture path, so no round-trip audio can be obtained. It is described qualitatively in the report instead.",
-    "Round-trip judge was whisper-small, not the stronger whisper-large-v3: the benchmark machine is a CPU-only laptop and the larger judge exhausted memory. A weaker judge raises the absolute error of EVERY system equally, so the comparison between TTS systems holds; the absolute numbers are an upper bound on round-trip error, not a measure of the voices alone."
+    "Round-trip judge was whisper-small, not the stronger whisper-large-v3: the benchmark machine is a CPU-only laptop and the larger judge exhausted memory. Absolute figures are therefore an upper bound on round-trip error, not a measure of the voices alone. We assume a weaker judge inflates both systems similarly, but that is an assumption we have not tested — a recogniser can be differentially worse on one accent — so the before/after on a fixed voice is the soundest comparison here, and the between-voice difference should be read as indicative only."
   ],
   "results": [
     {
