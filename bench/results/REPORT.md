@@ -24,7 +24,7 @@ Each model's **raw transcript** is fed through SautiLedger's grammar-first norma
 
 | Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
 |---|---|---|---|---|
-| `omnilingual-ctc-300m` | 8% | 100% | **0%** | 46% |
+| `omnilingual-ctc-300m` | 13% | 100% | **0%** | 53% |
 | sahara *(5 Aug snapshot)* | 47% | 93% | **7%** | 73% |
 | `sahara-v2.5` | 47% | 93% | **7%** | 67% |
 | `whisper-large-v3` | 27% | 100% | **0%** | 67% |
@@ -34,6 +34,7 @@ Each model's **raw transcript** is fed through SautiLedger's grammar-first norma
 
 | Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
 |---|---|---|---|---|
+| `omnilingual-ctc-300m` | 27% | 100% | **0%** | 47% |
 | `sahara-v2.5` | 27% | 100% | **0%** | 40% |
 | `whisper-large-v3` | 7% | 87% | **13%** | 60% |
 
@@ -53,30 +54,27 @@ Reported for comparability with general-purpose leaderboards. Both normalised an
 
 | Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
 |---|---|---|---|---|---|
-| `omnilingual-ctc-300m` | **33/40** | 0.824 | 0.851 | 0.614 | 0.637 |
+| `omnilingual-ctc-300m` | 40/40 | 0.837 | 0.864 | 0.614 | 0.638 |
 | sahara *(5 Aug snapshot)* | 40/40 | 0.424 | 0.562 | 0.278 | 0.309 |
 | `sahara-v2.5` | 40/40 | 0.369 | 0.472 | 0.227 | 0.252 |
 | `whisper-large-v3` | 40/40 | 0.765 | 0.851 | 0.506 | 0.528 |
 | `whisper-small` | 40/40 | 0.777 | 0.873 | 0.490 | 0.525 |
 
-*A bold clip count marks partial coverage: that model was scored on a subset of this tier, so its row is indicative and not strictly like-for-like with the full-coverage rows. We show the denominator rather than quietly averaging over a different sample.*
-
 ### tier-a — native-recorded market utterances (Nigerian Pidgin/Yoruba/English), parse ground truth
 
 | Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
 |---|---|---|---|---|---|
-| `omnilingual-ctc-300m` | **13/15** | 0.778 | 0.844 | 0.478 | 0.517 |
+| `omnilingual-ctc-300m` | 15/15 | 0.861 | 0.918 | 0.542 | 0.588 |
 | sahara *(5 Aug snapshot)* | 15/15 | 0.602 | 0.704 | 0.477 | 0.528 |
 | `sahara-v2.5` | 15/15 | 0.574 | 0.680 | 0.490 | 0.512 |
 | `whisper-large-v3` | 15/15 | 0.963 | 1.054 | 0.710 | 0.786 |
 | `whisper-small` | 15/15 | 0.855 | 0.950 | 0.611 | 0.695 |
 
-*A bold clip count marks partial coverage: that model was scored on a subset of this tier, so its row is indicative and not strictly like-for-like with the full-coverage rows. We show the denominator rather than quietly averaging over a different sample.*
-
 ### tier-sh — native-recorded Shona/English market utterances, parse ground truth (NEW for Phase 2)
 
 | Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
 |---|---|---|---|---|---|
+| `omnilingual-ctc-300m` | 15/15 | 0.790 | 0.870 | 0.342 | 0.364 |
 | `sahara-v2.5` | 15/15 | 0.566 | 0.714 | 0.328 | 0.346 |
 | `whisper-large-v3` | 15/15 | 1.232 | 1.291 | 0.537 | 0.642 |
 
@@ -101,7 +99,7 @@ Group = corpus tier × language, which here also separates speakers (tier-a is o
 
 | Model | afriswitch WER | sautiledger WER | sh WER | **Disparity (worst ÷ best)** |
 |---|---|---|---|---|
-| `omnilingual-ctc-300m` | 0.824 | 0.778 | – | **1.06×** |
+| `omnilingual-ctc-300m` | 0.837 | 0.861 | 0.790 | **1.09×** |
 | sahara *(5 Aug snapshot)* | 0.424 | 0.602 | – | **1.42×** |
 | `sahara-v2.5` | 0.369 | 0.574 | 0.566 | **1.56×** |
 | `whisper-large-v3` | 0.765 | 0.963 | 1.232 | **1.61×** |
@@ -123,6 +121,7 @@ Before running this benchmark we recorded a falsifiable prediction (`bench/PHASE
 
 | Model | tier-a WER | tier-sh WER | tier-sh transaction exact | **tier-sh amount corrupted** |
 |---|---|---|---|---|
+| `omnilingual-ctc-300m` | 0.861 | 0.790 | 27% | **0%** |
 | `sahara-v2.5` | 0.574 | 0.566 | 27% | **0%** |
 | `whisper-large-v3` | 0.963 | 1.232 | 7% | **13%** |
 
@@ -141,6 +140,10 @@ Before running this benchmark we recorded a falsifiable prediction (`bench/PHASE
 The currency word is swallowed into the numeral and the amount is lost. That is exactly the failure a language supported for transcription but *not* for code-switching would produce, and it is why we registered the prediction in advance rather than after seeing the data.
 
 **Two things follow.** First, WER hid the failure and the task-completion metric exposed it — which is why the ordering of this report is not cosmetic. Second, the safety layer converts the gap into a question rather than a wrong number — Sahara on Shona records **0% amount-corrupted and 100% amount-safe**, because when the price phrase collapses the grammar refuses to guess and asks. The ASR is not yet good enough for Shona commerce; the *product* is already safe for it.
+
+**The sharpest result in this benchmark comes from comparing the two native tiers.** On tier-a — Pidgin/Yoruba, a *documented Sahara code-switch pair* — Sahara records 47% of transactions exactly and Meta's open 300M omnilingual model manages 13%. On tier-sh — Shona, a supported *language* but **not** a supported code-switch pair — the two are level at 27%, and omnilingual is actually ahead on numeric accuracy (47% vs 40%). A free, self-hostable 300M model catches a commercial API precisely where that API's code-switch training stops.
+
+That is a strong argument for the challenge's own premise. Sahara's advantage over general-purpose ASR is real and large, and it is **coextensive with its code-switching coverage** — which is exactly what you would predict if the advantage comes from code-switch training rather than from African speech generally. It also tells an integrator something practical: for a language on the supported-pairs list, use Sahara; for one that is merely a supported language, benchmark before assuming.
 
 **What is not finished.** Packs drive parsing, not phrasing: run the Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` correctly and does the arithmetic in dollars and cents — then answers in Pidgin, because the reply templates are not yet pack-driven. We report this rather than demo around it.
 
@@ -182,11 +185,13 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **sh03** — truth: `Customer atora two mabuckets enzungu achiita two fifty hwani`
 
+- `omnilingual-ctc-300m`: `castome atora mabhakets enzungu angachita backet`
 - `sahara-v2.5`: `kastum atora mabhaketi enzungu anga achiita 250 bake 1`
 - `whisper-large-v3`: `customer atorama buckets in Zungu and got cheetah 250 bucket one`  ✗ AMOUNT CORRUPTED
 
 **sh12** — truth: `Aiwa yairi five dollars kwete five fifty`
 
+- `omnilingual-ctc-300m`: `yayewa yanga yiris kwete`
 - `sahara-v2.5`: `aihwa aiwa yangairi5 ndozita 50`
 - `whisper-large-v3`: `Aiyo wa, aiyo wa, yanga iri $5, kwete $5.50.`  ✗ AMOUNT CORRUPTED
 

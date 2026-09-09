@@ -438,6 +438,24 @@ def render() -> Path:
         "The ASR is not yet good enough for Shona commerce; the *product* is "
         "already safe for it.")
     add("")
+    add("**The sharpest result in this benchmark comes from comparing the two "
+        "native tiers.** On tier-a — Pidgin/Yoruba, a *documented Sahara "
+        "code-switch pair* — Sahara records 47% of transactions exactly and "
+        "Meta's open 300M omnilingual model manages 13%. On tier-sh — Shona, a "
+        "supported *language* but **not** a supported code-switch pair — the two "
+        "are level at 27%, and omnilingual is actually ahead on numeric accuracy "
+        "(47% vs 40%). A free, self-hostable 300M model catches a commercial API "
+        "precisely where that API's code-switch training stops.")
+    add("")
+    add("That is a strong argument for the challenge's own premise. Sahara's "
+        "advantage over general-purpose ASR is real and large, and it is "
+        "**coextensive with its code-switching coverage** — which is exactly what "
+        "you would predict if the advantage comes from code-switch training "
+        "rather than from African speech generally. It also tells an integrator "
+        "something practical: for a language on the supported-pairs list, use "
+        "Sahara; for one that is merely a supported language, benchmark before "
+        "assuming.")
+    add("")
     add("**What is not finished.** Packs drive parsing, not phrasing: run the "
         "Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` "
         "correctly and does the arithmetic in dollars and cents — then answers in "
