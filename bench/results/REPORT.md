@@ -80,6 +80,17 @@ Reported for comparability with general-purpose leaderboards. Both normalised an
 | `sahara-v2.5` | 15/15 | 0.566 | 0.714 | 0.328 | 0.346 |
 | `whisper-large-v3` | 15/15 | 1.232 | 1.291 | 0.537 | 0.642 |
 
+### The backend moved under us, and not uniformly
+
+We hold cached Sahara transcripts for the same frozen audio from **5 August** and from **9 September**. The API exposes no model or version field, so this cache is the only evidence available that anything changed — and something did:
+
+| Tier | WER 5 Aug → 9 Sep | CER 5 Aug → 9 Sep | Numeric accuracy 5 Aug → 9 Sep |
+|---|---|---|---|
+| afriswitch-sample | 0.424 → 0.369 | 0.278 → 0.227 | – |
+| sautiledger-clips | 0.602 → 0.574 | 0.477 → 0.490 | 73% → 67% |
+
+Broadcast speech improved clearly. Our native market tier is more mixed: aggregate WER improved slightly while **numeric accuracy went down**, and individual clips regressed — `"I don sell 3 derica of rice 5,500."` in August became `"I don sell 3 of rice 500"` in September, losing both the unit and a factor of ten. We report this without complaint: models are retrained, and improving the average while regressing a subset is normal. The problem is that **an integrator cannot tell**. Without a version identifier in the response, no benchmark against this API is reproducible, and no regression is attributable. That is why §9 asks for one.
+
 **A caveat on WER for financial speech.** Sahara transcribes spoken "five thousand five" as "5,500" — semantically exact, but every such token counts as a word error against a spoken-form reference. WER penalises the model for being *more* useful downstream. This is precisely why the task-completion metric in §1 leads this report.
 
 ## 3. Performance disparity across speaker groups

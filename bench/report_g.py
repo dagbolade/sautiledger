@@ -261,6 +261,41 @@ def render() -> Path:
                 "denominator rather than quietly averaging over a different "
                 "sample.*")
             add("")
+    add("### The backend moved under us, and not uniformly")
+    add("")
+    add("We hold cached Sahara transcripts for the same frozen audio from "
+        "**5 August** and from **9 September**. The API exposes no model or "
+        "version field, so this cache is the only evidence available that "
+        "anything changed — and something did:")
+    add("")
+    snap_tiers = [t for t in tiers
+                  if sel(model=SNAPSHOT, tier=t) and sel(model="sahara-v2.5", tier=t)]
+    if snap_tiers:
+        add("| Tier | WER 5 Aug → 9 Sep | CER 5 Aug → 9 Sep | Numeric accuracy 5 Aug → 9 Sep |")
+        add("|---|---|---|---|")
+        for tier in snap_tiers:
+            b = sel(model=SNAPSHOT, tier=tier)
+            a = sel(model="sahara-v2.5", tier=tier)
+            bg = sel(model=SNAPSHOT, tier=tier, gt_only=True)
+            ag = sel(model="sahara-v2.5", tier=tier, gt_only=True)
+            num = (f"{_pct([r['numeric_accuracy'] for r in bg])} → "
+                   f"{_pct([r['numeric_accuracy'] for r in ag])}") if bg else "–"
+            add(f"| {tier} | {_mean([r['wer'] for r in b]):.3f} → "
+                f"{_mean([r['wer'] for r in a]):.3f} "
+                f"| {_mean([r.get('cer', 0) for r in b]):.3f} → "
+                f"{_mean([r.get('cer', 0) for r in a]):.3f} | {num} |")
+        add("")
+    add("Broadcast speech improved clearly. Our native market tier is more "
+        "mixed: aggregate WER improved slightly while **numeric accuracy went "
+        "down**, and individual clips regressed — `\"I don sell 3 derica of rice "
+        "5,500.\"` in August became `\"I don sell 3 of rice 500\"` in September, "
+        "losing both the unit and a factor of ten. We report this without "
+        "complaint: models are retrained, and improving the average while "
+        "regressing a subset is normal. The problem is that **an integrator "
+        "cannot tell**. Without a version identifier in the response, no "
+        "benchmark against this API is reproducible, and no regression is "
+        "attributable. That is why §9 asks for one.")
+    add("")
     add("**A caveat on WER for financial speech.** Sahara transcribes spoken "
         "\"five thousand five\" as \"5,500\" — semantically exact, but every such "
         "token counts as a word error against a spoken-form reference. WER "
