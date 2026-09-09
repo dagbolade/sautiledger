@@ -268,14 +268,32 @@ class OpenRouterBench:
         return (data["choices"][0]["message"]["content"] or "").strip()
 
 
-# Frontier line-up, added for Phase 2 once an OpenRouter key was available.
-# Model ids are overridable from the environment because vendor ids move.
+# Frontier line-up for Phase 2, one OpenRouter key. Ids verified against
+# openrouter.ai/collections/speech-to-text-models on 9 Sep 2026 and
+# overridable from the environment, because vendor ids move.
+#
+# The whole corpus is ~10.5 audio-minutes per model, so a full pass costs
+# cents: MAI $0.10/hr -> ~$0.02, parakeet $0.0015/min -> ~$0.02,
+# chirp-3 $0.016/min -> ~$0.17, voxtral $0.003/min -> ~$0.03.
 OPENROUTER_MODELS = {
+    # Microsoft — #1 on FLEURS multilingual, 60 languages. Replaces
+    # whisper-small, which was only ever a stand-in for a missing key.
     "mai-transcribe-2": (os.environ.get("OR_MAI", "microsoft/mai-transcribe-2"), "transcribe"),
+    # NVIDIA — the parakeet/Nemotron family presented at Intron's own
+    # 28 Aug masterclass; non-autoregressive TDT decoding.
+    "parakeet-tdt": (os.environ.get("OR_PARAKEET", "nvidia/parakeet-tdt-0.6b-v3"), "transcribe"),
+    # Google's production ASR (distinct from Gemini, which is an LLM).
+    "chirp-3": (os.environ.get("OR_CHIRP", "google/chirp-3"), "transcribe"),
+    # OpenAI frontier — on Intron's own multimodal benchmark roster.
     "gpt-4o-transcribe": (os.environ.get("OR_GPT", "openai/gpt-4o-transcribe"), "transcribe"),
-    "gemini-flash": (os.environ.get("OR_GEMINI", "google/gemini-2.5-flash"), "chat"),
+    # Optional extras, off unless named with --models.
     "voxtral-mini": (os.environ.get("OR_VOXTRAL", "mistralai/voxtral-mini-transcribe"), "transcribe"),
+    "qwen3-asr": (os.environ.get("OR_QWEN", "qwen/qwen3-asr-1.7b"), "transcribe"),
+    "gemini-flash": (os.environ.get("OR_GEMINI", "google/gemini-3.5-flash"), "chat"),
 }
+
+# run by default when a key is present; the rest need --models
+OPENROUTER_DEFAULT = ("mai-transcribe-2", "parakeet-tdt", "chirp-3", "gpt-4o-transcribe")
 
 
 def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, list[str]]:
@@ -304,11 +322,19 @@ def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, li
         models.append(OmnilingualBench())
     if os.environ.get("OPENROUTER_API_KEY"):
         for name, (model_id, mode) in OPENROUTER_MODELS.items():
-            if want(name):
-                try:
-                    models.append(OpenRouterBench(model_id, name=name, mode=mode))
-                except Exception as exc:
-                    notes.append(f"{name} unavailable: {exc}")
+            # named explicitly, or in the default frontier set
+            if not (name in (wanted or ()) or (wanted is None and name in OPENROUTER_DEFAULT)):
+                continue
+            try:
+                models.append(OpenRouterBench(model_id, name=name, mode=mode))
+            except Exception as exc:
+                notes.append(f"{name} unavailable: {exc}")
+        notes.append(
+            "whisper-small was retired for Phase 2. It had been a placeholder for "
+            "a frontier model we had no key for; with frontier ASR available it is "
+            "replaced by microsoft/mai-transcribe-2 rather than left in as filler. "
+            "whisper-large-v3 is retained as the open-model baseline."
+        )
     elif frontier == "openai" and os.environ.get("OPENAI_API_KEY"):
         if want("gpt-4o-transcribe"):
             models.append(OpenAiBench())
