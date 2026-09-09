@@ -40,23 +40,42 @@ def normalize_text(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", fold_diacritics(text).lower().replace("'", ""))
 
 
+def _edit_distance(ref: list, hyp: list) -> int:
+    prev = list(range(len(hyp) + 1))
+    for i, r in enumerate(ref, 1):
+        cur = [i] + [0] * len(hyp)
+        for j, h in enumerate(hyp, 1):
+            cur[j] = min(
+                prev[j] + 1,             # deletion
+                cur[j - 1] + 1,          # insertion
+                prev[j - 1] + (r != h),  # substitution
+            )
+        prev = cur
+    return prev[-1]
+
+
 def wer(truth: str, hyp: str, normalized: bool = True) -> float:
     """Word error rate (S+D+I)/N via word-level edit distance."""
     ref = normalize_text(truth) if normalized else truth.split()
     hyp_words = normalize_text(hyp) if normalized else hyp.split()
     if not ref:
         return 0.0 if not hyp_words else 1.0
-    prev = list(range(len(hyp_words) + 1))
-    for i, r in enumerate(ref, 1):
-        cur = [i] + [0] * len(hyp_words)
-        for j, h in enumerate(hyp_words, 1):
-            cur[j] = min(
-                prev[j] + 1,          # deletion
-                cur[j - 1] + 1,       # insertion
-                prev[j - 1] + (r != h),  # substitution
-            )
-        prev = cur
-    return prev[-1] / len(ref)
+    return _edit_distance(ref, hyp_words) / len(ref)
+
+
+def cer(truth: str, hyp: str, normalized: bool = True) -> float:
+    """Character error rate. Intron's own multimodal benchmark and
+    Microsoft's PazaBench both lead with CER — it is the fairer metric for
+    morphologically rich languages, where one wrong affix costs a whole
+    word under WER. Normalised = the WER normalisation, spaces dropped."""
+    if normalized:
+        ref = list("".join(normalize_text(truth)))
+        hyp_chars = list("".join(normalize_text(hyp)))
+    else:
+        ref, hyp_chars = list(truth), list(hyp)
+    if not ref:
+        return 0.0 if not hyp_chars else 1.0
+    return _edit_distance(ref, hyp_chars) / len(ref)
 
 
 # ---------------------------------------------------------------- numbers
@@ -174,6 +193,8 @@ def score_clip(truth: str, hyp: str, expected_parse: dict, pack: Pack) -> dict:
     return {
         "wer": round(wer(truth, hyp), 4),
         "wer_raw": round(wer(truth, hyp, normalized=False), 4),
+        "cer": round(cer(truth, hyp), 4),
+        "cer_raw": round(cer(truth, hyp, normalized=False), 4),
         "numeric_accuracy": numeric_accuracy(expected_parse, folded, pack),
         "flags": transcription_flags(truth, hyp),
         **transaction_metrics(expected_parse, folded, pack),

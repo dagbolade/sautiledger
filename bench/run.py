@@ -258,7 +258,10 @@ def _write_and_report(results: list[dict], manifest_hash: str, notes: list[str],
         encoding="utf-8",
     )
     print(f"Wrote {RESULTS_DIR / 'metrics.json'} ({len(results)} rows)")
-    from .report import render
+    # Phase 2 renderer. The August workshop report is frozen as
+    # REPORT-workshop-2026-08.md and cited as prior work; bench/report.py
+    # still renders it from metrics_workshop_v3.json if ever needed.
+    from .report_g import render
 
     render()
 
