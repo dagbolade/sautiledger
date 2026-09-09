@@ -1,7 +1,14 @@
 # SautiLedger
 
 **An offline-first, code-switched voice ledger for African market traders.**
-Indaba 2026 · MLC (Africa) × Intron Agentic Voice AI Challenge.
+Sahara CodeSwitch Africa Challenge (Phase 2) · category: Fintech.
+Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
+
+**Live:** https://sautiledger-production.up.railway.app ·
+**Submission docs:** [SOLUTION](submission/SOLUTION.md) ·
+[ETHICS](submission/ETHICS.md) ·
+[benchmark report](bench/results/REPORT.md) ·
+[demo script](demo/script-phase2.md)
 
 A trader says *"I don sell three derica of rice five thousand five"* — Pidgin
 grammar, Yoruba numerals, market units, money slang — and the agent logs
@@ -13,14 +20,16 @@ SQLite. Her financial life never exists anywhere but her own device.
 
 Most voice agents ship your audio, your transcript, your conversation
 history, and their own reasoning to someone's server. SautiLedger ships
-**four seconds of audio** (to Sahara ASR) and nothing else. Two rules from
-[CONSTRAINTS.md](CONSTRAINTS.md) make that a property of the code, not a promise:
+**the audio clip** (to Sahara ASR) and, when the spoken readback is
+enabled, **the reply sentence** (to Sahara TTS) — and nothing else. Two
+rules from [CONSTRAINTS.md](CONSTRAINTS.md) make that a property of the
+code, not a promise:
 
-1. **The only data that ever leaves the device is the audio clip sent for
-   transcription.** The ledger, transcripts, parses, queries, and agent
-   reasoning are local. `tests/test_import_guard.py` walks the AST of
-   every module and fails the build if anything except `egress.py` can
-   reach the network.
+1. **Your money records never leave the device.** The ledger, parses,
+   queries, and agent reasoning are local; only the audio clip and the
+   spoken reply text are transmitted, each one logged.
+   `tests/test_import_guard.py` walks the AST of every module and fails
+   the build if anything except `egress.py` can reach the network.
 2. **Every transmission is logged** — timestamp, destination, purpose,
    bytes, disposition — to an egress ledger displayed at the top of the
    UI. Tap the meter, see everything the app has ever shared. In offline
@@ -89,15 +98,33 @@ the acceptance rules in `normaliser_tests.json`):
    `normaliser_tests.json`.
 4. `python -m pytest` until green.
 
-The Swahili and Hausa packs here were drafted by a non-native speaker and
-corrected with speakers at Indaba — that took about ten minutes per
-language. Yours will too.
+Four packs ship today, covering five languages plus English:
+
+| Pack | Languages | Status |
+|---|---|---|
+| `pcm-yo-NG` | Nigerian Pidgin + Yoruba + English | native-validated, field-tested by real traders |
+| `sh-ZW` | Shona + English (USD, cents) | native-validated — 15 utterances corrected *and* recorded by a native speaker, Sept 2026 |
+| `sw-KE` | Swahili + English | grammar complete, native validation pending |
+| `ha-NG` | Hausa + English | grammar complete, native validation pending |
+
+Shona was added exactly this way and needed **no parser changes** — two
+new grammar switches (`major_unit_words` for a cents-based currency,
+`number_prefixes` for Bantu concord prefixes that glue onto code-switched
+numerals, as in *"ne**five** dollars fifty"*) live in the pack and are
+inert for every other language. Her corrections taught us things no
+outsider would guess: `hwani` marks per-unit pricing, and traders quote
+in US dollars spoken as *"two fifty"* for $2.50.
 
 ## Benchmark
 
-`bench/` holds a standalone harness (required by the challenge) comparing
-Sahara-v2, whisper-large-v3 (local), and a frontier API model across a
-frozen corpus. Beyond WER, it measures what matters for money:
+`bench/` holds a standalone harness comparing **Sahara v2.5,
+whisper-large-v3, whisper-small and Meta's omnilingual-ASR** (plus the
+frozen 5 August Sahara snapshot, as a drift control) across a frozen
+corpus of three tiers: natively recorded Pidgin/Yoruba market speech,
+natively recorded Shona market speech, and AfriSwitch broadcast
+code-switching. A separate round-trip harness benchmarks **TTS**
+(`bench/tts_bench.py`). Beyond WER and CER, it measures what matters for
+money:
 
 - **numeric accuracy** — did every amount survive transcription?
 - **transaction accuracy** — feed each model's transcript through *our*
@@ -107,9 +134,14 @@ frozen corpus. Beyond WER, it measures what matters for money:
 
 ```
 pip install -r bench/requirements.txt
-python -m bench.run            # dry run: corpus + cost estimate
-python -m bench.run --confirm  # transcribe (cached; reruns are free)
+python -m bench.run                            # dry run: corpus + cost estimate
+python -m bench.run --confirm --models sahara-v2.5   # one model at a time
+python -m bench.run --score-only               # score every cached transcript, free
+python -m bench.tts_bench --confirm            # TTS round-trip benchmark
 ```
+
+Local models are memory-hungry, so each runs in its own pass and a final
+`--score-only` pass assembles the report from cache.
 
 Report renders to `bench/results/REPORT.md` with the manifest hash frozen
 before the first run. Sahara's failures, if any, are reported unedited —
@@ -143,10 +175,12 @@ built during the freeze.
 - **Conversational-speed ASR fidelity.** Command-style utterances
   transcribe well; fast narrated speech degrades — the benchmark's tier-a
   numbers quantify this, and the clarify design absorbs most of it.
-- **Two deletion-class corruption cases remain** (see the benchmark
-  amendments section): ASR dropping "ten" from "ten thousand" or one "no"
-  from "no no" can still produce a wrong entry. Confidence-weighted
-  readback is the roadmap answer.
+- **The two deletion-class corruptions the workshop report admitted are
+  now closed.** A confidence-weighted readback echoes the full amount
+  before committing whenever the shape of a number suggests a dropped
+  word ("[ten] thousand" arriving as a bare "thousand") or a swallowed
+  correction cue. Calibrated on the exact failing clips, with zero added
+  friction on legitimate short amounts.
 - **Tier-a benchmark audio is a single speaker** (the developer) —
   directional, not population-level, evidence.
 - **Small grammar, by design.** The normaliser covers transaction speech,
@@ -154,27 +188,34 @@ built during the freeze.
   (or the local LLM fallback, which is amount-guarded).
 - **sw-KE and ha-NG packs are drafts** pending deeper native-speaker
   validation; the test file marks every case that needs it.
-- **Voice out is browser speechSynthesis** — local and free, but
-  robotic. Piper (nicer, still local) and Sahara TTS sit behind the same
-  `TtsClient` interface; cloud TTS is deliberately not enabled because it
-  would egress ledger contents (see `tts.py`).
+- **Voice out is Sahara TTS** in a Nigerian Pidgin voice
+  (`voice_language=pcm`, `voice_accent=pidgin`), routed through the egress
+  ledger like everything else and cached by phrase so repeated
+  confirmations cost nothing. Browser `speechSynthesis` remains the
+  offline fallback; Piper sits behind the same `TtsClient` interface.
+  Sending the reply text is a real disclosure and is logged as one.
 - **Offline ASR is a stub** until Sahara's on-device engine is dropped
   into `SaharaOfflineAsr`. Offline mode today uses typed input / fixture
   audio — the rest of the stack is genuinely offline.
-- **Single-user, single-device.** No sync, no backup, no auth. A trader's
-  phone is the database; losing the phone loses the ledger.
+- **One trader per device, and no account.** Each device gets its own
+  isolated ledger (a `sauti_device` cookie), so several traders can use
+  the same deployment without ever seeing each other's books — but there
+  is no sync, no backup and no login. Losing the device loses the ledger.
+- **One language pack per deployment.** The live instance runs
+  `pcm-yo-NG`; the other packs are selected with `SAUTI_PACK` at start-up
+  rather than by the user at runtime.
 
 ## Built with, and thanks
 
-- **Intron Sahara-v2 ASR** (infer.voice.intron.io) — the only network
-  call this app ever makes, and the reason code-switched market speech
-  transcribes at all.
+- **Intron Sahara v2.5** (infer.voice.intron.io) — ASR (sync and
+  streaming) and TTS, the only network calls this app makes, and the
+  reason code-switched market speech transcribes at all.
 - **AfriSwitch** (huggingface.co/datasets/intronhealth/AfriSwitch,
   CC BY-NC-SA 4.0) — used for evaluation only, fetched at run time,
   never redistributed, and not used to train or build the product.
-- Local pieces: FastAPI, PyAV, faster-whisper (benchmark only),
-  Ollama + Llama 3.2 3B (optional local fallback), browser
-  speechSynthesis.
+- Local pieces: FastAPI, PyAV, faster-whisper and Meta omnilingual-ASR
+  (benchmark only), Ollama + Llama 3.2 3B (optional local fallback),
+  browser speechSynthesis (offline voice fallback).
 - Built during Deep Learning Indaba 2026 with AI-assisted development;
   all language corrections and design decisions came from a
   native-speaker human in the loop.
