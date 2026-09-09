@@ -21,6 +21,11 @@ bench/results/*
 !bench/results/REPORT.md
 !bench/results/REPORT-workshop-2026-08.md
 !bench/results/pazabench-wer-2026-08-28.md
+# scored results are the report's evidence — a reader must be able to
+# check the numbers without re-running anything (raw audio stays out)
+!bench/results/metrics.json
+!bench/results/tts_metrics.json
+!bench/results/tts_metrics_punctuated.json
 
 # python
 .venv/
