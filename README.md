@@ -204,6 +204,14 @@ built during the freeze.
 - **One language pack per deployment.** The live instance runs
   `pcm-yo-NG`; the other packs are selected with `SAUTI_PACK` at start-up
   rather than by the user at runtime.
+- **The agent understands four languages but answers in one.** Packs
+  drive *parsing*; the reply templates ("Logged: …, five thousand five
+  hundred naira. Correct?") are still Pidgin/English strings. Run the
+  Shona pack and it will parse `Ndatengesa matomatisi ethree dollars`
+  correctly, do the arithmetic in dollars and cents, and then answer in
+  Pidgin. Moving the reply strings into the pack is the obvious next
+  step; we have not done it, and would rather say so than imply a
+  finished multilingual UX.
 
 ## Built with, and thanks
 

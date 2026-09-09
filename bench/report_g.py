@@ -360,6 +360,12 @@ def render() -> Path:
         "The ASR is not yet good enough for Shona commerce; the *product* is "
         "already safe for it.")
     add("")
+    add("**What is not finished.** Packs drive parsing, not phrasing: run the "
+        "Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` "
+        "correctly and does the arithmetic in dollars and cents — then answers in "
+        "Pidgin, because the reply templates are not yet pack-driven. We report "
+        "this rather than demo around it.")
+    add("")
     add("The Shona corpus was built the same way the Pidgin/Yoruba one was: a "
         "native speaker rewrote every drafted sentence into what a trader would "
         "actually say, chose the currency register (US dollars, spoken as "
