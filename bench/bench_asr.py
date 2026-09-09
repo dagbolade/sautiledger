@@ -200,6 +200,84 @@ def _to_wsl_path(path: Path) -> str:
     return p
 
 
+class OpenRouterBench:
+    """Frontier ASR through OpenRouter — one key, several vendors.
+
+    Two shapes are supported because OpenRouter serves both:
+      * dedicated STT models via POST /api/v1/audio/transcriptions
+        (whisper-class, MAI-Transcribe, Voxtral) — multipart, like any
+        transcription API;
+      * multimodal chat models via /api/v1/chat/completions with an
+        `input_audio` content part (Gemini, GPT-audio).
+
+    Routed through EgressRecorder like every other cloud call.
+    """
+
+    TRANSCRIBE_URL = "https://openrouter.ai/api/v1/audio/transcriptions"
+    CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"
+    PROMPT = ("Transcribe this audio verbatim, in the language spoken. "
+              "Return only the transcript, with no commentary.")
+
+    def __init__(self, model: str, name: str | None = None, mode: str = "transcribe",
+                 recorder: EgressRecorder | None = None):
+        self.key = os.environ.get("OPENROUTER_API_KEY")
+        if not self.key:
+            raise RuntimeError("OPENROUTER_API_KEY not set")
+        self.model = model
+        self.mode = mode
+        self.name = name or model.split("/")[-1]
+        self.recorder = recorder or bench_recorder()
+
+    def _headers(self, content_type: str) -> dict:
+        return {
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": content_type,
+            # OpenRouter asks callers to identify themselves
+            "HTTP-Referer": "https://github.com/dagbolade/sautiledger",
+            "X-Title": "SautiLedger benchmark",
+        }
+
+    def transcribe_file(self, path: Path, language_hint: str | None) -> str:
+        purpose = f"benchmark: {self.name} ASR of {path.name}"
+        if self.mode == "transcribe":
+            body, content_type = encode_multipart(
+                fields={"model": self.model},
+                files={"file": (path.name, path.read_bytes(), "audio/wav")},
+            )
+            _status, resp = self.recorder.post(
+                self.TRANSCRIBE_URL, purpose=purpose, data=body,
+                headers=self._headers(content_type),
+            )
+            return (json.loads(resp).get("text") or "").strip()
+
+        payload = json.dumps({
+            "model": self.model,
+            "messages": [{"role": "user", "content": [
+                {"type": "text", "text": self.PROMPT},
+                {"type": "input_audio", "input_audio": {
+                    "data": base64.b64encode(path.read_bytes()).decode(),
+                    "format": "wav",
+                }},
+            ]}],
+        }).encode()
+        _status, resp = self.recorder.post(
+            self.CHAT_URL, purpose=purpose, data=payload,
+            headers=self._headers("application/json"),
+        )
+        data = json.loads(resp)
+        return (data["choices"][0]["message"]["content"] or "").strip()
+
+
+# Frontier line-up, added for Phase 2 once an OpenRouter key was available.
+# Model ids are overridable from the environment because vendor ids move.
+OPENROUTER_MODELS = {
+    "mai-transcribe-2": (os.environ.get("OR_MAI", "microsoft/mai-transcribe-2"), "transcribe"),
+    "gpt-4o-transcribe": (os.environ.get("OR_GPT", "openai/gpt-4o-transcribe"), "transcribe"),
+    "gemini-flash": (os.environ.get("OR_GEMINI", "google/gemini-2.5-flash"), "chat"),
+    "voxtral-mini": (os.environ.get("OR_VOXTRAL", "mistralai/voxtral-mini-transcribe"), "transcribe"),
+}
+
+
 def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, list[str]]:
     """Returns (models, notes). frontier: gemini | openai | whisper-small.
     If no frontier key materialises, whisper-small substitutes and the
@@ -224,7 +302,14 @@ def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, li
         models.append(WhisperLocalBench("large-v3"))
     if want("omnilingual-ctc-300m"):
         models.append(OmnilingualBench())
-    if frontier == "openai" and os.environ.get("OPENAI_API_KEY"):
+    if os.environ.get("OPENROUTER_API_KEY"):
+        for name, (model_id, mode) in OPENROUTER_MODELS.items():
+            if want(name):
+                try:
+                    models.append(OpenRouterBench(model_id, name=name, mode=mode))
+                except Exception as exc:
+                    notes.append(f"{name} unavailable: {exc}")
+    elif frontier == "openai" and os.environ.get("OPENAI_API_KEY"):
         if want("gpt-4o-transcribe"):
             models.append(OpenAiBench())
     elif frontier == "gemini" and os.environ.get("GEMINI_API_KEY"):
