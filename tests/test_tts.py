@@ -97,3 +97,23 @@ def test_tts_cache_serves_repeats_without_egress(tmp_path, monkeypatch):
     assert first.status_code == second.status_code == 200
     assert first.content == second.content == b"RIFFcachedwav"
     assert calls["n"] == 1  # the repeat came from the cache, not the cloud
+
+
+# Found by the TTS round-trip benchmark, 9 Sep: the readback was being
+# spoken with its punctuation ("Logged expense COLON fuel...").
+def test_speakable_strips_spoken_punctuation():
+    from sautiledger.tts import speakable
+
+    assert ":" not in speakable("Logged expense: fuel, ten thousand naira.")
+    # commas and full stops are prosody — they must survive
+    out = speakable("Logged: 3 derica of rice, five thousand five hundred naira.")
+    assert "," in out and out.endswith("naira.")
+    assert "  " not in out
+
+
+def test_speakable_keeps_the_words_intact():
+    from sautiledger.tts import speakable
+
+    said = speakable("Logged expense: fuel, ten thousand naira. Correct?")
+    for word in ("fuel", "ten", "thousand", "naira", "Correct?"):
+        assert word in said

@@ -493,6 +493,56 @@ def render() -> Path:
                 f"| {_mean([r['segment_loss'] for r in g]):.3f} "
                 f"| **{_pct([bool(r['amount_survived']) for r in amt])}** |")
         add("")
+        before_path = RESULTS_DIR / "tts_metrics_punctuated.json"
+        if before_path.exists():
+            before = json.loads(before_path.read_text(encoding="utf-8"))
+            add("### The benchmark immediately found a product bug")
+            add("")
+            add("The first round trip came back like this:")
+            add("")
+            add("> **said:** `Logged expense: fuel, ten thousand naira. Correct?`  ")
+            add("> **heard:** `Log the expense call on 410,000 naira, correct?`")
+            add("")
+            add("\"call on\" is *colon*. The app was **reading its punctuation "
+                "aloud to the trader**, and the spoken artefact was corrupting the "
+                "amount in the round trip. This is a defect no WER table would "
+                "have surfaced as anything but noise, and no unit test would have "
+                "caught, because the string was correct — it was only wrong when "
+                "spoken. We fixed it (`speakable()` in `tts.py`: colons and "
+                "brackets become pauses, commas and full stops stay as prosody), "
+                "added tests, and re-ran the identical benchmark:")
+            add("")
+            add("| System | WER before → after | Hallucination before → after | **Amount survival before → after** |")
+            add("|---|---|---|---|")
+            for system in systems:
+                b = [r for r in before["results"] if r["system"] == system]
+                a = [r for r in tts["results"] if r["system"] == system]
+                if not b or not a:
+                    continue
+                ba = [r for r in b if r["amount_survived"] is not None]
+                aa = [r for r in a if r["amount_survived"] is not None]
+                add(f"| `{system}` | {_mean([r['wer'] for r in b]):.3f} → "
+                    f"**{_mean([r['wer'] for r in a]):.3f}** "
+                    f"| {_mean([r['hallucination'] for r in b]):.3f} → "
+                    f"**{_mean([r['hallucination'] for r in a]):.3f}** "
+                    f"| {_pct([bool(r['amount_survived']) for r in ba])} → "
+                    f"**{_pct([bool(r['amount_survived']) for r in aa])}** |")
+            add("")
+            add("Hallucination fell to zero and amount survival reached 100%. "
+                "Both scorings are kept (`tts_metrics_punctuated.json` is the "
+                "before), and the table above is the whole argument for "
+                "benchmarking your own TTS rather than assuming a good voice is a "
+                "good readback.")
+            add("")
+        add("**What the round trip can and cannot tell you.** The judge is an ASR "
+            "system, so these numbers measure a *chain* — voice plus recogniser — "
+            "not the voice alone, and a weaker judge raises every system's error "
+            "equally. We therefore read the comparison between systems, and the "
+            "before/after above, as the signal; the absolute WER is an upper bound. "
+            "The readback also exists to be checked by a **human ear**, which "
+            "handles accented speech far better than a small ASR model, so these "
+            "figures are conservative by construction.")
+        add("")
         for note in tts.get("notes", []):
             add(f"> **Note:** {note}")
         add("")

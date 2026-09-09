@@ -134,6 +134,12 @@ def build_systems() -> tuple[list, list[str]]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--confirm", action="store_true")
+    parser.add_argument("--judge", default="small", choices=["small", "large-v3"],
+                        help="round-trip ASR judge. Default 'small' keeps the "
+                             "memory footprint low; 'large-v3' is the stronger "
+                             "judge where RAM allows.")
+    parser.add_argument("--synth-only", action="store_true",
+                        help="synthesise and cache audio, load no model")
     args = parser.parse_args()
     get_settings()
 
@@ -151,23 +157,37 @@ def main() -> None:
     for note in notes:
         print(f"  note: {note}")
 
-    from .bench_asr import WhisperLocalBench
-
-    judge = WhisperLocalBench("large-v3")
-    print(f"round-trip judge: {judge.name} (neutral third party)\n")
-
-    results = []
+    # Phase 1 — synthesise everything. Network only, no model in memory.
     for system in systems:
         raw_dir = TTS_RAW / system.name
         raw_dir.mkdir(parents=True, exist_ok=True)
         for item in corpus:
             wav_path = raw_dir / f"{item['id']}.wav"
+            if wav_path.exists():
+                continue
+            try:
+                wav_path.write_bytes(system.speak(item["text"]))
+                print(f"[synth] {system.name} {item['id']}", flush=True)
+            except Exception as exc:
+                print(f"  ! synth {system.name} {item['id']}: {exc}", flush=True)
+    if args.synth_only:
+        print("\nAudio cached. Re-run without --synth-only to judge and score.")
+        return
+
+    # Phase 2 — one judge, loaded once, over the cached audio.
+    from .bench_asr import WhisperLocalBench
+
+    judge = WhisperLocalBench(args.judge)
+    print(f"\nround-trip judge: {judge.name} (neutral third party — never "
+          f"Sahara's own ASR, which would be same-vendor circular)\n")
+
+    results = []
+    for system in systems:
+        raw_dir = TTS_RAW / system.name
+        for item in corpus:
+            wav_path = raw_dir / f"{item['id']}.wav"
             if not wav_path.exists():
-                try:
-                    wav_path.write_bytes(system.speak(item["text"]))
-                except Exception as exc:
-                    print(f"  ! {system.name} {item['id']}: {exc}")
-                    continue
+                continue
             transcript = judge.transcribe_file(wav_path, None)
             scored = score_roundtrip(item["text"], transcript,
                                      load_pack(item["pack"]), item["expected_amount"])
@@ -175,9 +195,18 @@ def main() -> None:
                             "text": item["text"], "transcript": transcript,
                             "expected_amount": item["expected_amount"], **scored})
             print(f"[{system.name}] {item['id']} wer={scored['wer']:.2f} "
-                  f"amount_survived={scored['amount_survived']}")
+                  f"amount_survived={scored['amount_survived']}", flush=True)
 
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    if judge.name != "whisper-large-v3":
+        notes.append(
+            f"Round-trip judge was {judge.name}, not the stronger "
+            "whisper-large-v3: the benchmark machine is a CPU-only laptop and the "
+            "larger judge exhausted memory. A weaker judge raises the absolute "
+            "error of EVERY system equally, so the comparison between TTS systems "
+            "holds; the absolute numbers are an upper bound on round-trip error, "
+            "not a measure of the voices alone."
+        )
     (RESULTS_DIR / "tts_metrics.json").write_text(
         json.dumps({"judge": judge.name, "notes": notes, "results": results},
                    indent=2, ensure_ascii=False), encoding="utf-8")

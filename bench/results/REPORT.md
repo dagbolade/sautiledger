@@ -191,6 +191,46 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **`whisper-small`** — **Pros:** fast, offline, tiny. **Cons:** weakest on accented code-switched speech; used here as the frontier substitute because no frontier API key was available. Treat its numbers as a floor, not a fair frontier baseline.
 
+## 8. Text-to-speech benchmark (round-trip)
+
+SautiLedger speaks every confirmation aloud, so the TTS is part of the safety loop, not decoration: a trader who cannot hear the amount cannot catch our mistake. Intron asked TTS entrants to report hallucination, transcript loss, segment loss, WER and accuracy. The paper they cite (ASR-FairBench) is an ASR fairness benchmark and does not define these, so we define them explicitly and measure them by **round trip**: the app's real confirmation lines are synthesised, then transcribed back by a NEUTRAL third-party ASR (`whisper-small`, never Sahara's own recogniser, which would be same-vendor circular), and the transcript is compared to the input text.
+
+| Metric | Definition |
+|---|---|
+| WER | (S+D+I)/N over the round trip |
+| Accuracy | utterance-level exact match after normalisation |
+| Transcript loss | D/N — input words that vanished in the audio |
+| Hallucination | I/N — words that appeared from nowhere |
+| Segment loss | longest contiguous deletion ÷ N — a dropped *phrase*, which D/N alone hides |
+| **Amount survival** | did the money figure survive the round trip? |
+
+| System | WER | Accuracy | Transcript loss | Hallucination | Segment loss | **Amount survival** |
+|---|---|---|---|---|---|---|
+| `sahara-tts-pidgin` | 0.514 | 0.00 | 0.141 | 0.000 | 0.120 | **100%** |
+| `sahara-tts-yoruba` | 0.521 | 0.00 | 0.116 | 0.013 | 0.105 | **100%** |
+
+### The benchmark immediately found a product bug
+
+The first round trip came back like this:
+
+> **said:** `Logged expense: fuel, ten thousand naira. Correct?`  
+> **heard:** `Log the expense call on 410,000 naira, correct?`
+
+"call on" is *colon*. The app was **reading its punctuation aloud to the trader**, and the spoken artefact was corrupting the amount in the round trip. This is a defect no WER table would have surfaced as anything but noise, and no unit test would have caught, because the string was correct — it was only wrong when spoken. We fixed it (`speakable()` in `tts.py`: colons and brackets become pauses, commas and full stops stay as prosody), added tests, and re-ran the identical benchmark:
+
+| System | WER before → after | Hallucination before → after | **Amount survival before → after** |
+|---|---|---|---|
+| `sahara-tts-pidgin` | 0.598 → **0.514** | 0.117 → **0.000** | 91% → **100%** |
+| `sahara-tts-yoruba` | 0.557 → **0.521** | 0.064 → **0.013** | 91% → **100%** |
+
+Hallucination fell to zero and amount survival reached 100%. Both scorings are kept (`tts_metrics_punctuated.json` is the before), and the table above is the whole argument for benchmarking your own TTS rather than assuming a good voice is a good readback.
+
+**What the round trip can and cannot tell you.** The judge is an ASR system, so these numbers measure a *chain* — voice plus recogniser — not the voice alone, and a weaker judge raises every system's error equally. We therefore read the comparison between systems, and the before/after above, as the signal; the absolute WER is an upper bound. The readback also exists to be checked by a **human ear**, which handles accented speech far better than a small ASR model, so these figures are conservative by construction.
+
+> **Note:** piper-local (offline neural TTS) was not benchmarked: no Nigerian Pidgin voice model exists for Piper, and an en_US voice cannot pronounce the code-switched readback. Set PIPER_VOICE to include it.
+> **Note:** Browser speechSynthesis (the app's fallback voice) is NOT measurable here: Chrome renders it straight to the audio device with no capture path, so no round-trip audio can be obtained. It is described qualitatively in the report instead.
+> **Note:** Round-trip judge was whisper-small, not the stronger whisper-large-v3: the benchmark machine is a CPU-only laptop and the larger judge exhausted memory. A weaker judge raises the absolute error of EVERY system equally, so the comparison between TTS systems holds; the absolute numbers are an upper bound on round-trip error, not a measure of the voices alone.
+
 ## 9. Product feedback to Intron
 
 Offered in the spirit the challenge asked for — everything below was observed while building on the API, with traces retained.

@@ -32,6 +32,20 @@ class TtsClient(Protocol):
         ...
 
 
+def speakable(text: str) -> str:
+    """Strip punctuation a voice engine reads ALOUD.
+
+    Found by the TTS round-trip benchmark (bench/tts_bench.py): our
+    readback "Logged expense: fuel, ten thousand naira." came back from
+    the round trip as "Log the expense COLON ..." — the trader was being
+    read the punctuation. Commas and full stops are prosody; colons and
+    parentheses are not, so they become pauses instead of words.
+    """
+    for src, dst in ((":", " —"), ("(", ", "), (")", ""), (";", ",")):
+        text = text.replace(src, dst)
+    return " ".join(text.split())
+
+
 class NullTts:
     """Silence — used in tests and when the browser handles voice-out."""
 
@@ -86,7 +100,7 @@ class SaharaTts:
 
     def speak(self, text: str) -> bytes:
         body = json.dumps({
-            "text": text[:1000],
+            "text": speakable(text)[:1000],
             "voice_language": self.language,
             "voice_accent": self.accent,
             "voice_gender": self.gender,
