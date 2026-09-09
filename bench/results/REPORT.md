@@ -236,6 +236,8 @@ The first round trip came back like this:
 
 Hallucination fell to zero and amount survival reached 100%. Both scorings are kept (`tts_metrics_punctuated.json` is the before), and the table above is the whole argument for benchmarking your own TTS rather than assuming a good voice is a good readback.
 
+*Accuracy reads 0.00 for both systems: utterance-level exact match over a fifteen-word sentence is close to unattainable when the judge is a small ASR model — one substituted word anywhere loses the point. It is reported because Intron asked for it, but transcript loss, hallucination and amount survival carry the signal here.*
+
 **What the round trip can and cannot tell you.** The judge is an ASR system, so these numbers measure a *chain* — voice plus recogniser — not the voice alone, and a weaker judge raises every system's error equally. We therefore read the comparison between systems, and the before/after above, as the signal; the absolute WER is an upper bound. The readback also exists to be checked by a **human ear**, which handles accented speech far better than a small ASR model, so these figures are conservative by construction.
 
 > **Note:** piper-local (offline neural TTS) was not benchmarked: no Nigerian Pidgin voice model exists for Piper, and an en_US voice cannot pronounce the code-switched readback. Set PIPER_VOICE to include it.
@@ -250,7 +252,8 @@ Offered in the spirit the challenge asked for — everything below was observed 
 2. **Unknown form fields are silently ignored.** Posting `language=pcm` instead of `use_language_asr_input=pcm` does not error — the request quietly falls back to English ASR and returns a confident, wrong-language transcript. This cost us a day of chasing a phantom model regression. Rejecting unknown `use_*` fields, or echoing the effective configuration in the response, would prevent an entire class of silent integration bugs.
 3. **No model or version identifier in any response.** We measured deterministic changes in output on identical audio between 5 August and 2 September. Benchmarks are not reproducible against a moving, unlabelled backend; a `model_version` field would fix this.
 4. **Shona is a supported language but not a supported code-switch pair.** AfriSwitch itself ships 3.86 h of Shona at CMI 24.55 — among the most balanced code-mixing in the dataset — so the data to close this gap already exists in-house.
-5. **TTS accent values are language-named and undocumented in tutorials.** Finding `voice_language="pcm"` + `voice_accent="pidgin"` required probing; the combination is correct and produces a genuinely Nigerian voice, which materially improved how our testers received the app.
+5. **`use_disable_llm_corrections` appears to do nothing.** Documented with a default of FALSE, implying an LLM rewrites transcripts unless told otherwise. Setting it to `TRUE` returned byte-identical output on all 70 clips (§4), and an invalid value (`=BANANA`) was accepted with HTTP 200. Either the flag is unwired or corrections are not applied for this configuration; either way the documentation implies a control that integrators do not have.
+6. **TTS accent values are language-named and undocumented in tutorials.** Finding `voice_language="pcm"` + `voice_accent="pidgin"` required probing; the combination is correct and produces a genuinely Nigerian voice, which materially improved how our testers received the app.
 
 ## 10. Related work and how this benchmark differs
 

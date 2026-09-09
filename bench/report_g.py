@@ -569,6 +569,12 @@ def render() -> Path:
                 "benchmarking your own TTS rather than assuming a good voice is a "
                 "good readback.")
             add("")
+        add("*Accuracy reads 0.00 for both systems: utterance-level exact match "
+            "over a fifteen-word sentence is close to unattainable when the judge "
+            "is a small ASR model — one substituted word anywhere loses the point. "
+            "It is reported because Intron asked for it, but transcript loss, "
+            "hallucination and amount survival carry the signal here.*")
+        add("")
         add("**What the round trip can and cannot tell you.** The judge is an ASR "
             "system, so these numbers measure a *chain* — voice plus recogniser — "
             "not the voice alone, and a weaker judge raises every system's error "
@@ -610,7 +616,14 @@ def render() -> Path:
         "AfriSwitch itself ships 3.86 h of Shona at CMI 24.55 — among the most "
         "balanced code-mixing in the dataset — so the data to close this gap "
         "already exists in-house.")
-    add("5. **TTS accent values are language-named and undocumented in tutorials.** "
+    add("5. **`use_disable_llm_corrections` appears to do nothing.** Documented "
+        "with a default of FALSE, implying an LLM rewrites transcripts unless "
+        "told otherwise. Setting it to `TRUE` returned byte-identical output on "
+        "all 70 clips (§4), and an invalid value (`=BANANA`) was accepted with "
+        "HTTP 200. Either the flag is unwired or corrections are not applied for "
+        "this configuration; either way the documentation implies a control that "
+        "integrators do not have.")
+    add("6. **TTS accent values are language-named and undocumented in tutorials.** "
         "Finding `voice_language=\"pcm\"` + `voice_accent=\"pidgin\"` required "
         "probing; the combination is correct and produces a genuinely Nigerian "
         "voice, which materially improved how our testers received the app.")
