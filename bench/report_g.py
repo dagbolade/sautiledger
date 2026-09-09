@@ -23,14 +23,49 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 PROS_CONS = {
     "sahara-v2.5": (
-        "**Pros:** built for exactly this speech — code-switched African utterances, "
-        "dense numbers, market vocabulary; the only model that renders Nigerian "
-        "Pidgin grammar as Pidgin rather than anglicising it. Ships TTS in the same "
-        "voice register, so the readback matches the input language. "
-        "**Cons:** cloud-only (offline deployment is enterprise-tier), no model/version "
-        "field in responses, and its LLM post-corrections are on by default — helpful "
-        "for readability, but they reformat digits in ways a downstream parser must "
-        "be written to expect."
+        "**Pros:** the best WER on every tier, the only system that leads on "
+        "**Shona** (27% transactions exact, zero corruption — double the best "
+        "frontier model), and one of only two that render Nigerian Pidgin's "
+        "perfective `I don sell` without inverting it into `I don't sell`. Ships "
+        "TTS in the same voice register, so the readback speaks the user's "
+        "language. **Cons:** it is *not* the strongest on its own flagship "
+        "Pidgin/Yoruba pair — MAI-Transcribe-2 and GPT-4o-transcribe both record "
+        "more transactions exactly. Cloud-only (offline deployment is "
+        "enterprise-tier), no model/version field in responses, and the documented "
+        "`use_disable_llm_corrections` control has no observable effect."
+    ),
+    "mai-transcribe-2": (
+        "Microsoft AI's multilingual STT (#1 on FLEURS across 60 languages), via "
+        "OpenRouter at $0.10/hour. **Pros:** the strongest system on our "
+        "Pidgin/Yoruba market tier — 60% of transactions exactly right with **zero "
+        "corrupted amounts**, the best combination in the benchmark — and the best "
+        "CER on broadcast speech. **Cons:** it collapses on Shona (13% exact, 13% "
+        "corrupted), and it inverts the Pidgin perfective, turning a sale into its "
+        "denial. Cloud-only."
+    ),
+    "gpt-4o-transcribe": (
+        "OpenAI's frontier transcription model, on Intron's own benchmark roster. "
+        "**Pros:** second on the Pidgin/Yoruba tier (53% exact) and the only "
+        "system besides Sahara that transcribes `I don sell three derica of rice "
+        "five thousand five` **exactly right, perfective and amount intact**. "
+        "**Cons:** weakest WER of the frontier group on Shona (1.018), and it "
+        "corrupts amounts where it fails. Cloud-only and token-priced, the most "
+        "expensive option here."
+    ),
+    "parakeet-tdt": (
+        "NVIDIA's Parakeet TDT 0.6B — the model family presented at Intron's own "
+        "28 August masterclass. **Pros:** never corrupted an amount on the "
+        "Pidgin/Yoruba tier, good broadcast WER (0.642), and extremely cheap "
+        "($0.0015/min) thanks to non-autoregressive TDT decoding. **Cons:** 33% "
+        "exact on Pidgin/Yoruba and 7% on Shona, where it also corrupts 13% — the "
+        "speed advantage does not carry to code-switched market speech."
+    ),
+    "chirp-3": (
+        "Google's production ASR (distinct from Gemini). **Pros:** the second-best "
+        "broadcast WER in the benchmark (0.376), close behind Sahara. **Cons:** "
+        "29% exact on our Pidgin/Yoruba tier with 7% corrupted, and it mangles "
+        "market units — `three derica of rice` became `3 L of rice`. Two clips "
+        "returned no transcript at all."
     ),
     "sahara-v2.5-raw": (
         "The same acoustic model with `use_disable_llm_corrections=TRUE`. **Pros:** "
@@ -198,12 +233,25 @@ def render() -> Path:
 
     add("### Reading the primary result")
     add("")
-    add("**(a) Only one model produces a usable ledger from this speech.** On the "
-        "native-recorded tiers Sahara records several times more transactions "
-        "exactly than either Whisper, and the gap is not a matter of polish: the "
-        "Whisper transcripts of Pidgin and Shona market speech are frequently not "
-        "parseable as transactions at all. For this application there is currently "
-        "one viable ASR, and it is the one trained on this speech.")
+    add("**(a) No single model wins, and which one leads flips with the "
+        "language.** On Pidgin/Yoruba — a *documented Sahara code-switch pair* — "
+        "Microsoft's MAI-Transcribe-2 records the most transactions exactly (60%) "
+        "and corrupts none, ahead of GPT-4o-transcribe (53%) and Sahara (47%). On "
+        "Shona — a supported Sahara *language* but **not** a code-switch pair — "
+        "that ordering inverts: Sahara leads at 27% with zero corruption, double "
+        "the best frontier system, while MAI drops to 13% and corrupts 13%.")
+    add("")
+    add("**The pattern is linguistic distance from English, not African speech in "
+        "general.** Nigerian Pidgin is lexically English-adjacent, so a strong "
+        "general-purpose recogniser can largely cope with it; Shona is not, and "
+        "the frontier systems collapse there while the Africa-trained model holds. "
+        "An earlier draft of this report — written when the comparison set was "
+        "only two Whisper models and an open 300M baseline — concluded that "
+        "\"there is currently one viable ASR\". Running a genuinely strong field "
+        "falsified that, and we would rather publish the correction than the "
+        "flattering version. The practical advice for an integrator is not \"use "
+        "Sahara\" or \"use a frontier API\" but **benchmark on your own language "
+        "and your own task**, because the ranking does not transfer between them.")
     add("")
     add("**(b) The corruption inversion.** A weaker model can post a *lower* "
         "amount-corrupted rate than a stronger one — not because it is safer, but "
@@ -438,23 +486,40 @@ def render() -> Path:
         "The ASR is not yet good enough for Shona commerce; the *product* is "
         "already safe for it.")
     add("")
-    add("**The sharpest result in this benchmark comes from comparing the two "
-        "native tiers.** On tier-a — Pidgin/Yoruba, a *documented Sahara "
-        "code-switch pair* — Sahara records 47% of transactions exactly and "
-        "Meta's open 300M omnilingual model manages 13%. On tier-sh — Shona, a "
-        "supported *language* but **not** a supported code-switch pair — the two "
-        "are level at 27%, and omnilingual is actually ahead on numeric accuracy "
-        "(47% vs 40%). A free, self-hostable 300M model catches a commercial API "
-        "precisely where that API's code-switch training stops.")
+    add("**The comparison across the two native tiers is where this benchmark "
+        "earns its keep.** Sahara ranks *third* on Pidgin/Yoruba (47% exact, "
+        "behind MAI-Transcribe-2 at 60% and GPT-4o-transcribe at 53%) and *first* "
+        "on Shona (27%, double the best frontier system, with zero corrupted "
+        "amounts). The frontier models do not degrade gently on Shona — they "
+        "collapse, and three of them start corrupting amounts as they do.")
     add("")
-    add("That is a strong argument for the challenge's own premise. Sahara's "
-        "advantage over general-purpose ASR is real and large, and it is "
-        "**coextensive with its code-switching coverage** — which is exactly what "
-        "you would predict if the advantage comes from code-switch training "
-        "rather than from African speech generally. It also tells an integrator "
-        "something practical: for a language on the supported-pairs list, use "
-        "Sahara; for one that is merely a supported language, benchmark before "
-        "assuming.")
+    add("The most economical explanation is **linguistic distance from English**. "
+        "Nigerian Pidgin shares most of its lexicon with English, so a strong "
+        "general recogniser can approximate it; Shona does not, and there the "
+        "Africa-trained model is the only one that holds up. If that reading is "
+        "right, the value of code-switch-specific training is *largest exactly "
+        "where general models are worst* — which is an argument for the "
+        "challenge's premise, but a more specific and more testable one than "
+        "\"African models are better at African speech\".")
+    add("")
+    add("The per-clip transcripts add a nuance the aggregate hides: on Shona the "
+        "two systems split the sentence between them. Sahara recovers the Shona "
+        "words and loses the English price (`Ndatengesa three cups dze rice "
+        "nefive dollars fifty` → `ndatengesa 3 ne50`), while the frontier systems "
+        "do the opposite — chirp-3 returns `Ndatengeza three cups of rice ne "
+        "$5.50`, with the amount intact but the verb and concord degraded. "
+        "Sahara still wins the transaction metric because our grammar can refuse "
+        "a missing amount safely but cannot recover a missing item; a system that "
+        "loses the *noun* fails more gracefully than one that loses the *number*. "
+        "That asymmetry is a property of the downstream task, not of the "
+        "recognisers, and it is invisible to WER.")
+    add("")
+    add("It also inverts the naive procurement conclusion. A team benchmarking "
+        "only on Pidgin would pick MAI-Transcribe-2 and then discover it corrupts "
+        "13% of Shona amounts. A team benchmarking only on Shona would pick "
+        "Sahara and leave 13 points of Pidgin accuracy on the table. The ranking "
+        "does not transfer across languages, so it has to be measured per "
+        "language and per task.")
     add("")
     add("**What is not finished.** Packs drive parsing, not phrasing: run the "
         "Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` "
