@@ -65,7 +65,13 @@ PROS_CONS = {
         "that renders Yoruba numerals with correct diacritics. **Cons:** no Windows "
         "build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes "
         "phonetically rather than semantically — it hears the words but drops or "
-        "mangles the digits that a ledger depends on."
+        "mangles the digits that a ledger depends on. **Coverage caveat:** it is "
+        "the only model here without full corpus coverage — inference ran at "
+        "roughly 1–2 minutes per clip on a CPU-only laptop and the pass was "
+        "terminated twice by memory pressure, so its rows are scored on the "
+        "clips that completed and the denominators are shown. That operational "
+        "cost is itself a finding: an open model you can self-host is only free "
+        "if you have the hardware to run it."
     ),
     "gemini-3-flash": (
         "Frontier multimodal model with audio input. **Cons:** cloud-only, and "
@@ -231,17 +237,30 @@ def render() -> Path:
     for tier in tiers:
         add(f"### {TIER_LABEL.get(tier, tier)}")
         add("")
-        add("| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |")
-        add("|---|---|---|---|---|")
+        tier_clips = len({r["clip"] for r in sel(tier=tier)})
+        add("| Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |")
+        add("|---|---|---|---|---|---|")
+        partial = False
         for model in models:
             g = sel(model=model, tier=tier)
             if not g:
                 continue
-            add(f"| {_name(model)} | {_mean([r['wer'] for r in g]):.3f} "
+            cov = f"{len(g)}/{tier_clips}"
+            if len(g) < tier_clips:
+                cov = f"**{cov}**"
+                partial = True
+            add(f"| {_name(model)} | {cov} | {_mean([r['wer'] for r in g]):.3f} "
                 f"| {_mean([r['wer_raw'] for r in g]):.3f} "
                 f"| {_mean([r.get('cer', 0) for r in g]):.3f} "
                 f"| {_mean([r.get('cer_raw', 0) for r in g]):.3f} |")
         add("")
+        if partial:
+            add("*A bold clip count marks partial coverage: that model was scored "
+                "on a subset of this tier, so its row is indicative and not "
+                "strictly like-for-like with the full-coverage rows. We show the "
+                "denominator rather than quietly averaging over a different "
+                "sample.*")
+            add("")
     add("**A caveat on WER for financial speech.** Sahara transcribes spoken "
         "\"five thousand five\" as \"5,500\" — semantically exact, but every such "
         "token counts as a word error against a spoken-form reference. WER "

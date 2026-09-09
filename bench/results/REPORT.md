@@ -24,7 +24,7 @@ Each model's **raw transcript** is fed through SautiLedger's grammar-first norma
 
 | Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
 |---|---|---|---|---|
-| `omnilingual-ctc-300m` | 0% | 100% | **0%** | 0% |
+| `omnilingual-ctc-300m` | 8% | 100% | **0%** | 46% |
 | sahara *(5 Aug snapshot)* | 47% | 93% | **7%** | 73% |
 | `sahara-v2.5` | 47% | 93% | **7%** | 67% |
 | `whisper-large-v3` | 27% | 100% | **0%** | 67% |
@@ -51,30 +51,34 @@ Reported for comparability with general-purpose leaderboards. Both normalised an
 
 ### tier-b — AfriSwitch code-switched broadcast speech, transcript ground truth only
 
-| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
-|---|---|---|---|---|
-| `omnilingual-ctc-300m` | 0.824 | 0.851 | 0.614 | 0.637 |
-| sahara *(5 Aug snapshot)* | 0.424 | 0.562 | 0.278 | 0.309 |
-| `sahara-v2.5` | 0.369 | 0.472 | 0.227 | 0.252 |
-| `whisper-large-v3` | 0.765 | 0.851 | 0.506 | 0.528 |
-| `whisper-small` | 0.777 | 0.873 | 0.490 | 0.525 |
+| Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|---|
+| `omnilingual-ctc-300m` | **33/40** | 0.824 | 0.851 | 0.614 | 0.637 |
+| sahara *(5 Aug snapshot)* | 40/40 | 0.424 | 0.562 | 0.278 | 0.309 |
+| `sahara-v2.5` | 40/40 | 0.369 | 0.472 | 0.227 | 0.252 |
+| `whisper-large-v3` | 40/40 | 0.765 | 0.851 | 0.506 | 0.528 |
+| `whisper-small` | 40/40 | 0.777 | 0.873 | 0.490 | 0.525 |
+
+*A bold clip count marks partial coverage: that model was scored on a subset of this tier, so its row is indicative and not strictly like-for-like with the full-coverage rows. We show the denominator rather than quietly averaging over a different sample.*
 
 ### tier-a — native-recorded market utterances (Nigerian Pidgin/Yoruba/English), parse ground truth
 
-| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
-|---|---|---|---|---|
-| `omnilingual-ctc-300m` | 0.600 | 0.700 | 0.537 | 0.540 |
-| sahara *(5 Aug snapshot)* | 0.602 | 0.704 | 0.477 | 0.528 |
-| `sahara-v2.5` | 0.574 | 0.680 | 0.490 | 0.512 |
-| `whisper-large-v3` | 0.963 | 1.054 | 0.710 | 0.786 |
-| `whisper-small` | 0.855 | 0.950 | 0.611 | 0.695 |
+| Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|---|
+| `omnilingual-ctc-300m` | **13/15** | 0.778 | 0.844 | 0.478 | 0.517 |
+| sahara *(5 Aug snapshot)* | 15/15 | 0.602 | 0.704 | 0.477 | 0.528 |
+| `sahara-v2.5` | 15/15 | 0.574 | 0.680 | 0.490 | 0.512 |
+| `whisper-large-v3` | 15/15 | 0.963 | 1.054 | 0.710 | 0.786 |
+| `whisper-small` | 15/15 | 0.855 | 0.950 | 0.611 | 0.695 |
+
+*A bold clip count marks partial coverage: that model was scored on a subset of this tier, so its row is indicative and not strictly like-for-like with the full-coverage rows. We show the denominator rather than quietly averaging over a different sample.*
 
 ### tier-sh — native-recorded Shona/English market utterances, parse ground truth (NEW for Phase 2)
 
-| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
-|---|---|---|---|---|
-| `sahara-v2.5` | 0.566 | 0.714 | 0.328 | 0.346 |
-| `whisper-large-v3` | 1.232 | 1.291 | 0.537 | 0.642 |
+| Model | clips | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|---|
+| `sahara-v2.5` | 15/15 | 0.566 | 0.714 | 0.328 | 0.346 |
+| `whisper-large-v3` | 15/15 | 1.232 | 1.291 | 0.537 | 0.642 |
 
 **A caveat on WER for financial speech.** Sahara transcribes spoken "five thousand five" as "5,500" — semantically exact, but every such token counts as a word error against a spoken-form reference. WER penalises the model for being *more* useful downstream. This is precisely why the task-completion metric in §1 leads this report.
 
@@ -86,7 +90,7 @@ Group = corpus tier × language, which here also separates speakers (tier-a is o
 
 | Model | afriswitch WER | sautiledger WER | sh WER | **Disparity (worst ÷ best)** |
 |---|---|---|---|---|
-| `omnilingual-ctc-300m` | 0.824 | 0.600 | – | **1.37×** |
+| `omnilingual-ctc-300m` | 0.824 | 0.778 | – | **1.06×** |
 | sahara *(5 Aug snapshot)* | 0.424 | 0.602 | – | **1.42×** |
 | `sahara-v2.5` | 0.369 | 0.574 | 0.566 | **1.56×** |
 | `whisper-large-v3` | 0.765 | 0.963 | 1.232 | **1.61×** |
@@ -143,6 +147,7 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **case08** — truth: `abeg how much I don make today`
 
+- `omnilingual-ctc-300m`: `abeg amochadon make today`
 - `sahara-v2`: `Abeg, how much I don make today?`
 - `sahara-v2.5`: `Abeg how much i don make today`
 - `whisper-large-v3`: `I beg, how much I don't make today?`  ⚠ perfective_negation_inversion
@@ -150,6 +155,7 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **case03** — truth: `I buy fuel ten thousand naira`
 
+- `omnilingual-ctc-300m`: `abi fol tentou air`
 - `sahara-v2`: `i buy fuel thousand naira`  ✗ AMOUNT CORRUPTED
 - `sahara-v2.5`: `I buy fuel0 naira`
 - `whisper-large-v3`: `Abai Fouil, 10,000 Naira`
@@ -157,6 +163,7 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **case10** — truth: `no no na five k not five thousand five`
 
+- `omnilingual-ctc-300m`: `no no na  k nos`
 - `sahara-v2`: `no no na 5 key not 500`
 - `sahara-v2.5`: `No know na 5 k not 50005`  ✗ AMOUNT CORRUPTED
 - `whisper-large-v3`: `No, no, not 5K, not 5,000, 5.`
@@ -174,7 +181,7 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 ## 7. Per-model assessment
 
-**`omnilingual-ctc-300m`** — Meta's omnilingual-ASR (CTC, 300M), open weights (Apache-2.0), run locally via fairseq2. **Pros:** the strongest open model on our languages in Microsoft's PazaBench, claims 1,672 languages including `pcm_Latn` and `sna_Latn`, costs nothing to run, and is the only model in this benchmark that renders Yoruba numerals with correct diacritics. **Cons:** no Windows build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes phonetically rather than semantically — it hears the words but drops or mangles the digits that a ledger depends on.
+**`omnilingual-ctc-300m`** — Meta's omnilingual-ASR (CTC, 300M), open weights (Apache-2.0), run locally via fairseq2. **Pros:** the strongest open model on our languages in Microsoft's PazaBench, claims 1,672 languages including `pcm_Latn` and `sna_Latn`, costs nothing to run, and is the only model in this benchmark that renders Yoruba numerals with correct diacritics. **Cons:** no Windows build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes phonetically rather than semantically — it hears the words but drops or mangles the digits that a ledger depends on. **Coverage caveat:** it is the only model here without full corpus coverage — inference ran at roughly 1–2 minutes per clip on a CPU-only laptop and the pass was terminated twice by memory pressure, so its rows are scored on the clips that completed and the denominators are shown. That operational cost is itself a finding: an open model you can self-host is only free if you have the hardware to run it.
 
 **sahara *(5 Aug snapshot)*** — No notes.
 
