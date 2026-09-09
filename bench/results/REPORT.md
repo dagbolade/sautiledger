@@ -1,205 +1,212 @@
-# SautiLedger ASR Benchmark Report
+# SautiLedger — Code-Switch ASR & TTS Benchmark
 
-Corpus frozen before first run — manifest sha256: `d68d90443326f5abab5fcf84cc01841f1b3bd926def8703cfc59fb76ccd827a5`.
-Clips scored: 55 (missing/skipped: 0).
-> **Note:** No frontier API key was available; whisper-small substitutes as the third model. This is a weaker baseline than GPT-4o-transcribe/Gemini.
+**Sahara CodeSwitch Africa Challenge (Phase 2) — benchmark report**
 
-## Summary
+Corpus frozen before the first run; manifest sha256 `50e5e064312fd6bfe05c5aad6662be75f2b31e1525f57917d403849dd4377aeb`.
 
-### Corpus tier: `afriswitch-sample`
+**70 clips** across three tiers · **4 speech systems compared** (`omnilingual-ctc-300m`, `sahara-v2.5`, `whisper-large-v3`, `whisper-small`), plus a frozen 5 August Sahara snapshot retained as a drift control rather than as a fifth system.
 
-| Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
-|---|---|---|---|---|---|---|
-| sahara-v2 | 42.4% | 56.2% | – | – | – | **–** |
-| whisper-large-v3 | 76.4% | 85.1% | – | – | – | **–** |
-| whisper-small | 77.6% | 87.3% | – | – | – | **–** |
+> **Note:** Scored from cached transcripts: every model pass ran separately (local models are memory-hungry), then one scoring pass assembled the report. No transcript was re-fetched, so the numbers are reproducible without re-spending API credits.
 
-*(no parse ground truth in this tier: WER columns only)*
+Prior work: this benchmark extends our August workshop report (`REPORT-workshop-2026-08.md`, same repository), which measured three models on the tier-a and tier-b corpora. Everything below is a fresh measurement; where the workshop numbers are cited they are labelled as the 5 August snapshot.
 
-### Corpus tier: `sautiledger-clips`
+## 1. The primary result: task completion
 
-| Model | WER (norm) | WER (raw) | Numeric acc | Txn exact | Amount safe | **Amount corrupted** |
-|---|---|---|---|---|---|---|
-| sahara-v2 | 60.2% | 70.4% | 73% | 47% | 93% | **7%** |
-| whisper-large-v3 | 96.3% | 105.4% | 67% | 27% | 100% | **0%** |
-| whisper-small | 85.5% | 95.0% | 73% | 13% | 100% | **0%** |
+At Intron's 28 August masterclass the challenge founder was explicit about the metric teams should develop for their own vertical — for a financial application, *"how many transactions were actually correctly recorded"*. That is the metric this section reports, and we lead with it because a voice ledger is judged by the ledger, not by the transcript.
 
-The three-level transaction metric is the point: WER alone understates the
-differences for financial use. *Amount corrupted* counts transcripts that made
-our normaliser log a WRONG amount — the failure a market trader cannot afford.
-*Amount safe* includes clarify outcomes: an agent that asks is safe, an agent
-that guesses is not. Transcription accuracy is necessary but not sufficient for
-financial records; the grammar-first normaliser + clarify design is the safety
-layer, and the amount-corrupted column is the evidence of what it repairs.
+Each model's **raw transcript** is fed through SautiLedger's grammar-first normaliser exactly as the live app runs it (LLM fallback disabled), and the resulting entry is compared to the expected one:
 
-### A caveat on WER for financial speech
+- **Transaction exact** — every field correct: type, item, quantity, unit, amount.
+- **Amount safe** — the amount was right, *or* the agent refused to guess and asked a clarifying question. Asking is safe; nothing is written.
+- **Amount corrupted** — a WRONG amount would have been written into someone's money records. This is the number that matters.
 
-Sahara's tier-a WER is inflated by digit renderings that are semantically
-correct: it transcribes spoken "five thousand five" as "5k 5" — every such
-token counts as a word error against the spoken-form ground truth even though
-the number is right. This is itself evidence that WER is the wrong lens for
-financial speech, and why the numeric and transaction metrics exist.
+### tier-a — native-recorded market utterances (Nigerian Pidgin/Yoruba/English), parse ground truth
 
-## Findings
-
-**(a) Only one model produced a usable ledger.** On the transaction metric,
-sahara-v2 achieved several times the exact-transaction rate of either whisper
-model — the whisper transcripts of Pidgin market speech were mostly not
-parseable as transactions at all. For this application there is one viable
-ASR, and it is the one trained on this speech.
-
-**(b) The corruption inversion.** whisper-small posts the LOWEST amount-
-corrupted rate — not because it is safe, but because its output is noise the
-grammar refuses to parse, which the agent converts into clarify questions.
-sahara-v2, being far more plausible, is the only model whose errors survive
-parsing — a plausible-but-flattened transcript is more dangerous than a
-garbled one. Downstream safety must be engineered, not assumed from accuracy:
-that is what the v2 flattened-distributive guard does.
-
-**(c) The predicted meaning inversion appeared in the wild.** Both whisper
-models transcribed perfective "I don sell" as negated "I don't sell" on the
-same clip — flagged automatically by the harness (see examples). An agent
-acting on the negation would drop a real sale from the record.
-
-## Amendments (v2 grammar) — documented post-freeze changes
-
-Two grammar amendments were applied AFTER the v1 scoring, motivated by
-observed ASR behaviour. The corpus, transcripts, and v1 numbers are frozen
-(`metrics_v1.json`); v2 re-scores the SAME cached transcripts — no new audio,
-no new API calls. Both scorings are reported.
-
-1. **Digit-twin rule** (pcm-yo-NG): `[N]k [M]` → N×1000 + M×100, so "5k 5"
-   parses as 5,500. Sahara demonstrably emits the digit twin of the native-
-   validated spoken "N thousand M" form; refusing it was the grammar not
-   speaking Sahara's output dialect, not safety.
-2. **Flattened-distributive guard**: any parse with quantity ≥ 2 and a single
-   bare numeral amount downgrades to a clarify ("₦X for each one, or ₦X for
-   everything?"). ASR numeric normalisation can collapse reduplication
-   ("two two fifty" → "250") before the grammar sees it — in v1 this logged
-   half the true bill. Includes quantity recovery: a leading numeral in item
-   position counts as quantity when the unit word was mangled ("2 pint of…").
-
-Before/after on the parse-ground-truth tier (`sautiledger-clips`):
-
-| Model | Txn exact v1→v2 | Amount safe v1→v2 | **Amount corrupted v1→v2** | Numeric acc v1→v2 |
+| Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
 |---|---|---|---|---|
-| sahara-v2 | 40% → 40% | 80% → 87% | **20% → 13%** | 53% → 60% |
-| whisper-large-v3 | 7% → 7% | 87% → 93% | **13% → 7%** | 53% → 53% |
-| whisper-small | 7% → 7% | 93% → 93% | **7% → 7%** | 53% → 53% |
+| `omnilingual-ctc-300m` | 0% | 100% | **0%** | 0% |
+| sahara *(5 Aug snapshot)* | 47% | 93% | **7%** | 73% |
+| `sahara-v2.5` | 47% | 93% | **7%** | 67% |
+| `whisper-large-v3` | 27% | 100% | **0%** | 67% |
+| `whisper-small` | 13% | 100% | **0%** | 73% |
 
-Every movement is shown above, favourable or not — v1 remains the scoring of
-record for the frozen grammar; v2 is the scoring of the shipped product.
+### tier-sh — native-recorded Shona/English market utterances, parse ground truth (NEW for Phase 2)
 
-**The guard did not reach 0% for sahara-v2** (expected 0%, actual above). The
-two residual corruptions are a DIFFERENT failure class — word deletion, not
-flattening: (1) "ten thousand naira" → "Abil thousand naira", the deleted
-multiplier leaving a bare "thousand" that logs ₦1,000 for a ₦10,000 expense;
-(2) the doubled correction trigger "no no na…" transcribed with a single
-"no", turning an amount correction into a spurious ₦500 sale. No
-deterministic guard catches deletions without over-asking on legitimate
-speech ("one thousand" is a real amount). These stand as the honest floor of
-the current design and the first item on the post-hackathon roadmap
-(confidence-weighted readback: low-confidence numerals echo the FULL amount
-back before commit).
+| Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
+|---|---|---|---|---|
+| `sahara-v2.5` | 27% | 100% | **0%** | 40% |
+| `whisper-large-v3` | 7% | 87% | **13%** | 60% |
 
-## Audio-conversion correction (v3) — tier-a re-measured
+### Reading the primary result
 
-After the v2 scoring, an A/B test against the vendor's own web UI showed
-materially better transcripts for the same clip. Root cause was NOT the
-language configuration (verified correct and API-validated): the corpus
-conversion step was time-stretching every tier-a clip by ~1.26x — a
-resampler bug copying frame padding as samples. ALL tier-a v1/v2 numbers
-for ALL models were measured on that corrupted audio. The corpus was
-re-converted from the preserved originals (15/15 duration-matched) and
-tier-a re-measured for every model as v3. Tier-b audio was never
-re-encoded and is unaffected; its results are unchanged.
+**(a) Only one model produces a usable ledger from this speech.** On the native-recorded tiers Sahara records several times more transactions exactly than either Whisper, and the gap is not a matter of polish: the Whisper transcripts of Pidgin and Shona market speech are frequently not parseable as transactions at all. For this application there is currently one viable ASR, and it is the one trained on this speech.
 
-| Model | WER v2→v3 | Numeric acc v2→v3 | Txn exact v2→v3 | Amount safe v2→v3 | **Amount corrupted v2→v3** |
-|---|---|---|---|---|---|
-| sahara-v2 | 71.6% → 60.2% | 60% → 73% | 40% → 47% | 87% → 93% | **13% → 7%** |
-| whisper-large-v3 | 98.6% → 96.3% | 53% → 67% | 7% → 27% | 93% → 100% | **7% → 0%** |
-| whisper-small | 119.4% → 85.5% | 53% → 73% | 7% → 13% | 93% → 100% | **7% → 0%** |
+**(b) The corruption inversion.** A weaker model can post a *lower* amount-corrupted rate than a stronger one — not because it is safer, but because its output is noise the grammar refuses to parse, which the agent turns into a clarifying question. A plausible-but-wrong transcript is more dangerous than an obviously garbled one, because only the plausible one survives parsing and reaches the ledger. Downstream safety has to be engineered; it cannot be inferred from accuracy.
 
-Both scorings are preserved (`metrics_v2.json`, `metrics.json`); the
-product ships with the corrected audio path regardless of these numbers.
+**(c) An honest caveat on our own metric.** Where the expected outcome is *clarify*, a garbled transcript also produces *clarify*, and scores as an exact match. One Whisper row earns 'exact' on a Shona clip by hallucinating "Thank you for watching. This is Mrs. Jessie." — which our grammar correctly refuses to log. The credit is real (nothing wrong was written) but it is not comprehension, and we flag it rather than bank it.
 
-## Illustrative examples
+## 2. Standard transcription metrics (WER / CER)
+
+Reported for comparability with general-purpose leaderboards. Both normalised and raw are given, matching Intron's own `Intron-Multimodal-Benchmarking` practice; CER is included because Microsoft's PazaBench leads with it, and because it is the fairer metric for morphologically rich languages where one wrong affix costs an entire word under WER. Normalisation = lowercase, punctuation stripped, whitespace collapsed, diacritics folded (jiwer-standard conventions; Intron does not publish its own normaliser, so ours is stated rather than claimed identical).
+
+### tier-b — AfriSwitch code-switched broadcast speech, transcript ground truth only
+
+| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|
+| `omnilingual-ctc-300m` | 0.824 | 0.851 | 0.614 | 0.637 |
+| sahara *(5 Aug snapshot)* | 0.424 | 0.562 | 0.278 | 0.309 |
+| `sahara-v2.5` | 0.369 | 0.472 | 0.227 | 0.252 |
+| `whisper-large-v3` | 0.765 | 0.851 | 0.506 | 0.528 |
+| `whisper-small` | 0.777 | 0.873 | 0.490 | 0.525 |
+
+### tier-a — native-recorded market utterances (Nigerian Pidgin/Yoruba/English), parse ground truth
+
+| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|
+| `omnilingual-ctc-300m` | 0.600 | 0.700 | 0.537 | 0.540 |
+| sahara *(5 Aug snapshot)* | 0.602 | 0.704 | 0.477 | 0.528 |
+| `sahara-v2.5` | 0.574 | 0.680 | 0.490 | 0.512 |
+| `whisper-large-v3` | 0.963 | 1.054 | 0.710 | 0.786 |
+| `whisper-small` | 0.855 | 0.950 | 0.611 | 0.695 |
+
+### tier-sh — native-recorded Shona/English market utterances, parse ground truth (NEW for Phase 2)
+
+| Model | WER (norm) | WER (raw) | CER (norm) | CER (raw) |
+|---|---|---|---|---|
+| `sahara-v2.5` | 0.566 | 0.714 | 0.328 | 0.346 |
+| `whisper-large-v3` | 1.232 | 1.291 | 0.537 | 0.642 |
+
+**A caveat on WER for financial speech.** Sahara transcribes spoken "five thousand five" as "5,500" — semantically exact, but every such token counts as a word error against a spoken-form reference. WER penalises the model for being *more* useful downstream. This is precisely why the task-completion metric in §1 leads this report.
+
+## 3. Performance disparity across speaker groups
+
+The organisers recommended ASR-FairBench (Rai et al., *Measuring and Benchmarking Equity Across Speech Recognition Systems*, Interspeech 2025), which argues that a single aggregate WER hides systematic disparities between speaker groups, and combines fairness with accuracy into a Fairness-Adjusted ASR Score. We cannot compute FAAS itself — it requires the Fair-Speech corpus with per-speaker demographic labels and a mixed-effects Poisson regression over hundreds of speakers, and our corpus has four speaker groups — but the underlying point applies directly, so we report the disparity rather than hiding behind an average.
+
+Group = corpus tier × language, which here also separates speakers (tier-a is one Nigerian male speaker; tier-sh is one Zimbabwean female speaker; tier-b is many broadcast speakers across languages).
+
+| Model | afriswitch WER | sautiledger WER | sh WER | **Disparity (worst ÷ best)** |
+|---|---|---|---|---|
+| `omnilingual-ctc-300m` | 0.824 | 0.600 | – | **1.37×** |
+| sahara *(5 Aug snapshot)* | 0.424 | 0.602 | – | **1.42×** |
+| `sahara-v2.5` | 0.369 | 0.574 | 0.566 | **1.56×** |
+| `whisper-large-v3` | 0.765 | 0.963 | 1.232 | **1.61×** |
+| `whisper-small` | 0.777 | 0.855 | – | **1.10×** |
+
+A model with a low average but a high disparity ratio is not a model that works for everyone — it is a model that works for whoever resembles its training data. For a product whose users are, by definition, the speakers least represented in mainstream speech corpora, that ratio is a product risk, not a footnote.
+
+## 4. An attempted ablation, reported as a null result
+
+Sahara's documentation states that the sync endpoint applies LLM corrections to transcripts **by default** (`use_disable_llm_corrections`, default FALSE). If true, every integrator benchmarks a recogniser *plus a rewriter* without necessarily knowing it — a confound worth isolating. We therefore ran the entire corpus twice, identical audio, with the flag unset and set to `TRUE`.
+
+**The two runs produced byte-identical transcripts on all 70 clips.** Every metric matches to three decimals, so the ablation yields no signal and we report it as a null result rather than as a second model. We verified this is not a client-side bug by issuing both requests directly against the API: same audio, same output. A third request supplying an invalid value (`use_disable_llm_corrections=BANANA`) was also accepted with HTTP 200 and the same transcript, which suggests the field is not being read on this path — consistent with the silently-ignored-field behaviour reported in §9.
+
+Two readings are consistent with the evidence and we cannot distinguish them from outside: either the flag is not wired on this endpoint, or LLM correction is not applied for this language configuration in the first place, so disabling it changes nothing. Either way the practical conclusion for integrators is the same: **the documented control does not currently change what you get.** The `sahara-v2.5` rows above are therefore the as-deployed configuration, and no separate 'raw' row is presented — including one would inflate our model count with a duplicate.
+
+## 5. A prediction registered in advance: Shona
+
+Before running this benchmark we recorded a falsifiable prediction (`bench/PHASE-G-NOTES.md`, committed 3 September, before any Shona audio existed): Sahara's documentation lists Shona (`sn`) as a supported STT language **and** a supported TTS voice, but Shona is *not* among its 12 documented code-switching pairs. Our Shona validator's utterances are heavily code-mixed by design ("Ndatengesa three cups dze rice nefive dollars fifty"). We therefore predicted degraded performance on tier-sh relative to tier-a, and said so before we could see the result.
+
+| Model | tier-a WER | tier-sh WER | tier-sh transaction exact | **tier-sh amount corrupted** |
+|---|---|---|---|---|
+| `sahara-v2.5` | 0.574 | 0.566 | 27% | **0%** |
+| `whisper-large-v3` | 0.963 | 1.232 | 7% | **13%** |
+
+**Outcome: half right — and the half we got wrong is the informative half.** We predicted degradation, unqualified. On **WER we were wrong**: Shona WER (0.566) is marginally *better* than our Pidgin tier (0.574), and Shona CER is better still. A transcription-only benchmark would have concluded that Shona is well supported and moved on. On **task completion we were right**: transaction-exact falls from 47% to 27% on the same system. We record the prediction as partly falsified rather than quietly reframing it, because the gap between those two verdicts is the entire argument of this report.
+
+**The mechanism is visible in the transcripts.** Sahara transcribes the Shona *lexicon* well — `ndatengesa`, `matomatisi`, `chikwereti`, `rechibage`, `enzungu`, `dzemazai` all come back intact or near-intact. What collapses is precisely the **code-switched English money phrase**:
+
+| she said | Sahara heard |
+|---|---|
+| "…ne**five dollars fifty**" | `ne50` |
+| "ne **forty five dollars**" | `ne45 vose` |
+| "**ethree dollars**" | `etridos` |
+| "**yeten dollars**" | `yetendo` |
+| "ne **two dollars**" | `netudle` |
+
+The currency word is swallowed into the numeral and the amount is lost. That is exactly the failure a language supported for transcription but *not* for code-switching would produce, and it is why we registered the prediction in advance rather than after seeing the data.
+
+**Two things follow.** First, WER hid the failure and the task-completion metric exposed it — which is why the ordering of this report is not cosmetic. Second, the safety layer converts the gap into a question rather than a wrong number — Sahara on Shona records **0% amount-corrupted and 100% amount-safe**, because when the price phrase collapses the grammar refuses to guess and asks. The ASR is not yet good enough for Shona commerce; the *product* is already safe for it.
+
+**What is not finished.** Packs drive parsing, not phrasing: run the Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` correctly and does the arithmetic in dollars and cents — then answers in Pidgin, because the reply templates are not yet pack-driven. We report this rather than demo around it.
+
+The Shona corpus was built the same way the Pidgin/Yoruba one was: a native speaker rewrote every drafted sentence into what a trader would actually say, chose the currency register (US dollars, spoken as "two fifty" for $2.50), and recorded all 15 utterances herself. Her corrections taught the parser three things no outsider would have guessed: `hwani` marks per-unit pricing, concord prefixes glue onto code-switched numerals (`nefive`, `yeten`), and a trailing copula (`... pack is 4000`) marks a price rather than part of the item name.
+
+## 6. Illustrative transcripts
 
 **case01** — truth: `I don sell three derica of rice five thousand five`
 
+- `omnilingual-ctc-300m`: `i don sow three the reca of rice`
 - `sahara-v2`: `I don sell 3 derica of rice 5,500.`
+- `sahara-v2.5`: `I don sell 3 of rice 500`
 - `whisper-large-v3`: `I don't sell three delica of rice, 5,005.`  ⚠ perfective_negation_inversion
 - `whisper-small`: `I don't sell 3 Delica of guys, $5,005.`  ⚠ perfective_negation_inversion
 
 **case08** — truth: `abeg how much I don make today`
 
 - `sahara-v2`: `Abeg, how much I don make today?`
+- `sahara-v2.5`: `Abeg how much i don make today`
 - `whisper-large-v3`: `I beg, how much I don't make today?`  ⚠ perfective_negation_inversion
 - `whisper-small`: `a big how much I don't make today`  ⚠ perfective_negation_inversion
 
-**afx023** — truth: `kile kiwango kinachotakiwa cha kulipa dividends`
+**case03** — truth: `I buy fuel ten thousand naira`
 
-- `sahara-v2`: `Kile kiwango kinachotakiwa cha kulipa dividends?`
-- `whisper-large-v3`: `If I don't have money, I won't be able to pay the dividend.`
-- `whisper-small`: `Kila Kiwangu Kina Chotaki Wachabuli Padik, Edent.`
+- `sahara-v2`: `i buy fuel thousand naira`  ✗ AMOUNT CORRUPTED
+- `sahara-v2.5`: `I buy fuel0 naira`
+- `whisper-large-v3`: `Abai Fouil, 10,000 Naira`
+- `whisper-small`: `a bife wheel 10,000 air`
 
-**afx016** — truth: `.... from the... Ikiwa tutaikomboa Mji wa Aleppo kutoka mkononi mwa magaidi`
+**case10** — truth: `no no na five k not five thousand five`
 
-- `sahara-v2`: `Aleppo kutoka kwa. Ikiwa tutaikomboa mji wa Aleppo kutoka mkononi mwa magaidi.`
-- `whisper-large-v3`: `Aleppo from the...`
-- `whisper-small`: `The repo from the key was to talk on bomb. You are a lepo. Could I come in on him? I'm a guy`
+- `sahara-v2`: `no no na 5 key not 500`
+- `sahara-v2.5`: `No know na 5 k not 50005`  ✗ AMOUNT CORRUPTED
+- `whisper-large-v3`: `No, no, not 5K, not 5,000, 5.`
+- `whisper-small`: `No, no, no, no, five key, not 5,000 five`
 
-**afx019** — truth: `actually kwasababu hivi kwa mfano wa kitabu zitakazo nunuliwa, unajua hii nchi.`
+**sh03** — truth: `Customer atora two mabuckets enzungu achiita two fifty hwani`
 
-- `sahara-v2`: `Actually, kwa sababu ni hivi, kwa mfano 500 zitakazonunuliwa, unajua hii ni nini.`
-- `whisper-large-v3`: `Actually, because this is how it is. For example, 5 out of 5 people are not being bought. You know this country.`
-- `whisper-small`: `Actually, because of the NIV. I'm going to put a little bit of my guitar in the middle of the song. I'm going to put it in the middle.`
+- `sahara-v2.5`: `kastum atora mabhaketi enzungu anga achiita 250 bake 1`
+- `whisper-large-v3`: `customer atorama buckets in Zungu and got cheetah 250 bucket one`  ✗ AMOUNT CORRUPTED
 
-## Per-model notes
+**sh12** — truth: `Aiwa yairi five dollars kwete five fifty`
 
-**sahara-v2** — Built for exactly this speech: code-switched African utterances, dense numbers, market vocabulary. Cloud-only in this benchmark (offline deployment exists but was not under test); every call is visible in the egress ledger. Judged here on downstream safety, not just WER.
+- `sahara-v2.5`: `aihwa aiwa yangairi5 ndozita 50`
+- `whisper-large-v3`: `Aiyo wa, aiyo wa, yanga iri $5, kwete $5.50.`  ✗ AMOUNT CORRUPTED
 
-**whisper-large-v3** — Strong general-purpose local model; runs fully offline. Known weaknesses on Pidgin and Yoruba numerals; tends to 'anglicise' code-switched speech, which is precisely the error class that corrupts amounts downstream.
+## 7. Per-model assessment
 
-**whisper-small** — Lightweight local substitute (used only when no frontier API key was available). Fast and offline, but weakest on accented, code-switched speech — treat its numbers as a floor, not a fair frontier baseline.
+**`omnilingual-ctc-300m`** — Meta's omnilingual-ASR (CTC, 300M), open weights (Apache-2.0), run locally via fairseq2. **Pros:** the strongest open model on our languages in Microsoft's PazaBench, claims 1,672 languages including `pcm_Latn` and `sna_Latn`, costs nothing to run, and is the only model in this benchmark that renders Yoruba numerals with correct diacritics. **Cons:** no Windows build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes phonetically rather than semantically — it hears the words but drops or mangles the digits that a ledger depends on.
 
-### The reduplication finding
+**sahara *(5 Aug snapshot)*** — No notes.
 
-Case 4 ("two two fifty") was originally specced as an ambiguity requiring
-a clarify question. Native-speaker review corrected this: in Nigerian Pidgin,
-reduplicated money **is** the distributive — 250 each, unambiguously. An
-outsider (and the AI that drafted the corpus) hears ambiguity where native
-grammar encodes meaning. The parse rule now lives in the pcm-yo-NG pack,
-gated off for packs that have not had native validation.
+**`sahara-v2.5`** — **Pros:** built for exactly this speech — code-switched African utterances, dense numbers, market vocabulary; the only model that renders Nigerian Pidgin grammar as Pidgin rather than anglicising it. Ships TTS in the same voice register, so the readback matches the input language. **Cons:** cloud-only (offline deployment is enterprise-tier), no model/version field in responses, and its LLM post-corrections are on by default — helpful for readability, but they reformat digits in ways a downstream parser must be written to expect.
 
-## Methodology & caveats
+**`whisper-large-v3`** — **Pros:** strong general-purpose local model, fully offline, no per-call cost. **Cons:** three failure modes that matter here. It anglicises code-switched speech; it inverts Pidgin's perfective 'I don sell' into the negated 'I don't sell', reversing the meaning of a sale; and on low-resource African audio it **hallucinates its own training data** — two Shona clips returned "Thank you for watching my video" and "Thank you for watching. This is Mrs. Jessie.", fluent English sentences with no relationship to the audio. Most seriously, it turned a *correction* into a corrupted amount: the utterance "Aiwa yairi five dollars kwete five fifty" ("no, it was five dollars, **not** five fifty") was transcribed as "$5, kwete $5.50" and parsed to log 550 — the exact figure the trader was correcting away from.
 
-- Provenance: tier-a utterances were drafted by an AI assistant and CORRECTED
-  by a native Nigerian Pidgin/Yoruba speaker before recording; sw-KE and ha-NG
-  cases remain non-native drafts pending venue validation (flagged per-case).
-  Even the test corpus required native-speaker repair — the same gap the
-  product exists to close.
-- Licence: AfriSwitch (CC BY-NC-SA 4.0) is used for evaluation only, never
-  redistributed, and not used to train or build the product.
-- WER: word-level (S+D+I)/N. Normalised = lowercase, punctuation stripped,
-  whitespace collapsed (jiwer-standard). The Intron-Multimodal-Benchmarking
-  repo reports normalised + unnormalised WER but does not publish its
-  normaliser; ours is stated here so numbers are interpretable, not claimed
-  identical to theirs.
-- Numeric accuracy: every expected amount/quantity must be recoverable from
-  the transcript after format normalisation ('5.5k' == 'five k five' == 5500).
-- Transaction accuracy: each raw transcript is fed through the SautiLedger
-  grammar-first normaliser (LLM fallback disabled) and compared to the
-  expected ParseResult.
-- Caveats: small n; tier `sautiledger-clips` is a single speaker (the
-  developer); sw-KE/ha-NG ground truths drafted non-natively pending venue
-  validation. Sahara failures, where they occur, are reported unedited —
-  the claim under test is downstream safety, not raw perfection.
-- Citations: **AfriSwitch** (huggingface.co/datasets/intronhealth/AfriSwitch,
-  licence CC BY-NC-SA 4.0; 54.41h / 16,602 code-switched utterances across
-  14 African languages paired with English; used here for non-commercial
-  benchmarking, samples fetched at run time and never redistributed);
-  AfriVox / AfriSpeech datasets © Intron Health; Olatunji et al.,
-  *AfriSpeech-200: Pan-African Accented Speech Dataset for Clinical and
-  General Domain ASR* (TACL 2023);
-  github.com/intron-innovation/Intron-Multimodal-Benchmarking.
+**`whisper-small`** — **Pros:** fast, offline, tiny. **Cons:** weakest on accented code-switched speech; used here as the frontier substitute because no frontier API key was available. Treat its numbers as a floor, not a fair frontier baseline.
+
+## 9. Product feedback to Intron
+
+Offered in the spirit the challenge asked for — everything below was observed while building on the API, with traces retained.
+
+1. **Streaming STT never returns `COMMITTED_TRANSCRIPT`.** Sending `COMMIT` is answered with `INPUT_ERROR: "Error processing data"`, verified repeatedly (26 Aug, and again on v2.5 on 2 September with real-time-paced chunks). Our client works around it by treating the last `PARTIAL_TRANSCRIPT` as final. First partial arrives ~10s after commit, so streaming is currently slower than the sync endpoint for short utterances; we ship with streaming disabled and a one-variable switch to re-enable it.
+2. **Unknown form fields are silently ignored.** Posting `language=pcm` instead of `use_language_asr_input=pcm` does not error — the request quietly falls back to English ASR and returns a confident, wrong-language transcript. This cost us a day of chasing a phantom model regression. Rejecting unknown `use_*` fields, or echoing the effective configuration in the response, would prevent an entire class of silent integration bugs.
+3. **No model or version identifier in any response.** We measured deterministic changes in output on identical audio between 5 August and 2 September. Benchmarks are not reproducible against a moving, unlabelled backend; a `model_version` field would fix this.
+4. **Shona is a supported language but not a supported code-switch pair.** AfriSwitch itself ships 3.86 h of Shona at CMI 24.55 — among the most balanced code-mixing in the dataset — so the data to close this gap already exists in-house.
+5. **TTS accent values are language-named and undocumented in tutorials.** Finding `voice_language="pcm"` + `voice_accent="pidgin"` required probing; the combination is correct and produces a genuinely Nigerian voice, which materially improved how our testers received the app.
+
+## 10. Related work and how this benchmark differs
+
+- **PazaBench** (Microsoft Research Africa; `aka.ms/pazabench`) — the ASR leaderboard for low-resource languages, 61 African languages × 53 models. Snapshot taken 28 August (`results/pazabench-wer-2026-08-28.md`). Two verified gaps motivate this work: **Nigerian Pidgin does not appear among its 61 languages**, and **no Intron/Sahara model appears among its 53 models**. Note the precision: omnilingual-ASR *claims* `pcm_Latn` support, so the gap is in public *evaluation*, not claimed coverage — and to our knowledge this report contains the first published Pidgin numbers for it.
+- **ASR-FairBench** (Rai et al., Interspeech 2025) — motivates §3. Their core argument, that aggregate accuracy conceals group disparity, is the reason we report per-group WER and a disparity ratio.
+- **AfriSwitch** (`intronhealth/AfriSwitch`, CC BY-NC-SA 4.0) — 54.41 h / 16,602 code-switched utterances across 14 African languages. Re-checked on 7 September, the eve of our corpus freeze: still 14 languages, unchanged since 3 August. Used for evaluation only, never redistributed, never used to train the product.
+- **LyngualLabs Yoruba-English code-switching** — listed in Intron's code-switching collection and worth an honourable mention, but it is a **TTS model** (a VoxCPM2 fine-tune), not a corpus: it has no human audio paired with ground-truth transcripts, and benchmarking ASR on synthesised speech would be circular. It is therefore cited, not used.
+
+**Mercy Muchai** (Microsoft Research Africa), at the same masterclass, made the point this corpus is built around: code-switching evaluation requires datasets that are themselves code-mixed — a single-language corpus cannot measure it. Our tier-a and tier-sh corpora are natively recorded code-mixed market speech, and tier-b is AfriSwitch.
+
+## 11. Methodology, provenance and caveats
+
+- **Corpus frozen before the first run.** The manifest sha256 is printed at the top of this report; no clip was added or dropped after seeing any result. Raw transcripts are cached per clip per model, so every number here is reproducible without re-spending API credits.
+- **Provenance.** tier-a utterances were drafted by an AI assistant and then CORRECTED by a native Nigerian Pidgin/Yoruba speaker before recording; tier-sh identically, by a native Shona speaker (7 September). The sw-KE and ha-NG cases remain non-native drafts and are flagged as such — they are excluded from the recorded tiers rather than presented as validated. Even our test corpus needed native repair: that is the same gap the product exists to close.
+- **Transaction accuracy** feeds each raw transcript through the shipped grammar-first normaliser with the LLM fallback disabled, so the number reflects deterministic behaviour only.
+- **Diacritic folding.** omnilingual returns correctly accented Yoruba (`ẹgbẹrùn mẹ́ta`). Our scorer folds diacritics before comparison, because penalising a model for orthographic faithfulness the reference lacks would be a bias in *our* instrument. The fold is a no-op on ASCII output, so it does not advantage any model.
+- **Caveats.** Small n per tier; tier-a is a single speaker and tier-sh is a single speaker, so their WERs describe those voices, not their languages. No frontier API model was available (no key); whisper-small substitutes and is labelled as a floor. Sahara failures are reported unedited — the claim under test is downstream safety, not vendor perfection.

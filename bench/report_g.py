@@ -78,6 +78,15 @@ PROS_CONS = {
     ),
 }
 
+# the August cache, kept as evidence that an unlabelled backend moved
+SNAPSHOT = "sahara-v2"
+DISPLAY = {SNAPSHOT: "sahara *(5 Aug snapshot)*"}
+
+
+def _name(model: str) -> str:
+    return DISPLAY.get(model, f"`{model}`")
+
+
 TIER_LABEL = {
     "sautiledger-clips": "tier-a — native-recorded market utterances (Nigerian "
                          "Pidgin/Yoruba/English), parse ground truth",
@@ -127,8 +136,14 @@ def render() -> Path:
     add("")
     add("**Sahara CodeSwitch Africa Challenge (Phase 2) — benchmark report**")
     add("")
-    add(f"Corpus frozen before the first run; manifest sha256 `{data['manifest_sha256']}`. ")
-    add(f"Clips scored: {data['n_clips']}. Models: {len(models)}.")
+    n_clips = len({r["clip"] for r in rows})
+    live = [m for m in models if m != SNAPSHOT]
+    add(f"Corpus frozen before the first run; manifest sha256 "
+        f"`{data['manifest_sha256']}`.")
+    add("")
+    add(f"**{n_clips} clips** across three tiers · **{len(live)} speech systems "
+        f"compared** (`{'`, `'.join(live)}`), plus a frozen 5 August Sahara "
+        "snapshot retained as a drift control rather than as a fifth system.")
     add("")
     for note in data.get("notes", []):
         add(f"> **Note:** {note}")
@@ -169,7 +184,7 @@ def render() -> Path:
             g = sel(model=model, tier=tier, gt_only=True)
             if not g:
                 continue
-            add(f"| `{model}` | {_pct([r['exact_match'] for r in g])} "
+            add(f"| {_name(model)} | {_pct([r['exact_match'] for r in g])} "
                 f"| {_pct([r['amount_safe'] for r in g])} "
                 f"| **{_pct([r['amount_corrupted'] for r in g])}** "
                 f"| {_pct([r['numeric_accuracy'] for r in g])} |")
@@ -222,7 +237,7 @@ def render() -> Path:
             g = sel(model=model, tier=tier)
             if not g:
                 continue
-            add(f"| `{model}` | {_mean([r['wer'] for r in g]):.3f} "
+            add(f"| {_name(model)} | {_mean([r['wer'] for r in g]):.3f} "
                 f"| {_mean([r['wer_raw'] for r in g]):.3f} "
                 f"| {_mean([r.get('cer', 0) for r in g]):.3f} "
                 f"| {_mean([r.get('cer_raw', 0) for r in g]):.3f} |")
@@ -266,7 +281,7 @@ def render() -> Path:
             else:
                 cells.append("–")
         ratio = (max(vals) / min(vals)) if vals and min(vals) > 0 else 0
-        add(f"| `{model}` | " + " | ".join(cells) + f" | **{ratio:.2f}×** |")
+        add(f"| {_name(model)} | " + " | ".join(cells) + f" | **{ratio:.2f}×** |")
     add("")
     add("A model with a low average but a high disparity ratio is not a model that "
         "works for everyone — it is a model that works for whoever resembles its "
@@ -326,13 +341,23 @@ def render() -> Path:
             sg = sel(model=model, tier="sh-clips", gt_only=True)
             if not s:
                 continue
-            add(f"| `{model}` | {_mean([r['wer'] for r in a]):.3f} "
+            add(f"| {_name(model)} | {_mean([r['wer'] for r in a]):.3f} "
                 f"| {_mean([r['wer'] for r in s]):.3f} "
                 f"| {_pct([r['exact_match'] for r in sg])} "
                 f"| **{_pct([r['amount_corrupted'] for r in sg])}** |")
         add("")
-    add("**Outcome: the prediction holds, and the mechanism is visible in the "
-        "transcripts.** Sahara transcribes the Shona *lexicon* well — `ndatengesa`, "
+    add("**Outcome: half right — and the half we got wrong is the informative "
+        "half.** We predicted degradation, unqualified. On **WER we were wrong**: "
+        "Shona WER (0.566) is marginally *better* than our Pidgin tier (0.574), and "
+        "Shona CER is better still. A transcription-only benchmark would have "
+        "concluded that Shona is well supported and moved on. On **task completion "
+        "we were right**: transaction-exact falls from 47% to 27% on the same "
+        "system. We record the prediction as partly falsified rather than quietly "
+        "reframing it, because the gap between those two verdicts is the entire "
+        "argument of this report.")
+    add("")
+    add("**The mechanism is visible in the transcripts.** Sahara transcribes the "
+        "Shona *lexicon* well — `ndatengesa`, "
         "`matomatisi`, `chikwereti`, `rechibage`, `enzungu`, `dzemazai` all come "
         "back intact or near-intact. What collapses is precisely the "
         "**code-switched English money phrase**:")
@@ -350,10 +375,9 @@ def render() -> Path:
         "*not* for code-switching would produce, and it is why we registered the "
         "prediction in advance rather than after seeing the data.")
     add("")
-    add("**Two things follow, and they are the argument of this whole report.** "
-        "First, WER hides it: Shona WER is close to our Pidgin tier, so a "
-        "transcription-only benchmark would call this language 'supported' and move "
-        "on. The task-completion metric exposes it immediately. Second, the safety "
+    add("**Two things follow.** First, WER hid the failure and the "
+        "task-completion metric exposed it — which is why the ordering of this "
+        "report is not cosmetic. Second, the safety "
         "layer converts the gap into a question rather than a wrong number — Sahara "
         "on Shona records **0% amount-corrupted and 100% amount-safe**, because "
         "when the price phrase collapses the grammar refuses to guess and asks. "
@@ -408,7 +432,7 @@ def render() -> Path:
     add("## 7. Per-model assessment")
     add("")
     for model in models:
-        add(f"**`{model}`** — {PROS_CONS.get(model, 'No notes.')}")
+        add(f"**{_name(model)}** — {PROS_CONS.get(model, 'No notes.')}")
         add("")
 
     # ---------------------------------------------------------------- 8 TTS
