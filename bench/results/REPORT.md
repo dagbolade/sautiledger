@@ -310,6 +310,36 @@ Hallucination fell to zero and amount survival reached 100%. Both scorings are k
 > **Note:** Browser speechSynthesis (the app's fallback voice) is NOT measurable here: Chrome renders it straight to the audio device with no capture path, so no round-trip audio can be obtained. It is described qualitatively in the report instead.
 > **Note:** Round-trip judge was whisper-small, not the stronger whisper-large-v3: the benchmark machine is a CPU-only laptop and the larger judge exhausted memory. Absolute figures are therefore an upper bound on round-trip error, not a measure of the voices alone. We assume a weaker judge inflates both systems similarly, but that is an assumption we have not tested — a recogniser can be differentially worse on one accent — so the before/after on a fixed voice is the soundest comparison here, and the between-voice difference should be read as indicative only.
 
+## 8b. Conversation benchmark (scripted replay)
+
+Sections 1–7 score a **transcript** through the parser. That is not the same as a trader finishing a task: a real session has clarifying questions, confirmations, rejections and repairs, and an entry can be written wrongly and then corrected. This section measures the loop end to end — scripted transcripts replayed through **the real agent and a real SQLite ledger**.
+
+**What this is not.** No audio recognition, no synthesis, no network, no LLM, and no human. Turns are scripted, so this measures our conversational logic, not user behaviour or task success with real people. It is a development benchmark and we label it as one; the millisecond figures are local Python and SQLite only.
+
+| Measure | Value |
+|---|---|
+| Scenarios | 12 (11 graded, 1 control) |
+| **Completed** | **7/11** (64%) |
+| Controls behaving correctly | 1/1 |
+| Median turns to completion | 3 |
+| Scenarios that ever wrote a wrong amount | 2 |
+| **Scenarios ending with a wrong amount** | **0** |
+
+Two rows deserve emphasis. **A control scenario asserts the agent must NOT complete** — a sale with no price spoken has to end in a question, and counting that refusal as a failed task would reward guessing. It is scored separately rather than diluting the denominator. And the last two rows are deliberately different measures: an amount can be written wrongly and *then repaired*, so we count wrong amounts **at any turn**, not just at the end. 2 scenario(s) wrote a wrong amount at some point; 0 ended with one. A benchmark that only inspected the final ledger would have scored the repair as a clean run.
+
+### Scenarios taken from a real session
+
+Four scenarios are **verbatim turns from a field session** (device `671e01f8`, 10 September) rather than authored examples — what a trader actually typed when left alone with the app. They are kept in the suite while failing, because a benchmark you only add passing cases to stops being a measurement:
+
+| Scenario | Completes | What the trader hit |
+|---|---|---|
+| `field-buyer-name-suffix` | **no** | a buyer's name after the price (`…220 naira **for iya chinonso**`) is absorbed into the item, and the follow-up amount is then refused by the garbled-item guard |
+| `field-yoruba-confirmation` | **no** | `beeni` — Yoruba for yes — is not accepted as confirmation, so a correctly logged entry stays unconfirmed |
+| `field-english-sales-query` | **no** | `what are my sales today` is not recognised as a query, the most natural English phrasing of the app's core question |
+| `field-yoruba-query` | **no** | `kini gbogbo oja mi leni` — the same question in Yoruba — is likewise unrecognised |
+
+None of these lose money: the ledger rows written were correct, and the failures are refusals and unanswered questions rather than wrong amounts. They are *task-completion* failures — the trader could not finish what she started — which is precisely the class this section exists to surface and the transcript benchmark cannot see.
+
 ## 9. Product feedback to Intron
 
 Offered in the spirit the challenge asked for — everything below was observed while building on the API, with traces retained.

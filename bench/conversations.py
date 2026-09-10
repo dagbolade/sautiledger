@@ -120,7 +120,16 @@ def evaluate(source: Path = DEFAULT_SCENARIOS) -> dict:
     for file in sorted((ROOT / "src/sautiledger").glob("*.py")) + sorted((ROOT / "packs").glob("*.yaml")):
         implementation.update(file.relative_to(ROOT).as_posix().encode())
         implementation.update(file.read_bytes())
-    completed = [r for r in results if r["completed"]]
+    # Some scenarios are CONTROLS: they assert the agent must NOT complete
+    # (a safe refusal is not a completed transaction). Counting them in the
+    # denominator would report a correct refusal as a failure, so they are
+    # scored separately — a control "passes" by staying incomplete.
+    graded = [(s, r) for s, r in zip(scenarios, results)
+              if s.get("expect_completion", True)]
+    controls = [(s, r) for s, r in zip(scenarios, results)
+                if not s.get("expect_completion", True)]
+    completed = [r for _, r in graded if r["completed"]]
+    controls_ok = [r for _, r in controls if not r["completed"]]
     return {
         "schema_version": 1,
         "evaluation_kind": "scripted_transcript_replay",
@@ -136,8 +145,12 @@ def evaluate(source: Path = DEFAULT_SCENARIOS) -> dict:
             "Completion requires an exact final ledger and no pending clarification or confirmation.",
         ],
         "summary": {
-            "scenarios": len(results), "completed": len(completed),
-            "completion_rate": len(completed) / len(results),
+            "scenarios": len(results),
+            "graded_scenarios": len(graded),
+            "completed": len(completed),
+            "completion_rate": len(completed) / len(graded) if graded else None,
+            "controls": len(controls),
+            "controls_behaved_correctly": len(controls_ok),
             "median_turns_to_completion": statistics.median(r["first_completed_turn"] for r in completed) if completed else None,
             "scenarios_with_wrong_amount_at_any_turn": sum(r["ever_committed_wrong_amount"] for r in results),
             "scenarios_with_wrong_final_amount": sum(bool(r["final_wrong_amounts"]) for r in results),

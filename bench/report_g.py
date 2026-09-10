@@ -688,6 +688,89 @@ def render() -> Path:
             add(f"> **Note:** {note}")
         add("")
 
+    # --------------------------------------------------- conversation replay
+    conv_path = RESULTS_DIR / "conversations.json"
+    if conv_path.exists():
+        conv = json.loads(conv_path.read_text(encoding="utf-8"))
+        s = conv["summary"]
+        add("## 8b. Conversation benchmark (scripted replay)")
+        add("")
+        add("Sections 1–7 score a **transcript** through the parser. That is not "
+            "the same as a trader finishing a task: a real session has "
+            "clarifying questions, confirmations, rejections and repairs, and an "
+            "entry can be written wrongly and then corrected. This section "
+            "measures the loop end to end — scripted transcripts replayed "
+            "through **the real agent and a real SQLite ledger**.")
+        add("")
+        add("**What this is not.** No audio recognition, no synthesis, no network, "
+            "no LLM, and no human. Turns are scripted, so this measures our "
+            "conversational logic, not user behaviour or task success with real "
+            "people. It is a development benchmark and we label it as one; the "
+            "millisecond figures are local Python and SQLite only.")
+        add("")
+        add(f"| Measure | Value |")
+        add("|---|---|")
+        add(f"| Scenarios | {s['scenarios']} ({s['graded_scenarios']} graded, "
+            f"{s['controls']} control) |")
+        add(f"| **Completed** | **{s['completed']}/{s['graded_scenarios']}** "
+            f"({s['completion_rate']:.0%}) |")
+        add(f"| Controls behaving correctly | {s['controls_behaved_correctly']}/{s['controls']} |")
+        add(f"| Median turns to completion | {s['median_turns_to_completion']} |")
+        add(f"| Scenarios that ever wrote a wrong amount | {s['scenarios_with_wrong_amount_at_any_turn']} |")
+        add(f"| **Scenarios ending with a wrong amount** | **{s['scenarios_with_wrong_final_amount']}** |")
+        add("")
+        add("Two rows deserve emphasis. **A control scenario asserts the agent "
+            "must NOT complete** — a sale with no price spoken has to end in a "
+            "question, and counting that refusal as a failed task would reward "
+            "guessing. It is scored separately rather than diluting the "
+            "denominator. And the last two rows are deliberately different "
+            "measures: an amount can be written wrongly and *then repaired*, so "
+            "we count wrong amounts **at any turn**, not just at the end. "
+            f"{s['scenarios_with_wrong_amount_at_any_turn']} scenario(s) wrote a "
+            f"wrong amount at some point; {s['scenarios_with_wrong_final_amount']} "
+            "ended with one. A benchmark that only inspected the final ledger "
+            "would have scored the repair as a clean run.")
+        add("")
+        field = [r for r in conv["results"] if r["id"].startswith("field-")]
+        if field:
+            add("### Scenarios taken from a real session")
+            add("")
+            add("Four scenarios are **verbatim turns from a field session** "
+                "(device `671e01f8`, 10 September) rather than authored "
+                "examples — what a trader actually typed when left alone with "
+                "the app. They are kept in the suite while failing, because a "
+                "benchmark you only add passing cases to stops being a "
+                "measurement:")
+            add("")
+            add("| Scenario | Completes | What the trader hit |")
+            add("|---|---|---|")
+            notes = {
+                "field-buyer-name-suffix":
+                    "a buyer's name after the price (`…220 naira **for iya "
+                    "chinonso**`) is absorbed into the item, and the follow-up "
+                    "amount is then refused by the garbled-item guard",
+                "field-yoruba-confirmation":
+                    "`beeni` — Yoruba for yes — is not accepted as confirmation, "
+                    "so a correctly logged entry stays unconfirmed",
+                "field-english-sales-query":
+                    "`what are my sales today` is not recognised as a query, the "
+                    "most natural English phrasing of the app's core question",
+                "field-yoruba-query":
+                    "`kini gbogbo oja mi leni` — the same question in Yoruba — is "
+                    "likewise unrecognised",
+            }
+            for r in field:
+                add(f"| `{r['id']}` | {'yes' if r['completed'] else '**no**'} "
+                    f"| {notes.get(r['id'], '')} |")
+            add("")
+            add("None of these lose money: the ledger rows written were correct, "
+                "and the failures are refusals and unanswered questions rather "
+                "than wrong amounts. They are *task-completion* failures — the "
+                "trader could not finish what she started — which is precisely "
+                "the class this section exists to surface and the transcript "
+                "benchmark cannot see.")
+            add("")
+
     # ---------------------------------------------------------------- 9
     add("## 9. Product feedback to Intron")
     add("")
