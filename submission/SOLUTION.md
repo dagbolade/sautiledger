@@ -99,7 +99,7 @@ transmission — every clip, every TTS request, every streamed byte — is
 recorded and shown to the user in plain language. The money records
 themselves are never sent to any vendor or model.
 
-**6. Offline-first, with the deployment caveat stated.** The ledger is
+**6. No cloud dependency for the bookkeeping itself.** The ledger is
 SQLite and the app runs without a network for everything except
 transcription — cloud ASR is the accuracy path, not a dependency of
 record-keeping. **Where that SQLite file sits depends on the deployment**:

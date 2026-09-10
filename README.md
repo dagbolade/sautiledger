@@ -1,6 +1,8 @@
 # SautiLedger
 
-**An offline-first, code-switched voice ledger for African market traders.**
+**A code-switched voice ledger for African market traders.**
+The bookkeeping runs as local code — parsing, ledger and arithmetic never
+call a cloud service; only speech does, and every byte is counted.
 Sahara CodeSwitch Africa Challenge (Phase 2) · category: Fintech.
 Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 
@@ -35,14 +37,29 @@ nobody else.
 | **Self-hosted** (`make phone`, the intended production shape) | SQLite on the trader's own device | audio clip + reply text, to Sahara only |
 | **Hosted demo** ([Railway](https://sautiledger-production.up.railway.app), what our field testers used) | SQLite on a server volume we operate | same — plus the utterance reaches our backend to get there |
 
-The offline-first architecture is real and is what the self-hosted mode
-does. **The hosted demo is not phone-local storage**, and we do not claim
-it is: we run it so testers could use the app from a phone without
-installing anything, which was the only way to get real market usage
-inside the challenge window. Per-device cookies isolate each trader's
-ledger from every other trader's; they do not move the storage onto the
-phone. A trader running the hosted instance is trusting us as an operator,
-exactly as they would any web app.
+**We used to call this "offline-first". That was wrong for the hosted app
+and we have dropped it.** The hosted site needs a connection to load at
+all — there is no service worker — the ledger sits on a server volume, and
+the parsing happens on that server rather than on the phone. Per-device
+cookies isolate each trader's ledger from every other trader's; they do
+not move anything onto the phone. A trader running the hosted instance is
+trusting us as an operator, exactly as they would any web app. We run it
+so testers could use the app from a phone without installing anything,
+which was the only way to get real market usage inside the challenge
+window.
+
+What *is* true in both modes is narrower and more useful: **the
+bookkeeping engine has no cloud dependency.** Parsing, the ledger, the
+arithmetic and corrections are deterministic local code, not an API call
+to anyone — unlike most voice agents, which send the transcript to a
+model and let it decide what to do. Self-hosted, the app runs with no
+internet at all for typed input; voice needs Sahara either way.
+
+**What genuine offline-first would take**, so the gap is stated rather
+than discovered: a service worker for offline page load, parsing and
+storage on the device itself, sync on reconnect, and a local speech
+engine for voice. `SaharaOfflineAsr` is the marked swap point for that
+last piece; the rest is unbuilt.
 
 Two rules from [CONSTRAINTS.md](CONSTRAINTS.md) hold in **both** modes,
 and are properties of the code rather than promises:
@@ -68,7 +85,7 @@ this (see below).
 ## Architecture
 
 ```
- phone browser                         FastAPI (localhost)
+ browser                    FastAPI (your machine, or the hosted server)
 ┌───────────────────┐                 ┌──────────────────────────────────┐
 │ push-to-talk mic  │──audio/webm───▶│ POST /utterance                  │
 │ chat bubbles      │◀──reply text───│   ├─ AsrClient                   │
