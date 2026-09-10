@@ -442,6 +442,9 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             tokens, triggered = consume_trigger(tokens, pack.log_triggers)
             # generic "log" — default type is sale
 
+    for phrase in pack.transaction_context_phrases:
+        tokens = _remove_phrase(tokens, phrase)
+
     # Only a marked customer suffix AFTER explicit currency may be separated.
     # Keep the full original utterance in the ledger; never consume a suffix
     # containing another number, a price unit or a correction.
@@ -542,6 +545,24 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
 
     if item is None and not money_toks and unit is None:
         return ParseResult(intent="clarify", question_about="missing_transaction_details")
+
+    # A leftover price connective inside the item is narration or a damaged
+    # price/quantity phrase, never something a bare yes should turn into an item.
+    if (isinstance(parse_money(money_toks, quantity, pack, total_marked=total_marked), dict)
+            and any(t in pack.price_connectives for t in item_toks)):
+        return ParseResult(intent="clarify", question_about="transaction_details",
+                           **{**base, "item": None})
+
+    # Observed ASR substitution: digit price followed by "8" for "each".
+    # Offer both readings, write neither until the trader answers.
+    if (quantity is not None and quantity > 1 and len(money_toks) == 2
+            and money_toks[0].isdigit() and int(money_toks[0]) >= 100
+            and money_toks[1] in pack.unclear_each_tokens):
+        price = int(money_toks[0])
+        return ParseResult(intent="clarify", question_about="price_basis", candidates=[
+            {"reading":"unit_price", "amount_each":price, "total":price * quantity},
+            {"reading":"total", "amount":price},
+        ], **base)
 
     m = parse_money(money_toks, quantity, pack, total_marked=total_marked)
     if m in (NO_MONEY, UNPARSEABLE):

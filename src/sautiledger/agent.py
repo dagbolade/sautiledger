@@ -60,6 +60,13 @@ class Agent:
 
     def handle(self, text: str) -> str:
         if self.pending is not None:
+            # A complete restatement starts over; do not mine its numbers as
+            # an answer to an older question about a different transaction.
+            words = " " + " ".join(tokenize(text)) + " "
+            triggers = self.pack.sale_triggers + self.pack.expense_triggers + self.pack.log_triggers
+            if any(" " + phrase + " " in words for phrase in triggers):
+                self.pending = None
+                return self._dispatch(normalise(text, self.pack, self.llm), text)
             reply = self._try_resolve_pending(text)
             if reply is not None:
                 return reply
@@ -249,6 +256,9 @@ class Agent:
         return not self.ledger.has_logged_item(parse.item)
 
     def _clarify_question(self, parse: ParseResult) -> str:
+        if parse.question_about == "transaction_details":
+            kind = "purchase" if parse.type == "expense" else "sale"
+            return f"Please repeat the {kind}: item, quantity and price, without the buyer's name. Was the price each or total?"
         if parse.candidates:
             unit_price = next(c for c in parse.candidates if c["reading"] == "unit_price")
             total = next(c for c in parse.candidates if c["reading"] == "total")
@@ -269,7 +279,7 @@ class Agent:
             if parse.item and len(parse.item.split()) <= 3:
                 verb = "pay for" if parse.type == "expense" else "sell"
                 return f"How much you {verb} the {parse.item}?"
-            return "How much you sell am?"
+            return "How much did you pay in total, or for each item?" if parse.type == "expense" else "How much you sell am?"
         if parse.question_about == "item":
             return "Wetin she buy? Talk the thing name."
         return "Wetin you want make I log? Tell me the item and the amount, abeg."
@@ -279,6 +289,9 @@ class Agent:
     def _try_resolve_pending(self, text: str) -> str | None:
         pending = self.pending
         lowered = tokenize(text)
+
+        if pending.question_about == "transaction_details":
+            return self._clarify_question(pending)
 
         if pending.question_about == "amount_confirm":
             rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
@@ -343,13 +356,25 @@ class Agent:
             return None  # they restated instead — parse it fresh
 
         if pending.candidates:
+            if pending.question_about == "price_basis":
+                money = [t for t in lowered if is_moneyish(t, self.pack)]
+                if any(_num_value(t, self.pack) is not None for t in money):
+                    if not any(t in self.pack.each_words or t in {"total", "all"} for t in lowered):
+                        return self._clarify_question(pending)
+                    parsed = parse_money(money, pending.quantity, self.pack, total_marked=True)
+                    if not isinstance(parsed, dict) or "ambiguous" in parsed:
+                        return self._clarify_question(pending)
+                    self.pending = None
+                    return self._gate_and_commit(replace(pending, intent="log_transaction",
+                        question_about=None, candidates=None, amount=parsed.get("amount"),
+                        amount_each=parsed.get("amount_each")), text)
             chosen = None
             if "each" in lowered:
                 chosen = next(c for c in pending.candidates if c["reading"] == "unit_price")
             elif "total" in lowered or "all" in lowered:
                 chosen = next(c for c in pending.candidates if c["reading"] == "total")
             if chosen is None:
-                return None
+                return self._clarify_question(pending)
             self.pending = None
             filled = replace(
                 pending,

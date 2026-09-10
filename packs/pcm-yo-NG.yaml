@@ -111,11 +111,13 @@ units:
 # "mo taa" / "mo ta" — Yoruba first-person "I sold"
 sale_triggers: [don sell, customer take, customer buy, come buy, buy am, mo taa, mo ta, sold, sell, carry, take, buy]
 # "mo ra" — Yoruba first-person "I bought"
-expense_triggers: [i buy, i don buy, mo ra, bought]
+expense_triggers: [i go market go buy, i go buy, i went to buy,i buy, i don buy, mo ra, bought]
 log_triggers: [log am, log]
 
 # Typed Yoruba confirmations and explicit customer-attribution titles.
-affirmation_phrases: [beeni, bee ni]
+affirmation_phrases: [yes you get, yes you got it, yes you get am, beeni, bee ni]
+transaction_context_phrases: [for my stock, for stock]
+unclear_each_tokens: ["8"]
 customer_markers: [for iya, for baba, for mr, for mrs, for customer]
 
 queries:

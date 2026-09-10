@@ -56,6 +56,8 @@ class Pack:
 
     affirmation_phrases: list[str] = field(default_factory=list)
     customer_markers: list[str] = field(default_factory=list)
+    transaction_context_phrases: list[str] = field(default_factory=list)
+    unclear_each_tokens: list[str] = field(default_factory=list)
 
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
@@ -69,6 +71,8 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
     return Pack(
         affirmation_phrases=list(raw.get("affirmation_phrases") or []),
         customer_markers=list(raw.get("customer_markers") or []),
+        transaction_context_phrases=list(raw.get("transaction_context_phrases") or []),
+        unclear_each_tokens=[str(t) for t in raw.get("unclear_each_tokens") or []],
         name=raw["name"],
         currency=raw["currency"],
         numbers={str(k): int(v) for k, v in (raw.get("numbers") or {}).items()},

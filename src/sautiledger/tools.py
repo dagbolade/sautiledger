@@ -73,7 +73,7 @@ def log_transaction(ledger: Ledger, parse: ParseResult, raw_utterance: str) -> s
         what = f"{parse.quantity} {parse.unit} of {parse.item}"
     elif parse.quantity is not None:
         what = f"{parse.quantity} {what}"
-    verb = "Logged expense" if parse.type == "expense" else "Logged"
+    verb = "Logged expense" if parse.type == "expense" else "Logged sale"
     if parse.amount_each and parse.amount:
         return (
             f"{verb}: {what}, {_money(parse.amount_each, parse.currency)} each, "
