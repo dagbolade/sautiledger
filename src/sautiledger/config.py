@@ -38,7 +38,7 @@ class Settings:
     recordings_dir: str | None = None
     # unlocks /admin/* (field-test export); unset = admin surface disabled
     admin_token: str | None = None
-    # voice-out: "auto" = Sahara's Pidgin voice in cloud mode, browser
+    # voice-out: "auto" = Intron voice matching the reply in cloud mode, browser
     # speechSynthesis otherwise; "browser" forces zero-egress voice
     tts: str = "auto"  # "auto" | "sahara" | "browser"
     # live streaming transcription (words appear while talking); the

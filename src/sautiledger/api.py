@@ -37,8 +37,10 @@ from .egress import EgressError, EgressRecorder
 from .ledger import DEFAULT_SESSION, Ledger
 from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
+from .review import transaction_review
+from .replies import english_reply
 from .statement import build_statement_html
-from .tts import SaharaTts
+from .tts import SaharaTts, ENGLISH_ACCENTS, voice_profile
 
 STATIC_DIR = Path(__file__).resolve().parents[2] / "static"
 
@@ -81,6 +83,10 @@ class _Session:
         if (settings.tts in ("auto", "sahara") and settings.mode == "cloud"
                 and settings.sahara_api_key):
             self.tts = SaharaTts(self.recorder, settings.sahara_api_key)
+        self.voice_accent = "yoruba"
+        self.voice_gender = "female"
+        self.reply_language = "en"
+        self.last_reply: str | None = None
         self.touched = 0
 
 
@@ -88,6 +94,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or get_settings()
     pack = load_pack(settings.pack)
     base_ledger = Ledger(settings.db_path)
+    base_ledger.conn.execute("CREATE TABLE IF NOT EXISTS language_prefs (device TEXT PRIMARY KEY, pack TEXT NOT NULL, reply TEXT NOT NULL)")
+
+    base_ledger.conn.execute("CREATE TABLE IF NOT EXISTS voice_prefs (device TEXT PRIMARY KEY, accent TEXT NOT NULL, gender TEXT NOT NULL)")
 
     # consented voice clips land next to the database (i.e. on the volume);
     # an in-memory database with no explicit dir means retention is off
@@ -107,6 +116,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     oldest = min(sessions, key=lambda k: sessions[k].touched)
                     del sessions[oldest]
                 sess = _Session(settings, pack, base_ledger, device_id)
+                pref = base_ledger.conn.execute("SELECT pack, reply FROM language_prefs WHERE device = ?", (device_id,)).fetchone()
+                if pref:
+                    sess.agent.pack = load_pack(pref["pack"])
+                    sess.reply_language = pref["reply"]
+                voice_pref = base_ledger.conn.execute("SELECT accent, gender FROM voice_prefs WHERE device = ?", (device_id,)).fetchone()
+                if voice_pref:
+                    sess.voice_accent, sess.voice_gender = voice_pref["accent"], voice_pref["gender"]
                 sessions[device_id] = sess
             clock[0] += 1
             sess.touched = clock[0]
@@ -145,6 +161,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         def friendly(reply: str, error: str, outcome: str) -> dict:
             # spoken-style bubble instead of a raw error (the UI reads this
             # aloud); every turn — failures included — lands in usage_log
+            if sess.reply_language == "en":
+                reply = english_reply(reply)
             ledger.record_usage(input_mode, transcript_text or None, reply,
                                 outcome, saved_clip)
             return {
@@ -181,7 +199,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 (clip_dir / name).write_bytes(blob)
                 saved_clip = f"{ledger.session_id}/{name}"
             try:
-                transcript_text = asr.transcribe(blob, language_hint=pack.name).text
+                transcript_text = asr.transcribe(blob, language_hint=agent.pack.name).text
             except EgressError as exc:
                 print(f"ASR send failed: {exc}; content_type={content_type} "
                       f"bytes={len(blob)}", flush=True)
@@ -198,6 +216,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         txn_before = ledger.max_txn_id()
         voided_before = ledger.voided_count()
         reply = agent.handle(transcript_text)
+        if sess.reply_language == "en":
+            reply = english_reply(reply)
+        sess.last_reply = reply
         if ledger.max_txn_id() > txn_before:
             outcome = "logged"
         elif ledger.voided_count() > voided_before:
@@ -211,6 +232,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "transcript": transcript_text,
             "reply_text": reply,
             "parse": (agent.pending.to_dict() if agent.pending else None),
+            "review": transaction_review(agent),
             "egress_delta": recorder.total_bytes() - egress_before,
             "egress_total": recorder.total_bytes(),
         }
@@ -223,7 +245,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         row = sess.ledger.void_transaction(txn_id)
         if row is None:
             return JSONResponse(status_code=404, content={"error": "no such entry"})
-        return {"ok": True, "voided": txn_id}
+        if sess.agent.last_logged_id == txn_id and sess.agent.awaiting_confirm:
+            sess.agent.awaiting_confirm = False
+            sess.agent.last_logged_id = None
+            sess.last_reply = "Entry removed."
+        return {"ok": True, "voided": txn_id, "review": transaction_review(sess.agent), "reply_text": sess.last_reply or "Entry removed."}
 
     # -------------------------------------------------- live streaming voice
     # Words appear while the trader is still talking: browser PCM chunks
@@ -247,14 +273,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 + recorder.sends_today(SaharaStreamingAsr.STREAM_PURPOSE)) >= ASR_DAILY_CAP:
             await ws.send_json({
                 "type": "error",
-                "reply_text": "Voice don reach im limit for today o. Type am instead, abeg.",
+                "reply_text": ("Today's voice limit has been reached. Please type your entry." if sess.reply_language == "en" else "Voice don reach im limit for today o. Type am instead, abeg."),
             })
             await ws.close()
             return
 
         egress_before = recorder.total_bytes()
         sasr = SaharaStreamingAsr(recorder, settings.sahara_api_key,
-                                  LANGUAGE_CODES.get(pack.name, "pcm"))
+                                  LANGUAGE_CODES.get(sess.agent.pack.name, "pcm"))
         pcm_all = bytearray()
         final_text: list[str | None] = [None]
         last_partial = [""]
@@ -328,8 +354,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             try:
                 await ws.send_json({
                     "type": "error",
-                    "reply_text": "Network wahala — I no fit stream right now. "
-                                  "Try talk am again.",
+                    "reply_text": ("The voice service is unavailable. Please try again or type your entry." if sess.reply_language == "en" else "Network wahala — I no fit stream right now. Try talk am again."),
                 })
                 await ws.close()
             except Exception:
@@ -346,10 +371,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             saved_clip = f"{ledger.session_id}/{name}"
 
         if not transcript:
-            reply = "I no hear you well, abeg talk am again."
+            reply = "I could not hear you clearly. Please try again." if sess.reply_language == "en" else "I no hear you well, abeg talk am again."
             ledger.record_usage("voice", None, reply, "asr_empty", saved_clip)
             await ws.send_json({
-                "type": "final", "transcript": "", "reply_text": reply,
+                "type": "final", "transcript": "", "reply_text": reply, "error": "asr_empty",
                 "egress_delta": recorder.total_bytes() - egress_before,
                 "egress_total": recorder.total_bytes(),
             })
@@ -359,6 +384,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         txn_before = ledger.max_txn_id()
         voided_before = ledger.voided_count()
         reply = await run_in_threadpool(sess.agent.handle, transcript)
+        if sess.reply_language == "en":
+            reply = english_reply(reply)
+        sess.last_reply = reply
         if ledger.max_txn_id() > txn_before:
             outcome = "logged"
         elif ledger.voided_count() > voided_before:
@@ -370,6 +398,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ledger.record_usage("voice", transcript, reply, outcome, saved_clip)
         await ws.send_json({
             "type": "final", "transcript": transcript, "reply_text": reply,
+            "parse": (sess.agent.pending.to_dict() if sess.agent.pending else None),
+            "review": transaction_review(sess.agent),
             "egress_delta": recorder.total_bytes() - egress_before,
             "egress_total": recorder.total_bytes(),
         })
@@ -382,22 +412,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/tts")
     def tts(request: Request, response: Response, text: str = Form(...)):
-        """Reply audio in the Sahara Pidgin voice. 204 means 'use the
-        browser voice' — offline mode, no client, cap reached, or the
-        cloud call failing all degrade the same quiet way."""
+        """Generate the selected Intron reply voice. A 204 means unavailable;
+        the UI retains the complete written readback and offers a retry."""
         sess = session_for(resolve_device(request, response))
         if sess.tts is None:
             return Response(status_code=204)
-        text = text.strip()[:500]
+        text = text.strip()
+        if not text or len(text) > 4096:
+            return JSONResponse(status_code=400, content={"error": "Reply must contain 1–4096 characters."})
+        profile = voice_profile(sess.reply_language, sess.voice_accent, sess.voice_gender)
         cached = None
         if tts_cache is not None:
-            cached = tts_cache / (hashlib.sha256(text.encode()).hexdigest() + ".wav")
+            cached = tts_cache / (hashlib.sha256(json.dumps({"version": 2, "text": text, **profile}, sort_keys=True).encode()).hexdigest() + ".wav")
             if cached.exists():
                 return Response(content=cached.read_bytes(), media_type="audio/wav")
         if sess.recorder.sends_today("your reply, sent to make the voice") >= 300:
             return Response(status_code=204)
         try:
-            audio = sess.tts.speak(text)
+            audio = SaharaTts(sess.recorder, settings.sahara_api_key, **profile).speak(text)
         except Exception as exc:  # voice is optional — any failure degrades
             print(f"TTS failed: {exc}", flush=True)
             return Response(status_code=204)
@@ -419,6 +451,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sess.ledger.set_retain_audio(value)
         return {"retain_audio": value}
 
+    @app.post("/voice")
+    def voice(request: Request, response: Response, accent: str = Form(...), gender: str = Form(...)):
+        if accent not in ENGLISH_ACCENTS or gender not in {"female", "male"}:
+            return JSONResponse(status_code=400, content={"error": "Unsupported voice choice."})
+        sess = session_for(resolve_device(request, response))
+        sess.voice_accent, sess.voice_gender = accent, gender
+        base_ledger.conn.execute("INSERT INTO voice_prefs VALUES (?, ?, ?) ON CONFLICT(device) DO UPDATE SET accent=excluded.accent, gender=excluded.gender", (sess.ledger.session_id, accent, gender))
+        base_ledger.conn.commit()
+        return voice_profile(sess.reply_language, accent, gender)
+
+    @app.post("/language")
+    def language(request: Request, response: Response, speech_pack: str = Form(...), reply_language: str = Form(...)):
+        sess = session_for(resolve_device(request, response))
+        if (speech_pack, reply_language) not in {("pcm-yo-NG", "en"), ("pcm-yo-NG", "pcm"), ("sh-ZW", "en")}:
+            return JSONResponse(status_code=400, content={"error": "Unsupported speech and reply combination."})
+        if sess.agent.pending is not None or sess.agent.awaiting_confirm:
+            return JSONResponse(status_code=409, content={"error": "Answer the current question before changing language."})
+        selected = load_pack(speech_pack)
+        if selected.currency != sess.agent.pack.currency and sess.ledger.all_transactions():
+            return JSONResponse(status_code=409, content={"error": "This book already contains entries. Use a separate book for another currency."})
+        sess.agent.pack = selected
+        sess.reply_language = reply_language
+        sess.last_reply = None
+        base_ledger.conn.execute("INSERT INTO language_prefs VALUES (?, ?, ?) ON CONFLICT(device) DO UPDATE SET pack=excluded.pack, reply=excluded.reply", (sess.ledger.session_id, speech_pack, reply_language))
+        base_ledger.conn.commit()
+        return {"pack": selected.name, "reply_language": reply_language, "currency": selected.currency}
+
     @app.get("/state")
     def state(request: Request, response: Response):
         sess = session_for(resolve_device(request, response))
@@ -426,13 +485,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         sales_n, sales_total = sess.ledger.sales_total("today")
         return {
             "mode": settings.mode,
-            "pack": pack.name,
-            "currency": pack.currency,
+            "pack": sess.agent.pack.name,
+            "reply_language": sess.reply_language,
+            "currency": sess.agent.pack.currency,
             "entries": entries,
             "sales_count": sales_n,
+            "review": transaction_review(sess.agent),
+            "review_reply": sess.last_reply,
             "sales_total": sales_total,
             "retain_audio": sess.ledger.retain_audio,
             "tts": "sahara" if sess.tts is not None else "browser",
+            "voice": voice_profile(sess.reply_language, sess.voice_accent, sess.voice_gender),
+            "english_accents": list(ENGLISH_ACCENTS),
+            "preferred_accent": sess.voice_accent,
             "stream": stream_ready,
             "egress_total": sess.recorder.total_bytes(),
             "egress_log": [dict(row) for row in sess.recorder.log()],
@@ -440,7 +505,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # -------------------------------------------------- bank-readiness statement
 
-    def _statement_response(ledger: Ledger, period: str) -> Response:
+    def _statement_response(ledger: Ledger, period: str, currency: str) -> Response:
         days = 30 if period == "month" else 7
         since = (date.today() - timedelta(days=days - 1)).isoformat()
         label = f"Last {days} days · {since} to {date.today().isoformat()}"
@@ -448,7 +513,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # non-technical reader should not meet a UUID fragment here
         owner = f"Statement ref {ledger.session_id[:4].upper()}"
         page = build_statement_html(
-            ledger.statement_rows(since), pack.currency, label, days, owner
+            ledger.statement_rows(since), currency, label, days, owner
         )
         return Response(content=page, media_type="text/html")
 
@@ -457,7 +522,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         """The visitor's own book as a lender-legible page; the browser's
         print-to-PDF turns it into the document."""
         sess = session_for(resolve_device(request, response))
-        return _statement_response(sess.ledger, period)
+        return _statement_response(sess.ledger, period, sess.agent.pack.currency)
 
     # -------------------------------------------------- admin (field test)
     # Token-gated export of one session's usage evidence — pulled with the
@@ -523,7 +588,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         denied = _admin_denied(request)
         if denied:
             return denied
-        return _statement_response(base_ledger.scoped(session), period)
+        return _statement_response(base_ledger.scoped(session), period, session_for(session).agent.pack.currency)
 
     @app.get("/admin/audio")
     def admin_audio(request: Request, session: str):

@@ -144,9 +144,14 @@ class Agent:
                 self.ledger, parse.query, parse.period, self.pack.currency, item=parse.item
             )
         if parse.intent == "correct_last_entry":
-            return tools.correct_last_entry(
+            reply = tools.correct_last_entry(
                 self.ledger, parse.field, parse.new_value, parse.due, self.pack.currency
             )
+            row = self.ledger.last_transaction()
+            if parse.field == "amount" and row is not None:
+                self.awaiting_confirm = True
+                self.last_logged_id = row["id"]
+            return reply
         if parse.intent == "daily_summary":
             return tools.daily_summary(
                 self.ledger, parse.period, self.pack.currency,

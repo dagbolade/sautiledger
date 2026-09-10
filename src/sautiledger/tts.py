@@ -1,15 +1,5 @@
-"""TtsClient interface — implementations selected by config.
-
-Default voice-out path is the BROWSER's speechSynthesis (static/app.js):
-fully on-device, zero egress, zero install. Trade-off (see README):
-voice quality is robotic-ish, but the readback's job is verification,
-not beauty — the trader hears the amount echoed back.
-
-PiperLocalTts is here for a nicer local voice when a piper binary and
-voice model are installed. SaharaTts is the swap point for Intron's TTS;
-NOTE: a CLOUD TTS call would send reply text off-device, breaking the
-audio-only egress guarantee — if ever enabled it MUST route through
-egress.py so the meter shows it.
+"""Offline-swappable TTS. Intron generation and audio retrieval use the
+visible egress recorder. Voice language follows the reply, not the input pack.
 """
 
 from __future__ import annotations
@@ -78,6 +68,19 @@ class PiperLocalTts:
             return out.read_bytes()
 
 
+# Verified against Intron's supported-languages-and-accents documentation.
+ENGLISH_ACCENTS = ("yoruba", "hausa", "igbo", "afrikaans", "luganda", "sepedi",
+                   "swahili", "setswana", "xhosa", "zulu")
+
+
+def voice_profile(reply_language: str, accent: str = "yoruba", gender: str = "female") -> dict:
+    if gender not in {"male", "female"} or accent not in ENGLISH_ACCENTS:
+        raise ValueError("Unsupported voice preference")
+    return {"language": "pcm" if reply_language == "pcm" else "en",
+            "accent": "pidgin" if reply_language == "pcm" else accent,
+            "gender": gender}
+
+
 class SaharaTts:
     """Intron's Sahara TTS — a real Pidgin voice for the readback.
 
@@ -99,8 +102,11 @@ class SaharaTts:
         self.accent = accent
 
     def speak(self, text: str) -> bytes:
+        if not text.strip() or len(speakable(text)) > 4096:
+            raise ValueError("TTS text must contain 1–4096 characters")
         body = json.dumps({
-            "text": speakable(text)[:1000],
+            "text": speakable(text),
+            "output_audio_format": "wav",
             "voice_language": self.language,
             "voice_accent": self.accent,
             "voice_gender": self.gender,

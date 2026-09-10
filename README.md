@@ -8,7 +8,8 @@ Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 **Submission docs:** [SOLUTION](submission/SOLUTION.md) ·
 [ETHICS](submission/ETHICS.md) ·
 [benchmark report](bench/results/REPORT.md) ·
-[demo script](demo/script-phase2.md)
+[demo script](demo/script-phase2.md) ·
+[product evaluation & explorer](bench/PRODUCT_EVALUATION.md)
 
 A trader says *"I don sell three derica of rice five thousand five"* — Pidgin
 grammar, Yoruba numerals, market units, money slang — and the agent logs
@@ -228,12 +229,14 @@ built during the freeze.
   (or the local LLM fallback, which is amount-guarded).
 - **sw-KE and ha-NG packs are drafts** pending deeper native-speaker
   validation; the test file marks every case that needs it.
-- **Voice out is Sahara TTS** in a Nigerian Pidgin voice
-  (`voice_language=pcm`, `voice_accent=pidgin`), routed through the egress
-  ledger like everything else and cached by phrase so repeated
-  confirmations cost nothing. Browser `speechSynthesis` remains the
-  offline fallback; Piper sits behind the same `TtsClient` interface.
-  Sending the reply text is a real disclosure and is logged as one.
+- **Voice out is Intron Sahara TTS** in the reply language: English defaults
+  to the Yoruba accent (`en` / `yoruba`); Pidgin uses `pcm` / `pidgin`.
+  The Conversation panel offers the documented English accents and male/female
+  voices. Requests and audio retrieval use the visible egress ledger. Cache
+  keys include the phrase, language, accent and gender. `SAUTI_TTS=auto` with
+  cloud mode and `SAHARA_API_KEY` enables it; `SAUTI_TTS=browser` keeps local
+  device playback. Cloud failures leave the full readback visible for retry,
+  without silently switching voices. [Voice implementation notes](bench/VOICE_NOTES.md).
 - **Offline ASR is a stub** until Sahara's on-device engine is dropped
   into `SaharaOfflineAsr`. Offline mode today uses typed input / fixture
   audio — the rest of the stack is genuinely offline.

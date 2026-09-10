@@ -29,6 +29,7 @@ bench/results/*
 
 # python
 .venv/
+.venv-ui/
 __pycache__/
 *.pyc
 *.egg-info/

@@ -92,6 +92,7 @@ def test_tts_cache_serves_repeats_without_egress(tmp_path, monkeypatch):
         pack="pcm-yo-NG", db_path=str(tmp_path / "app.db"),
         mode="cloud", sahara_api_key="key")))
 
+    client.post("/language", data={"speech_pack": "pcm-yo-NG", "reply_language": "pcm"})
     first = client.post("/tts", data={"text": "Noted. Ledger correct."})
     second = client.post("/tts", data={"text": "Noted. Ledger correct."})
     assert first.status_code == second.status_code == 200

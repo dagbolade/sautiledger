@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3eb">
+  <title>SautiLedger · Benchmark explorer</title>
+  <link rel="stylesheet" href="explorer.css">
+</head>
+<body>
+  <header><a class="brand" href="index.html">SautiLedger <span>RESEARCH & EVALUATION</span></a><a href="data.json" download="sautiledger-evaluation.json">Download evidence ↓</a></header>
+  <main>
+    <section class="intro"><p class="eyebrow">BEYOND THE TRANSCRIPT</p><h1>Did the right number<br>reach the book?</h1><p>Compare speech systems on the same utterance, then inspect what happens when the agent asks, confirms and corrects.</p></section>
+    <div id="load-error" role="alert" hidden></div>
+    <div class="stats" id="overview"></div>
+    <nav aria-label="Evaluation view"><button id="asr-tab" aria-pressed="true">Speech comparison</button><button id="conversation-tab" aria-pressed="false">Conversation replay <span>SCRIPTED</span></button></nav>
+    <section id="asr-view">
+      <div class="section-title"><h2>Same speech. Different outcomes.</h2><p>Original cached scores. The current agent has not been substituted into these results.</p></div>
+      <div class="filters"><label>Speech group<select id="tier"></select></label><label>Utterance<select id="clip"></select></label><label>System<select id="model"><option value="all">All systems</option></select></label><label class="check"><input id="controls" type="checkbox">Include historical / ablation controls</label></div>
+      <div class="reference"><div><p class="eyebrow" id="clip-label"></p><h3>Reference transcript</h3><p id="reference-text"></p><p id="expected" class="expected"></p></div><div class="audio-box"><audio id="reference-audio" controls preload="none" hidden></audio><p id="audio-note">Checking local audio availability…</p></div></div>
+      <div id="comparison" class="comparison"></div>
+      <div class="section-title"><h2>Performance within this group</h2><p id="coverage-note">Every percentage shows its own denominator. Missing outputs are not counted as successes.</p></div>
+      <div class="table-wrap"><table><thead><tr><th>System</th><th>Clips</th><th>Mean WER</th><th>Exact task</th><th>Amount safe</th><th>Wrong amount</th></tr></thead><tbody id="summary-rows"></tbody></table></div>
+      <p class="caveat">“Amount safe” includes clarification. An exact match to an expected clarification is safe behaviour, not evidence of speech comprehension. Small, single-speaker market tiers do not establish population-level safety.</p>
+    </section>
+    <section id="conversation-view" hidden>
+      <div class="section-title"><h2>Follow the whole transaction.</h2><p>Scripted text → real agent → real SQLite writes. No ASR, TTS or human participants are included.</p></div>
+      <div class="stats" id="conversation-stats"></div>
+      <p class="caveat">A transaction is complete only when the final ledger matches the target and no confirmation or clarification remains. A later correction never erases an earlier wrong-amount write from this evaluation.</p>
+      <label class="scenario-label">Replay scenario<select id="scenario"></select></label>
+      <div id="scenario-summary" class="reference"></div>
+      <div class="replay-toolbar"><button id="previous-turn">← Previous turn</button><span id="turn-position" aria-live="polite"></span><button id="next-turn">Next turn →</button></div>
+      <div id="replay" aria-live="polite"></div>
+      <p class="caveat" id="timing-note"></p>
+    </section>
+    <details><summary>Sources, definitions and reproducibility</summary><div id="methodology"></div></details>
+  </main>
+  <footer>SautiLedger · A voice ledger that asks before it guesses.</footer>
+  <script src="explorer.js"></script>
+</body>
+</html>

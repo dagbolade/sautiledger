@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "provenance": "Developer-authored scripted transcript replays. Not recorded conversations or a held-out human evaluation. Currency amounts follow each pack's storage units (USD cents).",
+  "scenarios": [
+    {"id":"direct-sale","name":"A sale and confirmation","pack":"pcm-yo-NG","turns":["I sell rice for 5500 naira","yes"],"expected":[{"type":"sale","item":"rice","amount":5500,"currency":"NGN","payment_status":"paid"}]},
+    {"id":"missing-amount","name":"Ask for an unspoken amount","pack":"pcm-yo-NG","turns":["I don sell garri finish","five thousand","yes"],"expected":[{"type":"sale","item":"garri","amount":5000,"currency":"NGN","payment_status":"paid"}]},
+    {"id":"wrong-amount-repair","name":"Repair an injected wrong amount","pack":"pcm-yo-NG","note":"First transcript deliberately contains 5500 rather than the intended 5000. Any initial committed wrong amount is counted even if later repaired.","turns":["I sell rice for 5500 naira","no no na five thousand","yes"],"expected":[{"type":"sale","item":"rice","amount":5000,"currency":"NGN","payment_status":"paid"}]},
+    {"id":"reject-replace","name":"Reject and replace a sale","pack":"pcm-yo-NG","note":"Initial 5000 is an injected transcription error; the intended amount is 6000.","turns":["I sell rice for 5000 naira","no","I sell rice for 6000 naira","yes"],"expected":[{"type":"sale","item":"rice","amount":6000,"currency":"NGN","payment_status":"paid"}]},
+    {"id":"deleted-multiplier","name":"Check a suspicious numeral before writing","pack":"pcm-yo-NG","turns":["I buy fuel thousand naira","no na ten thousand","yes"],"expected":[{"type":"expense","item":"fuel","amount":10000,"currency":"NGN","payment_status":"paid"}]},
+    {"id":"shona-sale","name":"Shona / English sale","pack":"sh-ZW","note":"Opening utterance uses the native-validated pack's market form; subsequent turns are scripted English responses.","turns":["Ndatengesa matomatisi ethree dollars","yes"],"expected":[{"type":"sale","item":"matomatisi","amount":300,"currency":"USD","payment_status":"paid"}]},
+    {"id":"shona-mixed-price","name":"Shona mixed-language dollars and cents","pack":"sh-ZW","turns":["Ndatengesa three cups dze rice nefive dollars fifty","yes"],"expected":[{"type":"sale","item":"rice","quantity":3,"unit":"cup","amount":550,"currency":"USD","payment_status":"paid"}]},
+    {"id":"unanswered-question","name":"An unanswered question must stay unresolved","pack":"pcm-yo-NG","note":"Deliberately incomplete. A safe refusal is not a completed transaction.","turns":["I don sell garri finish"],"expected":[{"type":"sale","item":"garri","amount":5000,"currency":"NGN","payment_status":"paid"}]}
+  ]
+}

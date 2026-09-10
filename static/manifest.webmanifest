@@ -4,8 +4,8 @@
   "description": "Talk your sales. The book writes itself.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f1e8",
-  "theme_color": "#0d9d64",
+  "background_color": "#f5f3eb",
+  "theme_color": "#146449",
   "icons": [
     { "src": "/static/icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]

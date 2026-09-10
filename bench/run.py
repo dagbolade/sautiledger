@@ -258,6 +258,8 @@ def _score(model_name: str, clip: dict, hyp: str) -> dict:
 
 def _write_and_report(results: list[dict], manifest_hash: str, notes: list[str],
                       n_present: int, n_missing: int) -> None:
+    from .publication import public_row, REDACTION_NOTE
+
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     (RESULTS_DIR / "metrics.json").write_text(
         json.dumps({
@@ -265,7 +267,8 @@ def _write_and_report(results: list[dict], manifest_hash: str, notes: list[str],
             "notes": notes,
             "n_clips": n_present,
             "n_missing": n_missing,
-            "results": results,
+            "results": [public_row(row) for row in results],
+            "redaction": REDACTION_NOTE,
         }, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )

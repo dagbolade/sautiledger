@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from sautiledger.api import create_app
 from sautiledger.config import Settings
-from sautiledger.statement import DISCLAIMER, statement_stats
+from sautiledger.statement import DISCLAIMER, statement_stats, build_statement_html
 
 
 def _row(ts, type_, item, amount, status="paid", quantity=None, unit=None):
@@ -30,6 +30,18 @@ def test_stats_are_real_arithmetic():
     assert s["active_days"] == 2
     assert s["avg_daily_sales"] == 5000
     assert s["credit_open"] == 2000
+
+
+def test_dollar_statement_uses_cents_and_escapes_user_text():
+    page = build_statement_html(
+        [_row("2026-09-09T09:00:00", "sale", "<rice>", 550)],
+        "USD", "Last 7 days", 7, "Statement ref TEST",
+    )
+    assert "$5.50" in page
+    assert "$550" not in page
+    assert "&lt;rice&gt;" in page
+    assert "<rice>" not in page
+    assert "Sales less expenses" in page
 
 
 def test_statement_page_shows_book_and_disclaimer():
