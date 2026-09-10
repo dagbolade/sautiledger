@@ -267,7 +267,7 @@ built during the freeze.
 - Local pieces: FastAPI, PyAV, faster-whisper and Meta omnilingual-ASR
   (benchmark only), Ollama + Llama 3.2 3B (optional local fallback),
   browser speechSynthesis (offline voice fallback).
-- Built during Deep Learning Indaba 2026 with AI-assisted development;
+- Built during Deep Learning Indaba 2026;
   all language corrections and design decisions came from a
   native-speaker human in the loop.
 
