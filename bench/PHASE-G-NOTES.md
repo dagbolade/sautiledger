@@ -254,3 +254,38 @@ does not change. No paid API calls before the benchmark run plan is
 agreed. (Optional later: update the in-app consent copy for FUTURE users
 to mention optional benchmark sharing — a product decision for David, and
 it would not retroactively cover clips already collected.)
+
+## 12. Final benchmark run — known gaps to close first
+
+Recorded 10 Sep, after the conversation benchmark found two real bugs
+(the unarmed correction confirm, and repeated-amount duplicate entries).
+
+**(a) Queries are not answer-scored.** The conversation harness grades a
+query turn by the final ledger and pending state, not by whether the
+number it read back was right. `field-english-sales-query` and
+`field-yoruba-query` therefore PASS because they wrote nothing and left
+nothing pending — the totals were never checked. A query could report a
+wrong figure and still score green. **Before the final run:** add an
+expected-answer field to query scenarios and assert on the reply, or say
+plainly in the report that query correctness is unmeasured. Do not let a
+tick imply more than it measures.
+
+**(b) Everything so far is transcript replay.** No microphone, no Sahara,
+no network, no TTS, no human. Both real bugs this month came from someone
+actually talking to the deployed app, which is still the least-tested
+path. A live voice pass on production belongs in the final evidence.
+
+**(c) Division of labour for the final run.** Two benchmarks, kept
+separate and separately labelled, never merged into one number:
+  - ASR/TTS frozen-corpus benchmark (7 systems + TTS round-trip) — mine.
+  - Conversation/product benchmark (scripted replay through the real
+    agent and ledger) — Astra's.
+The frozen speech corpus must NOT be re-drawn or re-scored to match new
+product code; its manifest hash is published. Product fixes change the
+conversation numbers, not the ASR numbers.
+
+**(d) Minor consistency item.** Test fixtures carry customer names typed
+by the developer ("Mr olaolu", "iya chinonso"). These are our own test
+data, not user-contributed audio, so the ETHICS claim about withholding
+transcripts is not breached — but if any real tester name ever enters a
+fixture, it must be scrubbed.

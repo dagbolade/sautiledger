@@ -1,0 +1,1605 @@
+{
+  "schema_version": 1,
+  "evaluation_kind": "scripted_transcript_replay",
+  "provenance": "Developer-authored scripted transcript replays. Not recorded conversations or a held-out human evaluation. Currency amounts follow each pack's storage units (USD cents). Scenarios prefixed 'field-' are verbatim turns from a real field session rather than developer-authored examples.",
+  "generated_at": "2026-09-10T01:01:38.415896+00:00",
+  "scenarios_sha256": "7acf0634bf56d127c71ff2686104e29c43d4bf0a571b42fab00d7cdc4af1568d",
+  "implementation_sha256": "96c7516e24bef9c21327a40a533eecf1c1f9d40ae16ab714abebde662d805ee1",
+  "limitations": [
+    "Scripted development scenarios, not held-out conversations or human participants.",
+    "No ASR, TTS, network, LLM or user response time is included.",
+    "Processing milliseconds measure local Python/SQLite execution only; machine dependent.",
+    "Wrong amounts are checked after every turn, even when later repaired or voided.",
+    "Completion requires an exact final ledger and no pending clarification or confirmation."
+  ],
+  "summary": {
+    "scenarios": 12,
+    "graded_scenarios": 11,
+    "completed": 7,
+    "completion_rate": 0.6363636363636364,
+    "controls": 1,
+    "controls_behaved_correctly": 1,
+    "median_turns_to_completion": 3,
+    "scenarios_with_wrong_amount_at_any_turn": 2,
+    "scenarios_with_wrong_final_amount": 0
+  },
+  "results": [
+    {
+      "id": "direct-sale",
+      "name": "A sale and confirmation",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I sell rice for 5500 naira",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "rice",
+          "amount": 5500,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I sell rice for 5500 naira",
+          "reply": "Logged: rice, five thousand five hundred naira. Correct?",
+          "processing_ms": 15.516,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.109,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 2,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 15.625
+    },
+    {
+      "id": "missing-amount",
+      "name": "Ask for an unspoken amount",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I don sell garri finish",
+        "five thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "garri",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I don sell garri finish",
+          "reply": "How much did you sell the garri?",
+          "processing_ms": 0.143,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "amount",
+            "transaction": {
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": null
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "five thousand",
+          "reply": "Logged: garri, five thousand naira. Correct?",
+          "processing_ms": 0.179,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 3,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.079,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 2,
+      "first_completed_turn": 3,
+      "turns_used": 3,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.4
+    },
+    {
+      "id": "wrong-amount-repair",
+      "name": "Repair an injected wrong amount",
+      "pack": "pcm-yo-NG",
+      "note": "First transcript deliberately contains 5500 rather than the intended 5000. Any initial committed wrong amount is counted even if later repaired.",
+      "turns": [
+        "I sell rice for 5500 naira",
+        "no no na five thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "rice",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I sell rice for 5500 naira",
+          "reply": "Logged: rice, five thousand five hundred naira. Correct?",
+          "processing_ms": 0.269,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 1,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "no no na five thousand",
+          "reply": "Corrected: rice now five thousand naira. Correct?",
+          "processing_ms": 0.105,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 3,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.076,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 2,
+      "first_completed_turn": 3,
+      "turns_used": 3,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": true,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.45
+    },
+    {
+      "id": "reject-replace",
+      "name": "Reject and replace a sale",
+      "pack": "pcm-yo-NG",
+      "note": "Initial 5000 is an injected transcription error; the intended amount is 6000.",
+      "turns": [
+        "I sell rice for 5000 naira",
+        "no",
+        "I sell rice for 6000 naira",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "rice",
+          "amount": 6000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I sell rice for 5000 naira",
+          "reply": "Logged: rice, five thousand naira. Correct?",
+          "processing_ms": 0.394,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 1,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "no",
+          "reply": "Entry removed. What should it say? Please repeat it.",
+          "processing_ms": 0.197,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "voided"
+            }
+          ],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        },
+        {
+          "turn": 3,
+          "input": "I sell rice for 6000 naira",
+          "reply": "Logged: rice, six thousand naira. Correct?",
+          "processing_ms": 0.161,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "voided"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "voided"
+            },
+            {
+              "id": 2,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 4,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.073,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "voided"
+            },
+            {
+              "id": 2,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 5000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "voided"
+            },
+            {
+              "id": 2,
+              "type": "sale",
+              "item": "rice",
+              "quantity": null,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 3,
+      "first_completed_turn": 4,
+      "turns_used": 4,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": true,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.825
+    },
+    {
+      "id": "deleted-multiplier",
+      "name": "Check a suspicious numeral before writing",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I buy fuel thousand naira",
+        "no na ten thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "expense",
+          "item": "fuel",
+          "amount": 10000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I buy fuel thousand naira",
+          "reply": "Please check: one thousand naira for the fuel? Say 'yes' to record it, or say the correct amount.",
+          "processing_ms": 0.736,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "amount_confirm",
+            "transaction": {
+              "type": "expense",
+              "item": "fuel",
+              "quantity": null,
+              "unit": null,
+              "amount": 1000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": null
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "no na ten thousand",
+          "reply": "Logged expense: fuel, ten thousand naira. Correct?",
+          "processing_ms": 0.298,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "expense",
+              "item": "fuel",
+              "quantity": null,
+              "unit": null,
+              "amount": 10000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "expense",
+              "item": "fuel",
+              "quantity": null,
+              "unit": null,
+              "amount": 10000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 3,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.097,
+          "before": [
+            {
+              "id": 1,
+              "type": "expense",
+              "item": "fuel",
+              "quantity": null,
+              "unit": null,
+              "amount": 10000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "expense",
+              "item": "fuel",
+              "quantity": null,
+              "unit": null,
+              "amount": 10000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 2,
+      "first_completed_turn": 3,
+      "turns_used": 3,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 1.132
+    },
+    {
+      "id": "shona-sale",
+      "name": "Shona / English sale",
+      "pack": "sh-ZW",
+      "note": "Opening utterance uses the native-validated pack's market form; subsequent turns are scripted English responses.",
+      "turns": [
+        "Ndatengesa matomatisi ethree dollars",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "matomatisi",
+          "amount": 300,
+          "currency": "USD",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "Ndatengesa matomatisi ethree dollars",
+          "reply": "Logged: matomatisi, three dollars. Correct?",
+          "processing_ms": 0.227,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "matomatisi",
+              "quantity": null,
+              "unit": null,
+              "amount": 300,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "matomatisi",
+              "quantity": null,
+              "unit": null,
+              "amount": 300,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.063,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "matomatisi",
+              "quantity": null,
+              "unit": null,
+              "amount": 300,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "matomatisi",
+              "quantity": null,
+              "unit": null,
+              "amount": 300,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 2,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.29
+    },
+    {
+      "id": "shona-mixed-price",
+      "name": "Shona mixed-language dollars and cents",
+      "pack": "sh-ZW",
+      "turns": [
+        "Ndatengesa three cups dze rice nefive dollars fifty",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "rice",
+          "quantity": 3,
+          "unit": "cup",
+          "amount": 550,
+          "currency": "USD",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "Ndatengesa three cups dze rice nefive dollars fifty",
+          "reply": "Logged: 3 cup of rice, five dollars fifty cents. Correct?",
+          "processing_ms": 0.34,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": 3,
+              "unit": "cup",
+              "amount": 550,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "rice",
+              "quantity": 3,
+              "unit": "cup",
+              "amount": 550,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.066,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": 3,
+              "unit": "cup",
+              "amount": 550,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "rice",
+              "quantity": 3,
+              "unit": "cup",
+              "amount": 550,
+              "amount_each": null,
+              "currency": "USD",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 2,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.406
+    },
+    {
+      "id": "unanswered-question",
+      "name": "An unanswered question must stay unresolved",
+      "pack": "pcm-yo-NG",
+      "note": "Deliberately incomplete. A safe refusal is not a completed transaction.",
+      "turns": [
+        "I don sell garri finish"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "garri",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "expect_completion": false,
+      "trace": [
+        {
+          "turn": 1,
+          "input": "I don sell garri finish",
+          "reply": "How much did you sell the garri?",
+          "processing_ms": 0.134,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "amount",
+            "transaction": {
+              "type": "sale",
+              "item": "garri",
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": null
+            }
+          }
+        }
+      ],
+      "completed": false,
+      "final_ledger_exact": false,
+      "first_correct_turn": null,
+      "first_completed_turn": null,
+      "turns_used": 1,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.134
+    },
+    {
+      "id": "field-buyer-name-suffix",
+      "name": "Buyer's name after the price",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim turns from a real field session (device 671e01f8, 2026-09-10). These are what a trader actually typed, not authored examples; several fail today and are kept failing until fixed.",
+      "turns": [
+        "i sell biscuits 220 naira for iya chinonso",
+        "220 naira",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "biscuits",
+          "amount": 220,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "i sell biscuits 220 naira for iya chinonso",
+          "reply": "What was the total amount?",
+          "processing_ms": 0.131,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "amount",
+            "transaction": {
+              "type": "sale",
+              "item": "biscuits 220 for iya chinonso",
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": null
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "220 naira",
+          "reply": "I could not understand that, so nothing was recorded. Please repeat just the item and amount.",
+          "processing_ms": 0.039,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        },
+        {
+          "turn": 3,
+          "input": "yes",
+          "reply": "What would you like to record? Tell me the item and amount.",
+          "processing_ms": 0.054,
+          "before": [],
+          "after": [],
+          "exact_ledger": false,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "missing_transaction_details",
+            "transaction": {
+              "type": null,
+              "item": null,
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": null,
+              "payment_status": null
+            }
+          }
+        }
+      ],
+      "completed": false,
+      "final_ledger_exact": false,
+      "first_correct_turn": null,
+      "first_completed_turn": null,
+      "turns_used": 3,
+      "clarification_turns": 2,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.224
+    },
+    {
+      "id": "field-yoruba-confirmation",
+      "name": "Confirming in Yoruba (beeni)",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim turns from a real field session (device 671e01f8, 2026-09-10). These are what a trader actually typed, not authored examples; several fail today and are kept failing until fixed.",
+      "turns": [
+        "oya na, mo ta crate eyin meji fun 6000",
+        "beeni"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "eyin",
+          "quantity": 2,
+          "unit": "crate",
+          "amount": 6000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "oya na, mo ta crate eyin meji fun 6000",
+          "reply": "Logged: 2 crate of eyin, six thousand naira. Correct?",
+          "processing_ms": 0.24,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "eyin",
+              "quantity": 2,
+              "unit": "crate",
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "eyin",
+              "quantity": 2,
+              "unit": "crate",
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "beeni",
+          "reply": "What would you like to record? Tell me the item and amount.",
+          "processing_ms": 0.108,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "eyin",
+              "quantity": 2,
+              "unit": "crate",
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "eyin",
+              "quantity": 2,
+              "unit": "crate",
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "missing_transaction_details",
+            "transaction": {
+              "type": null,
+              "item": null,
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": null,
+              "payment_status": null
+            }
+          }
+        }
+      ],
+      "completed": false,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": null,
+      "turns_used": 2,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.349
+    },
+    {
+      "id": "field-english-sales-query",
+      "name": "Plain English question about the day",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim turns from a real field session (device 671e01f8, 2026-09-10). These are what a trader actually typed, not authored examples; several fail today and are kept failing until fixed.",
+      "turns": [
+        "i sell 3 biscuits for 500 naira",
+        "yes",
+        "what are my sales today"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "biscuits",
+          "quantity": 3,
+          "amount": 500,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "i sell 3 biscuits for 500 naira",
+          "reply": "Logged: biscuits, five hundred naira. Correct?",
+          "processing_ms": 0.243,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.069,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        },
+        {
+          "turn": 3,
+          "input": "what are my sales today",
+          "reply": "What would you like to record? Tell me the item and amount.",
+          "processing_ms": 0.09,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "biscuits",
+              "quantity": 3,
+              "unit": null,
+              "amount": 500,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "missing_transaction_details",
+            "transaction": {
+              "type": null,
+              "item": null,
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": null,
+              "payment_status": null
+            }
+          }
+        }
+      ],
+      "completed": false,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 3,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.402
+    },
+    {
+      "id": "field-yoruba-query",
+      "name": "Yoruba question about the day",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim turns from a real field session (device 671e01f8, 2026-09-10). These are what a trader actually typed, not authored examples; several fail today and are kept failing until fixed.",
+      "turns": [
+        "oya na, mo ta isu meji fun 6000",
+        "yes",
+        "kini gbogbo oja mi leni"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "isu",
+          "quantity": 2,
+          "amount": 6000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "oya na, mo ta isu meji fun 6000",
+          "reply": "Logged: isu, six thousand naira. Correct?",
+          "processing_ms": 0.479,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.092,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": null
+        },
+        {
+          "turn": 3,
+          "input": "kini gbogbo oja mi leni",
+          "reply": "What would you like to record? Tell me the item and amount.",
+          "processing_ms": 0.092,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "isu",
+              "quantity": 2,
+              "unit": null,
+              "amount": 6000,
+              "amount_each": null,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": true,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "review": {
+            "status": "not_recorded",
+            "question_about": "missing_transaction_details",
+            "transaction": {
+              "type": null,
+              "item": null,
+              "quantity": null,
+              "unit": null,
+              "amount": null,
+              "amount_each": null,
+              "currency": null,
+              "payment_status": null
+            }
+          }
+        }
+      ],
+      "completed": false,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 3,
+      "clarification_turns": 1,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "local_processing_ms": 0.663
+    }
+  ]
+}

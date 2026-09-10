@@ -26,6 +26,9 @@ bench/results/*
 !bench/results/metrics.json
 !bench/results/tts_metrics.json
 !bench/results/tts_metrics_punctuated.json
+!bench/results/conversations.json
+!bench/results/conversations-full-results.md
+!bench/results/conversations-after-fix.json
 
 # python
 .venv/
