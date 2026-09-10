@@ -25,6 +25,11 @@ digit_twin_thousands: true
 # price marker, never part of the item name
 price_connectives: [for, at, fun, worth, cost, goes, is, na, be, dey]
 
+# Sentence-openers that are the copula, not a price marker. "Na three
+# carton of indomie for 600 naira each" is an ordinary way to state a
+# sale; only a TRAILING copula ("choco ball pack IS 4000") marks a price.
+copula_openers: [na, oya, abeg, so]
+
 # size words riding on item names: "1 big egg" — extra detail, not doubt
 descriptors: [big, small, medium, large]
 

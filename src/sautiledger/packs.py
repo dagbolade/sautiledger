@@ -39,6 +39,9 @@ class Pack:
     digit_twin_thousands: bool = False
     # "3 FOR 500" — connective marking the following figure as a total
     price_connectives: frozenset[str] = frozenset()
+    # sentence-initial copulas ("NA three carton of..."), stripped from the
+    # item — a leading copula is never a price marker, a trailing one is
+    copula_openers: frozenset[str] = frozenset()
     # multi-word item names known to the language ("pure water")
     multi_word_items: frozenset[str] = frozenset()
     # size/attribute words ("1 big egg") — bonus detail on an item name,
@@ -96,6 +99,7 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
         reduplication_distributive=bool(raw.get("reduplication_distributive", False)),
         digit_twin_thousands=bool(raw.get("digit_twin_thousands", False)),
         price_connectives=frozenset(raw.get("price_connectives") or []),
+        copula_openers=frozenset(raw.get("copula_openers") or []),
         interrogatives=list(raw.get("interrogatives") or []),
         multi_word_items=frozenset(raw.get("multi_word_items") or []),
         descriptors=frozenset(raw.get("descriptors") or []),

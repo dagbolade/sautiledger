@@ -2,9 +2,9 @@
   "schema_version": 1,
   "evaluation_kind": "scripted_transcript_replay",
   "provenance": "Developer-authored scripted transcript replays. Not recorded conversations or a held-out human evaluation. Currency amounts follow each pack's storage units (USD cents). Scenarios prefixed 'field-' are verbatim turns from a real field session rather than developer-authored examples.",
-  "generated_at": "2026-09-10T21:55:52.327466+00:00",
-  "scenarios_sha256": "80def54e21aa802231c58b4a704271c97067e3f0cacea0defa877d20f7626dc5",
-  "implementation_sha256": "b9f4f44ca8bc70f67ce04aa8ea3f8f5b04c4c496187c839b27de4da301aa26b0",
+  "generated_at": "2026-09-10T23:18:53.879849+00:00",
+  "scenarios_sha256": "b7dce37d2587cae8579c36e6828a1d6e281d45dbe5083cd9fb5e01f7c081af3d",
+  "implementation_sha256": "f5fff501748ac5db115149e8c5526647ff2075ad23021e6ad099727f80da0755",
   "limitations": [
     "Scripted development scenarios, not held-out conversations or human participants.",
     "No ASR, TTS, network, LLM or user response time is included.",
@@ -14,13 +14,13 @@
     "Query answers are only verified where a scenario declares expected_replies; query_scenarios_without_answer_check counts those graded on ledger state alone."
   ],
   "summary": {
-    "scenarios": 16,
-    "graded_scenarios": 15,
-    "completed": 12,
-    "completion_rate": 0.8,
+    "scenarios": 17,
+    "graded_scenarios": 16,
+    "completed": 13,
+    "completion_rate": 0.8125,
     "controls": 1,
     "controls_behaved_correctly": 1,
-    "median_turns_to_completion": 2.0,
+    "median_turns_to_completion": 2,
     "scenarios_with_wrong_amount_at_any_turn": 2,
     "scenarios_with_wrong_final_amount": 0,
     "answer_checks": 2,
@@ -50,7 +50,7 @@
           "turn": 1,
           "input": "I sell rice for 5500 naira",
           "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
-          "processing_ms": 3.673,
+          "processing_ms": 3.68,
           "before": [],
           "after": [
             {
@@ -91,7 +91,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.136,
+          "processing_ms": 0.145,
           "before": [
             {
               "id": 1,
@@ -138,7 +138,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 3.809
+      "local_processing_ms": 3.825
     },
     {
       "id": "missing-amount",
@@ -163,7 +163,7 @@
           "turn": 1,
           "input": "I don sell garri finish",
           "reply": "How much did you sell the garri?",
-          "processing_ms": 0.191,
+          "processing_ms": 0.455,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -192,7 +192,7 @@
           "turn": 2,
           "input": "five thousand",
           "reply": "Logged sale: garri, five thousand naira. Correct?",
-          "processing_ms": 0.248,
+          "processing_ms": 0.315,
           "before": [],
           "after": [
             {
@@ -233,7 +233,7 @@
           "turn": 3,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.105,
+          "processing_ms": 0.111,
           "before": [
             {
               "id": 1,
@@ -280,7 +280,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.544
+      "local_processing_ms": 0.881
     },
     {
       "id": "wrong-amount-repair",
@@ -306,7 +306,7 @@
           "turn": 1,
           "input": "I sell rice for 5500 naira",
           "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
-          "processing_ms": 0.361,
+          "processing_ms": 0.336,
           "before": [],
           "after": [
             {
@@ -347,7 +347,7 @@
           "turn": 2,
           "input": "no no na five thousand",
           "reply": "Corrected: rice now five thousand naira. Correct?",
-          "processing_ms": 0.134,
+          "processing_ms": 0.314,
           "before": [
             {
               "id": 1,
@@ -400,7 +400,7 @@
           "turn": 3,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.103,
+          "processing_ms": 0.274,
           "before": [
             {
               "id": 1,
@@ -447,7 +447,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.598
+      "local_processing_ms": 0.924
     },
     {
       "id": "reject-replace",
@@ -474,7 +474,7 @@
           "turn": 1,
           "input": "I sell rice for 5000 naira",
           "reply": "Logged sale: rice, five thousand naira. Correct?",
-          "processing_ms": 0.338,
+          "processing_ms": 0.565,
           "before": [],
           "after": [
             {
@@ -515,7 +515,7 @@
           "turn": 2,
           "input": "no",
           "reply": "Entry removed. What should it say? Please repeat it.",
-          "processing_ms": 0.177,
+          "processing_ms": 0.225,
           "before": [
             {
               "id": 1,
@@ -555,7 +555,7 @@
           "turn": 3,
           "input": "I sell rice for 6000 naira",
           "reply": "Logged sale: rice, six thousand naira. Correct?",
-          "processing_ms": 0.213,
+          "processing_ms": 0.249,
           "before": [
             {
               "id": 1,
@@ -688,7 +688,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.819
+      "local_processing_ms": 1.13
     },
     {
       "id": "deleted-multiplier",
@@ -713,7 +713,7 @@
           "turn": 1,
           "input": "I buy fuel thousand naira",
           "reply": "Please check: one thousand naira for the fuel? Say 'yes' to record it, or say the correct amount.",
-          "processing_ms": 0.306,
+          "processing_ms": 0.267,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -742,7 +742,7 @@
           "turn": 2,
           "input": "no na ten thousand",
           "reply": "Logged expense: fuel, ten thousand naira. Correct?",
-          "processing_ms": 0.232,
+          "processing_ms": 0.219,
           "before": [],
           "after": [
             {
@@ -783,7 +783,7 @@
           "turn": 3,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.105,
+          "processing_ms": 0.121,
           "before": [
             {
               "id": 1,
@@ -830,7 +830,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.643
+      "local_processing_ms": 0.606
     },
     {
       "id": "shona-sale",
@@ -855,7 +855,7 @@
           "turn": 1,
           "input": "Ndatengesa matomatisi ethree dollars",
           "reply": "Logged sale: matomatisi, three dollars. Correct?",
-          "processing_ms": 0.305,
+          "processing_ms": 0.273,
           "before": [],
           "after": [
             {
@@ -896,7 +896,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.077,
+          "processing_ms": 0.076,
           "before": [
             {
               "id": 1,
@@ -943,7 +943,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.381
+      "local_processing_ms": 0.349
     },
     {
       "id": "shona-mixed-price",
@@ -969,7 +969,7 @@
           "turn": 1,
           "input": "Ndatengesa three cups dze rice nefive dollars fifty",
           "reply": "Logged sale: 3 cup of rice, five dollars fifty cents. Correct?",
-          "processing_ms": 0.28,
+          "processing_ms": 0.286,
           "before": [],
           "after": [
             {
@@ -1010,7 +1010,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.067,
+          "processing_ms": 0.068,
           "before": [
             {
               "id": 1,
@@ -1057,7 +1057,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.348
+      "local_processing_ms": 0.355
     },
     {
       "id": "unanswered-question",
@@ -1082,7 +1082,7 @@
           "turn": 1,
           "input": "I don sell garri finish",
           "reply": "How much did you sell the garri?",
-          "processing_ms": 0.176,
+          "processing_ms": 0.225,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -1118,7 +1118,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.176
+      "local_processing_ms": 0.225
     },
     {
       "id": "field-buyer-name-suffix",
@@ -1144,7 +1144,7 @@
           "turn": 1,
           "input": "i sell biscuits 220 naira for iya chinonso",
           "reply": "Logged sale: biscuits, two hundred twenty naira. Correct?",
-          "processing_ms": 0.325,
+          "processing_ms": 0.341,
           "before": [],
           "after": [
             {
@@ -1185,7 +1185,7 @@
           "turn": 2,
           "input": "220 naira",
           "reply": "Please check the last entry: biscuits, two hundred twenty naira. Correct? Say yes or no, or repeat the corrected entry.",
-          "processing_ms": 0.217,
+          "processing_ms": 0.245,
           "before": [
             {
               "id": 1,
@@ -1285,7 +1285,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.63
+      "local_processing_ms": 0.674
     },
     {
       "id": "field-yoruba-confirmation",
@@ -1312,7 +1312,7 @@
           "turn": 1,
           "input": "oya na, mo ta crate eyin meji fun 6000",
           "reply": "Logged sale: 2 crate of eyin, six thousand naira. Correct?",
-          "processing_ms": 0.413,
+          "processing_ms": 0.33,
           "before": [],
           "after": [
             {
@@ -1353,7 +1353,7 @@
           "turn": 2,
           "input": "beeni",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.122,
+          "processing_ms": 0.097,
           "before": [
             {
               "id": 1,
@@ -1400,7 +1400,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.536
+      "local_processing_ms": 0.427
     },
     {
       "id": "field-english-sales-query",
@@ -1432,7 +1432,7 @@
           "turn": 1,
           "input": "i sell 3 biscuits for 500 naira",
           "reply": "Logged sale: 3 biscuits, five hundred naira. Correct?",
-          "processing_ms": 0.451,
+          "processing_ms": 0.365,
           "before": [],
           "after": [
             {
@@ -1473,7 +1473,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.104,
+          "processing_ms": 0.098,
           "before": [
             {
               "id": 1,
@@ -1513,7 +1513,7 @@
           "turn": 3,
           "input": "what are my sales today",
           "reply": "Sales today: five hundred naira from 1 sale.",
-          "processing_ms": 0.128,
+          "processing_ms": 0.146,
           "before": [
             {
               "id": 1,
@@ -1562,7 +1562,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 1,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.683
+      "local_processing_ms": 0.61
     },
     {
       "id": "field-yoruba-query",
@@ -1594,7 +1594,7 @@
           "turn": 1,
           "input": "oya na, mo ta isu meji fun 6000",
           "reply": "Logged sale: 2 isu, six thousand naira. Correct?",
-          "processing_ms": 0.455,
+          "processing_ms": 0.349,
           "before": [],
           "after": [
             {
@@ -1635,7 +1635,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.103,
+          "processing_ms": 0.099,
           "before": [
             {
               "id": 1,
@@ -1675,7 +1675,7 @@
           "turn": 3,
           "input": "kini gbogbo oja mi leni",
           "reply": "Your book today. Sales: isu times 2, six thousand naira. Total sales six thousand naira.",
-          "processing_ms": 0.184,
+          "processing_ms": 0.195,
           "before": [
             {
               "id": 1,
@@ -1724,7 +1724,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 1,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.742
+      "local_processing_ms": 0.642
     },
     {
       "id": "voice-trailing-na-particle",
@@ -1751,7 +1751,7 @@
           "turn": 1,
           "input": "I dey sell one cup of rice 600 na",
           "reply": "How much did you sell the rice 600?",
-          "processing_ms": 0.194,
+          "processing_ms": 0.202,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -1780,7 +1780,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "What would you like to record? Tell me the item and amount.",
-          "processing_ms": 0.089,
+          "processing_ms": 0.091,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -1816,7 +1816,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.283
+      "local_processing_ms": 0.293
     },
     {
       "id": "voice-add-as-command",
@@ -1843,7 +1843,7 @@
           "turn": 1,
           "input": "Add garri one cup 5000",
           "reply": "Did you say add garri?",
-          "processing_ms": 0.268,
+          "processing_ms": 0.29,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -1872,7 +1872,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Logged sale: 1 cup of add garri, five thousand naira. Correct?",
-          "processing_ms": 0.154,
+          "processing_ms": 0.156,
           "before": [],
           "after": [
             {
@@ -1920,7 +1920,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.422
+      "local_processing_ms": 0.445
     },
     {
       "id": "voice-buyer-name-mid-sentence",
@@ -1947,7 +1947,7 @@
           "turn": 1,
           "input": "I sell 2 carton of indomie for yaboki for 5000 naira",
           "reply": "Please repeat the sale: item, quantity and price, without the buyer's name. Was the price each or total?",
-          "processing_ms": 0.261,
+          "processing_ms": 0.22,
           "before": [],
           "after": [],
           "exact_ledger": false,
@@ -2012,7 +2012,7 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.293
+      "local_processing_ms": 0.252
     },
     {
       "id": "voice-each-pricing-regression",
@@ -2040,7 +2040,7 @@
           "turn": 1,
           "input": "I sell 5 crate of egg for 2000 naira each",
           "reply": "Logged sale: 5 crate of egg, two thousand naira each, ten thousand naira total. Correct?",
-          "processing_ms": 0.331,
+          "processing_ms": 0.36,
           "before": [],
           "after": [
             {
@@ -2081,7 +2081,7 @@
           "turn": 2,
           "input": "yes",
           "reply": "Noted. Ledger correct.",
-          "processing_ms": 0.177,
+          "processing_ms": 0.096,
           "before": [
             {
               "id": 1,
@@ -2128,7 +2128,123 @@
       "final_wrong_amounts": 0,
       "answer_checks": 0,
       "answer_checks_failed": 0,
-      "local_processing_ms": 0.508
+      "local_processing_ms": 0.456
+    },
+    {
+      "id": "voice-leading-copula",
+      "name": "Sale opening with the Pidgin copula 'Na'",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of real spoken audio, session ef80cb4b, 2026-09-10T23:06 (clip retained with consent). The transcription was word-perfect; the parser refused the sale.",
+      "turns": [
+        "Na three carton of indomie for 600 naira each",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "indomie",
+          "quantity": 3,
+          "unit": "carton",
+          "amount_each": 600,
+          "amount": 1800,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "trace": [
+        {
+          "turn": 1,
+          "input": "Na three carton of indomie for 600 naira each",
+          "reply": "Logged sale: 3 carton of indomie, six hundred naira each, one thousand eight hundred naira total. Correct?",
+          "processing_ms": 0.381,
+          "before": [],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "indomie",
+              "quantity": 3,
+              "unit": "carton",
+              "amount": 1800,
+              "amount_each": 600,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": false,
+          "clarification_pending": false,
+          "confirmation_pending": true,
+          "wrong_amounts_active": 0,
+          "expected_reply": null,
+          "answer_correct": null,
+          "review": {
+            "status": "recorded_awaiting_confirmation",
+            "question_about": "recorded_entry",
+            "transaction": {
+              "type": "sale",
+              "item": "indomie",
+              "quantity": 3,
+              "unit": "carton",
+              "amount": 1800,
+              "amount_each": 600,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          }
+        },
+        {
+          "turn": 2,
+          "input": "yes",
+          "reply": "Noted. Ledger correct.",
+          "processing_ms": 0.094,
+          "before": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "indomie",
+              "quantity": 3,
+              "unit": "carton",
+              "amount": 1800,
+              "amount_each": 600,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "after": [
+            {
+              "id": 1,
+              "type": "sale",
+              "item": "indomie",
+              "quantity": 3,
+              "unit": "carton",
+              "amount": 1800,
+              "amount_each": 600,
+              "currency": "NGN",
+              "payment_status": "paid"
+            }
+          ],
+          "exact_ledger": true,
+          "completed": true,
+          "clarification_pending": false,
+          "confirmation_pending": false,
+          "wrong_amounts_active": 0,
+          "expected_reply": null,
+          "answer_correct": null,
+          "review": null
+        }
+      ],
+      "completed": true,
+      "final_ledger_exact": true,
+      "first_correct_turn": 1,
+      "first_completed_turn": 2,
+      "turns_used": 2,
+      "clarification_turns": 0,
+      "ever_committed_wrong_amount": false,
+      "final_wrong_amounts": 0,
+      "answer_checks": 0,
+      "answer_checks_failed": 0,
+      "local_processing_ms": 0.476
     }
   ]
 }

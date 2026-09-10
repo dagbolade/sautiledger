@@ -334,6 +334,28 @@
           "payment_status": "paid"
         }
       ]
+    },
+    {
+      "id": "voice-leading-copula",
+      "name": "Sale opening with the Pidgin copula 'Na'",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of real spoken audio, session ef80cb4b, 2026-09-10T23:06 (clip retained with consent). The transcription was word-perfect; the parser refused the sale.",
+      "turns": [
+        "Na three carton of indomie for 600 naira each",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "indomie",
+          "quantity": 3,
+          "unit": "carton",
+          "amount_each": 600,
+          "amount": 1800,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
     }
   ]
 }

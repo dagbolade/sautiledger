@@ -177,3 +177,31 @@ def test_frozen_each_shapes_unchanged():
     # "one five each" (frozen case 7 shape) must not lose its trailing five
     r = grammar_parse("two mudu of elubo one five each", PACK)
     assert r.amount_each == 1500 and r.amount == 3000
+
+
+# ---------------- field round three: a leading copula is not a price marker
+# Production 2026-09-10T23:06 (session ef80cb4b, retained clip). Sahara
+# transcribed the sentence perfectly; the parser refused it and told the
+# trader to remove a buyer's name she had never said. Cause: "na" was added
+# to price_connectives for the TRAILING case ("choco ball pack is 4000"),
+# and a leading "Na" then tripped the damaged-price guard.
+
+def test_leading_copula_does_not_block_a_good_sale():
+    r = grammar_parse("Na three carton of indomie for 600 naira each", PACK)
+    assert r.intent == "log_transaction"
+    assert r.item == "indomie"
+    assert (r.quantity, r.unit) == (3, "carton")
+    assert (r.amount_each, r.amount) == (600, 1800)
+
+
+def test_trailing_copula_still_marks_a_price():
+    # the behaviour the leading-strip must not undo
+    r = grammar_parse("choco ball pack is 4000", PACK)
+    assert r.item == "choco ball" and r.unit == "pack" and r.amount == 4000
+
+
+def test_leading_copula_alone_is_not_stripped_into_nothing():
+    # a copula with no item left behind must still clarify, never invent
+    r = grammar_parse("na 5000", PACK)
+    assert r.intent == "clarify"
+    assert r.amount is None or r.item is None

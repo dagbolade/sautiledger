@@ -489,6 +489,15 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     money_toks = tokens[j:]
     item_toks = tokens[:j]
 
+    # A SENTENCE-INITIAL copula is not a price marker. Pidgin opens with it
+    # constantly ("Na three carton of indomie for 600 naira each"), and
+    # leaving it in the item made the damaged-price guard below refuse a
+    # perfectly good sale, telling the trader to remove a buyer's name she
+    # had never said (production, 2026-09-10T23:06). Trailing connectives
+    # keep their existing meaning — only the leading position changes.
+    while len(item_toks) > 1 and item_toks[0] in pack.copula_openers:
+        item_toks.pop(0)
+
     # "groundnut 3 FOR 500": a price connective before the amount marks the
     # figure as an explicit total (skip the distributive guard)
     total_marked = False

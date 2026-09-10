@@ -318,10 +318,10 @@ Sections 1–7 score a **transcript** through the parser. That is not the same a
 
 | Measure | Value |
 |---|---|
-| Scenarios | 16 (15 graded, 1 control) |
-| **Completed** | **12/15** (80%) |
+| Scenarios | 17 (16 graded, 1 control) |
+| **Completed** | **13/16** (81%) |
 | Controls behaving correctly | 1/1 |
-| Median turns to completion | 2.0 |
+| Median turns to completion | 2 |
 | Scenarios that ever wrote a wrong amount | 2 |
 | **Scenarios ending with a wrong amount** | **0** |
 
