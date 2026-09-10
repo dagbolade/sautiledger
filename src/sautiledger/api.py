@@ -85,7 +85,13 @@ class _Session:
             self.tts = SaharaTts(self.recorder, settings.sahara_api_key)
         self.voice_accent = "yoruba"
         self.voice_gender = "female"
-        self.reply_language = "en"
+        # Reply in the language the pack listens in: a trader running the
+        # Pidgin/Yoruba pack has already declared her language, and an app
+        # that hears Pidgin but answers in English is asking her to meet it
+        # halfway. English stays one tap away for readers who prefer it.
+        # Packs with no validated reply templates of their own (sh-ZW) fall
+        # back to English rather than answering a Shona speaker in Pidgin.
+        self.reply_language = "pcm" if pack.name == "pcm-yo-NG" else "en"
         self.last_reply: str | None = None
         self.touched = 0
 

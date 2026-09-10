@@ -85,8 +85,16 @@ def test_explorer_without_audio_cannot_serve_corpus_or_product_data():
     assert client.get("/state").status_code == 404
 
 
+def test_pidgin_is_the_default_reply_language_for_the_pidgin_pack():
+    """A trader running pcm-yo-NG has already declared her language: the app
+    listens in Pidgin, so it answers in Pidgin unless she chooses otherwise."""
+    client = TestClient(app())
+    assert client.get("/state").json()["reply_language"] == "pcm"
+
+
 def test_english_does_not_use_pidgin_cloud_voice():
     client = TestClient(app())
+    client.post("/language", data={"speech_pack": "pcm-yo-NG", "reply_language": "en"})
     assert client.get("/state").json()["reply_language"] == "en"
     assert client.post("/tts", data={"text": "Please repeat."}).status_code == 204
 

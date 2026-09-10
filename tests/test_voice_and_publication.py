@@ -62,6 +62,10 @@ def test_voice_cache_varies_by_language_accent_and_gender(tmp_path, monkeypatch)
     settings = Settings(pack="pcm-yo-NG", db_path=str(tmp_path / "app.db"), mode="cloud", sahara_api_key="fake", agent="none")
     client = TestClient(create_app(settings))
     assert client.get("/state").json()["tts"] == "sahara"
+    # pcm-yo-NG now answers in Pidgin by default; this test is about the
+    # ENGLISH voice profile, so select English explicitly rather than
+    # relying on whatever the default happens to be.
+    client.post("/language", data={"speech_pack": "pcm-yo-NG", "reply_language": "en"})
     def play():
         assert client.post("/tts", data={"text":"Please check the rice sale. Correct?"}).status_code == 200
     play(); play()
