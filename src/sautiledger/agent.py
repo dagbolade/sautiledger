@@ -95,7 +95,9 @@ class Agent:
             # still never touches the ledger.
             return self._note_on_last(text)
         if (was_confirming and parse.intent == "clarify" and parse.item is None
-                and parse.amount is None and self.last_logged_id is not None):
+                and self.last_logged_id is not None):
+            # A bare amount after a readback may repeat or dispute that entry.
+            # Keep its confirmation open; never turn it into a second sale.
             row = self.ledger.last_transaction()
             if row is not None and row["id"] == self.last_logged_id:
                 self.awaiting_confirm = True
@@ -232,6 +234,14 @@ class Agent:
         connective debris that landed in the item slot, never a product."""
         if not item:
             return False
+        toks = tokenize(item)
+        for words, phrases in (
+            (_YES_WORDS, _YES_PHRASES + [p.split() for p in self.pack.affirmation_phrases]),
+            (_NO_WORDS, _NO_PHRASES),
+        ):
+            rest, matched = _strip_leading(toks, words, phrases)
+            if matched and not rest:
+                return True
         func = (self.pack.fillers | self.pack.connectives
                 | self.pack.each_words | self.pack.k_words
                 | self.pack.price_connectives | self.pack.currency_words)
@@ -428,6 +438,8 @@ class Agent:
                 return self._gate_and_commit(filled, text)
 
         if pending.question_about == "item" and (pending.amount or pending.amount_each):
+            if self._item_is_junk(text):
+                return self._clarify_question(pending)
             words = [t for t in lowered
                      if t not in self.pack.fillers and not is_moneyish(t, self.pack)]
             if words and len(words) <= 4:
