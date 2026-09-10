@@ -117,3 +117,81 @@ test('nonempty book updates count, caption and empty state together', () => {
   assert.equal(ui.elements.get('entries').children.length, 3);
   assert.match(ui.elements.get('total').textContent, /12,500/);
 });
+
+// --- microphone: it must start on iOS and Android alike ---------------
+// Field reports, 10-11 Sep: "mic not available" on phones whose microphone
+// was fine. Two distinct causes, both covered here.
+
+function micSetup({supported, error}) {
+  const fs2 = require('node:fs'), vm2 = require('node:vm'), path2 = require('node:path');
+  const root = path2.join(__dirname, '..');
+  const html = fs2.readFileSync(path2.join(root, 'static/index.html'), 'utf8');
+  class El {
+    constructor(){ this.dataset={}; this.children=[]; this.style={}; this.events={};
+      this.textContent=''; this.hidden=false; this.value='';
+      const c=new Set(); this.classList={add:x=>c.add(x),remove:x=>c.delete(x),toggle:(x,o)=>o?c.add(x):c.delete(x)}; }
+    get childElementCount(){ return this.children.length; }
+    append(...k){ k.forEach(x=>{x.parent=this; this.children.push(x);}); }
+    appendChild(c){ this.append(c); } replaceChildren(...k){ this.children=[]; this.append(...k); }
+    remove(){} setAttribute(k,v){ this[k]=v; } addEventListener(e,h){ this.events[e]=h; }
+    scrollTo(){} focus(){}
+  }
+  const elements = new Map([...html.matchAll(/id="([^"]+)"/g)].map(m => [m[1], new El()]));
+  elements.get('scroll').dataset.view = 'book';
+  const made = [];
+  class FakeRecorder {
+    constructor(stream, opts){ made.push(opts && opts.mimeType); this.mimeType=(opts&&opts.mimeType)||'audio/webm'; this.state='inactive'; }
+    static isTypeSupported(t){ return supported.includes(t); }
+    start(){ this.state='recording'; } stop(){ this.state='inactive'; if(this.onstop) this.onstop(); }
+  }
+  const ctx = vm2.createContext({
+    document:{ getElementById:id=>elements.get(id), createElement:()=>new El(),
+      createTextNode:t=>({textContent:t}), querySelectorAll:()=>[], addEventListener(){} },
+    window:{ matchMedia:()=>({matches:true}) },
+    navigator:{ mediaDevices:{ getUserMedia: async () => {
+      if (error) { const e=new Error('denied'); e.name=error; throw e; }
+      return { getTracks: () => [{stop(){}}] };
+    } } },
+    localStorage:{ getItem:()=>null, setItem(){} },
+    MediaRecorder: FakeRecorder, Blob: class { constructor(p,o){ this.size=5000; this.type=o&&o.type; } },
+    FormData, Date, setTimeout, clearTimeout, setInterval(){},
+    fetch: async () => ({ok:true, json: async () => ({currency:'NGN',mode:'cloud',entries:[],sales_total:0,egress_total:0,egress_log:[],retain_audio:false})}),
+  });
+  vm2.runInContext(fs2.readFileSync(path2.join(root,'static/app.js'),'utf8'), ctx);
+  const deepText = (n) => (n.textContent || '') + (n.children || []).map(deepText).join(' ');
+  return { elements, made, run: c => vm2.runInContext(c, ctx),
+           chat: () => elements.get('chat').children.map(deepText).join(' | ') };
+}
+
+test('records on Safari, which supports mp4 and not webm', async () => {
+  const ui = micSetup({supported:['audio/mp4']});
+  await ui.run('startRecording()');
+  assert.equal(ui.made[0], 'audio/mp4', 'must not force webm on a browser that cannot record it');
+});
+
+test('records on Chrome, which supports webm', async () => {
+  const ui = micSetup({supported:['audio/webm;codecs=opus','audio/webm']});
+  await ui.run('startRecording()');
+  assert.equal(ui.made[0], 'audio/webm;codecs=opus');
+});
+
+test('a blocked permission says so, instead of blaming the microphone', async () => {
+  const ui = micSetup({supported:['audio/webm'], error:'NotAllowedError'});
+  await ui.run('startRecording()');
+  assert.match(ui.chat(), /permission is blocked/i);
+});
+
+test('a missing microphone is reported as missing', async () => {
+  const ui = micSetup({supported:['audio/webm'], error:'NotFoundError'});
+  await ui.run('startRecording()');
+  assert.match(ui.chat(), /no see any microphone/i);
+});
+
+test('releasing during the first permission prompt invites a retry rather than failing silently', async () => {
+  const ui = micSetup({supported:['audio/webm']});
+  // the finger lifts to tap "Allow", cancelling the hold before the grant lands
+  const started = ui.run('startRecording()');
+  ui.run('stopRecording()');
+  await started;
+  assert.match(ui.chat(), /Hold the green button again/i);
+});

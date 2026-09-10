@@ -453,12 +453,55 @@ let recorder = null;
 let chunks = [];
 let recordingRequested = false;
 
+// Chrome and Firefox record webm; Safari on iOS and macOS records mp4 and
+// nothing else. Asking for a type the browser cannot produce makes the
+// MediaRecorder constructor throw, so pick one it actually supports.
+function pickRecordingType() {
+  if (typeof MediaRecorder === "undefined" || !MediaRecorder.isTypeSupported) return "";
+  const candidates = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg;codecs=opus"];
+  return candidates.find((t) => MediaRecorder.isTypeSupported(t)) || "";
+}
+
+function extensionFor(mime) {
+  if (mime.includes("mp4")) return "m4a";
+  if (mime.includes("ogg")) return "ogg";
+  return "webm";
+}
+
+// Say what actually went wrong. "Microphone unavailable" sent testers to
+// check a microphone that was fine — the usual cause is a blocked
+// permission, which needs a different action entirely.
+function micFailure(err) {
+  const name = (err && err.name) || "";
+  if (name === "NotAllowedError" || name === "SecurityError") {
+    bubble("Microphone permission is blocked. Allow the microphone for this site in your browser settings, then hold the button again. You fit type am instead for now.", "sauti");
+  } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+    bubble("I no see any microphone for this device. You fit type your message instead.", "sauti");
+  } else {
+    bubble("The microphone no gree start (" + (name || "unknown error") + "). You fit type your message instead.", "sauti");
+  }
+}
+
+let micPrimed = false;
+
 async function startRecording() {
   if (recordingRequested || sending) return;
   recordingRequested = true;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    if (!recordingRequested) { stream.getTracks().forEach(t => t.stop()); return; }
+    if (!recordingRequested) {
+      stream.getTracks().forEach((t) => t.stop());
+      // First run: the permission dialog steals the press-and-hold. The
+      // finger lifts to tap "Allow", which cancels the recording before it
+      // begins — so the user grants access and gets silence. Tell them it
+      // worked and invite a fresh hold instead of failing quietly.
+      if (!micPrimed) {
+        micPrimed = true;
+        bubble("Microphone ready now. Hold the green button again and talk.", "sauti");
+      }
+      return;
+    }
+    micPrimed = true;
     if (streamMode) {
       try {
         await startStreaming(stream);
@@ -473,18 +516,20 @@ async function startRecording() {
       }
     }
     chunks = [];
-    recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+    const wanted = pickRecordingType();
+    recorder = wanted ? new MediaRecorder(stream, { mimeType: wanted }) : new MediaRecorder(stream);
+    const recordedType = recorder.mimeType || wanted || "audio/webm";
     recorder.ondataavailable = (e) => chunks.push(e.data);
     recorder.onstop = () => {
       stream.getTracks().forEach((t) => t.stop());
-      const blob = new Blob(chunks, { type: "audio/webm" });
+      const blob = new Blob(chunks, { type: recordedType });
       if (blob.size < 1000) {
         // accidental tap — teach the gesture instead of going silent
         bubble("That recording was too short. Hold the microphone while speaking, then release.", "sauti");
         return;
       }
       const form = new FormData();
-      form.append("audio", blob, "utterance.webm");
+      form.append("audio", blob, "utterance." + extensionFor(recordedType));
       submit(form, null);
     };
     recorder.start();
@@ -494,7 +539,7 @@ async function startRecording() {
     showStatus("Listening. Release the microphone when you finish.");
   } catch (err) {
     recordingRequested = false;
-    bubble("Microphone unavailable. You can type your message instead.", "sauti");
+    micFailure(err);
   }
 }
 
