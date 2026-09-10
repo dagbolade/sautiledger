@@ -87,6 +87,9 @@ def query_ledger(
 ) -> str:
     period = period or "today"
     when = "this week" if period == "this_week" else period
+    if query == "sales_total":
+        n, total = ledger.sales_total(period)
+        return f"Sales {when}: {_money(total, currency)} from {n} sale{'s' if n != 1 else ''}."
     if query == "item_total" and item:
         n, total = ledger.item_total(item, period)
         if n == 0:

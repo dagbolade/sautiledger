@@ -617,7 +617,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     if STATIC_DIR.exists():
         @app.get("/")
         def index():
-            return FileResponse(STATIC_DIR / "index.html")
+            html = (STATIC_DIR / "index.html").read_text(encoding="utf-8")
+            for asset in ("app.js", "app.css"):
+                version = hashlib.sha256((STATIC_DIR / asset).read_bytes()).hexdigest()[:16]
+                html = html.replace(f'/static/{asset}"', f'/static/{asset}?v={version}"')
+            return Response(html, media_type="text/html", headers={"Cache-Control": "no-store"})
 
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 

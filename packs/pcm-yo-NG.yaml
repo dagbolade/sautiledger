@@ -114,7 +114,17 @@ sale_triggers: [don sell, customer take, customer buy, come buy, buy am, mo taa,
 expense_triggers: [i buy, i don buy, mo ra, bought]
 log_triggers: [log am, log]
 
+# Typed Yoruba confirmations and explicit customer-attribution titles.
+affirmation_phrases: [beeni, bee ni]
+customer_markers: [for iya, for baba, for mr, for mrs, for customer]
+
 queries:
+  - phrase: what are my sales
+    query: sales_total
+  - phrase: my sales
+    query: sales_total
+  - phrase: total sales
+    query: sales_total
   # net balance (sales minus spend) — the book doing arithmetic
   - phrase: wetin remain
     query: net_balance
@@ -138,7 +148,7 @@ queries:
 summary_triggers: [close the day, summary]
 # "ledger" as a bare token: any mention means "read the book" in this
 # app's domain ("read ALL my ledger for today", "check my ledger", …)
-recap_triggers: [ledger, read my book, talk wetin dey book, wetin dey book, wetin dey my book]
+recap_triggers: [kini gbogbo oja mi, ledger, read my book, talk wetin dey book, wetin dey book, wetin dey my book]
 
 corrections:
   - trigger: no no na
@@ -149,6 +159,8 @@ corrections:
 correction_stop_words: [not]
 
 periods:
+  leni: today
+  loni: today
   today: today
   this week: this_week
   yesterday: yesterday

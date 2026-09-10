@@ -87,6 +87,14 @@ class Agent:
             # copula is the cue (same rule as corrections); cue-less chatter
             # still never touches the ledger.
             return self._note_on_last(text)
+        if (was_confirming and parse.intent == "clarify" and parse.item is None
+                and parse.amount is None and self.last_logged_id is not None):
+            row = self.ledger.last_transaction()
+            if row is not None and row["id"] == self.last_logged_id:
+                self.awaiting_confirm = True
+                money = tools._money(row["amount"] or 0, row["currency"])
+                return (f"Please check the last entry: {row['item'] or 'entry'}, {money}. "
+                        "Correct? Say yes or no, or repeat the corrected entry.")
         return self._dispatch(parse, text)
 
     def _note_on_last(self, text: str) -> str:
@@ -116,7 +124,7 @@ class Agent:
             if not rest:
                 return "I don remove am. Wetin I write wrong? Talk am again."
             return self.handle(" ".join(rest))  # remainder is the replacement
-        rest, confirmed = _strip_leading(toks, _YES_WORDS, _YES_PHRASES)
+        rest, confirmed = _strip_leading(toks, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
         if confirmed:
             if not rest:
                 return "Noted. Ledger correct."
@@ -273,7 +281,7 @@ class Agent:
         lowered = tokenize(text)
 
         if pending.question_about == "amount_confirm":
-            rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES)
+            rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
             if confirmed and not rest:
                 self.pending = None
                 return self._gate_and_commit(
@@ -319,7 +327,7 @@ class Agent:
             return None  # restated something else — parse it fresh
 
         if pending.question_about == "item_confirm":
-            rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES)
+            rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
             if confirmed and not rest:
                 self.pending = None
                 return self._commit(

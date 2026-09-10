@@ -54,6 +54,9 @@ class Pack:
     # known number word, never elsewhere
     number_prefixes: frozenset = frozenset()
 
+    affirmation_phrases: list[str] = field(default_factory=list)
+    customer_markers: list[str] = field(default_factory=list)
+
     @property
     def units_ordered(self) -> list[tuple[str, str]]:
         """Unit surface forms, multi-word first so 'paint rubber' wins over 'rubber'."""
@@ -64,6 +67,8 @@ def load_pack(name: str, packs_dir: Path | None = None) -> Pack:
     path = (packs_dir or PACKS_DIR) / f"{name}.yaml"
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     return Pack(
+        affirmation_phrases=list(raw.get("affirmation_phrases") or []),
+        customer_markers=list(raw.get("customer_markers") or []),
         name=raw["name"],
         currency=raw["currency"],
         numbers={str(k): int(v) for k, v in (raw.get("numbers") or {}).items()},

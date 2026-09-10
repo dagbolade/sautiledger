@@ -442,6 +442,19 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             tokens, triggered = consume_trigger(tokens, pack.log_triggers)
             # generic "log" — default type is sale
 
+    # Only a marked customer suffix AFTER explicit currency may be separated.
+    # Keep the full original utterance in the ledger; never consume a suffix
+    # containing another number, a price unit or a correction.
+    for marker in pack.customer_markers:
+        i = _find(tokens, marker)
+        tail = tokens[i:] if i >= 0 else []
+        if (triggered and i > 0 and tokens[i - 1] in pack.currency_words
+                and len(tail) > len(marker.split()) and len(tail) <= 7
+                and not any(is_moneyish(t, pack) or t in pack.each_words
+                            or t in {"no", "not", "instead", "credit"} for t in tail)):
+            tokens = tokens[:i]
+            break
+
     drop = pack.fillers | pack.currency_words | pack.connectives
     tokens = [t for t in tokens if t not in drop]
 

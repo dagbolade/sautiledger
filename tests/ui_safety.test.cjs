@@ -107,3 +107,13 @@ test('structured readback distinguishes unknown from recorded money', () => {
   assert.equal(ui.elements.get('review-amount').textContent, '$5.50');
   assert.equal(ui.elements.get('confirm-actions').hidden, false);
 });
+
+test('nonempty book updates count, caption and empty state together', () => {
+  const ui = setup();
+  ui.run('renderLedger([{id:1,type:"sale",item:"biscuits",amount:500,payment_status:"paid"},{id:2,type:"sale",item:"isu",amount:6000,payment_status:"paid"},{id:3,type:"sale",item:"eyin",amount:6000,payment_status:"paid"}],12500)');
+  assert.equal(ui.elements.get('entry-count').textContent, 3);
+  assert.equal(ui.elements.get('book-empty').hidden, true);
+  assert.match(ui.elements.get('sales-caption').textContent, /3 sales/);
+  assert.equal(ui.elements.get('entries').children.length, 3);
+  assert.match(ui.elements.get('total').textContent, /12,500/);
+});
