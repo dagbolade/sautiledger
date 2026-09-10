@@ -25,6 +25,26 @@ def _rows(agent):
     return agent.ledger.entries("today")
 
 
+@pytest.mark.parametrize("utterance, item, quantity, amount", [
+    ("i sell 3 biscuits for 500 naira", "biscuits", 3, 500),
+    ("oya na mo ta isu meji fun 6000", "isu", 2, 6000),
+])
+def test_unitless_quantity_matches_spoken_and_structured_readback(agent, utterance, item, quantity, amount):
+    from sautiledger.review import transaction_review
+    from sautiledger.tts import speakable
+
+    reply = agent.handle(utterance)
+    transaction = transaction_review(agent)["transaction"]
+    assert transaction["quantity"] == quantity
+    assert transaction["unit"] is None
+    assert transaction["amount"] == amount
+    assert f"{quantity} {item}," in speakable(reply)
+    assert reply.endswith("Correct?")
+    assert agent.awaiting_confirm
+    agent.handle("no")
+    assert agent.ledger.sales_total("today")[1] == 0
+
+
 # case 1
 def test_sale_with_k_slang(agent):
     reply = agent.handle("I don sell three derica of rice five thousand five")
