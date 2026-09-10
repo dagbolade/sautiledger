@@ -217,7 +217,12 @@
           "currency": "NGN",
           "payment_status": "paid"
         }
-      ]
+      ],
+      "expected_replies": {
+        "3": [
+          "five hundred naira"
+        ]
+      }
     },
     {
       "id": "field-yoruba-query",
@@ -235,6 +240,96 @@
           "item": "isu",
           "quantity": 2,
           "amount": 6000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ],
+      "expected_replies": {
+        "3": [
+          "six thousand naira"
+        ]
+      }
+    },
+    {
+      "id": "voice-trailing-na-particle",
+      "name": "Trailing Pidgin particle after the price",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+      "turns": [
+        "I dey sell one cup of rice 600 na",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "rice",
+          "quantity": 1,
+          "unit": "cup",
+          "amount": 600,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
+    },
+    {
+      "id": "voice-add-as-command",
+      "name": "'Add' read as part of the item name",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+      "turns": [
+        "Add garri one cup 5000",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "garri",
+          "quantity": 1,
+          "unit": "cup",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
+    },
+    {
+      "id": "voice-buyer-name-mid-sentence",
+      "name": "Buyer's name between item and price",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+      "turns": [
+        "I sell 2 carton of indomie for yaboki for 5000 naira",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "indomie",
+          "quantity": 2,
+          "unit": "carton",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
+    },
+    {
+      "id": "voice-each-pricing-regression",
+      "name": "Per-unit pricing spoken naturally (regression guard)",
+      "pack": "pcm-yo-NG",
+      "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+      "turns": [
+        "I sell 5 crate of egg for 2000 naira each",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "sale",
+          "item": "egg",
+          "quantity": 5,
+          "unit": "crate",
+          "amount_each": 2000,
+          "amount": 10000,
           "currency": "NGN",
           "payment_status": "paid"
         }

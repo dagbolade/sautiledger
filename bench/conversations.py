@@ -75,8 +75,16 @@ def run_scenario(scenario: dict) -> dict:
             elapsed_ms += duration
             after = ledger_snapshot(ledger)
             exact = exact_ledger(after, scenario["expected"])
+            # A query turn writes nothing, so ledger state alone cannot tell
+            # us whether the ANSWER was right. Scenarios may declare the
+            # substrings a reply must contain; without that a query "passes"
+            # merely by not breaking anything.
+            wanted = (scenario.get("expected_replies") or {}).get(str(index))
+            answer_ok = None
+            if wanted:
+                answer_ok = all(w.lower() in reply.lower() for w in wanted)
             needs_response = agent.pending is not None or agent.awaiting_confirm or "?" in reply
-            complete = exact and not needs_response
+            complete = exact and not needs_response and answer_ok is not False
             if exact and first_correct_turn is None:
                 first_correct_turn = index
             if complete and first_completed_turn is None:
@@ -89,6 +97,7 @@ def run_scenario(scenario: dict) -> dict:
                 "clarification_pending": agent.pending is not None,
                 "confirmation_pending": agent.awaiting_confirm,
                 "wrong_amounts_active": wrong_amount_count(after, scenario["expected"]),
+                "expected_reply": wanted, "answer_correct": answer_ok,
                 "review": transaction_review(agent),
             })
         final = trace[-1]
@@ -101,6 +110,8 @@ def run_scenario(scenario: dict) -> dict:
             "clarification_turns": sum(t["clarification_pending"] for t in trace),
             "ever_committed_wrong_amount": any(t["wrong_amounts_active"] for t in trace),
             "final_wrong_amounts": final["wrong_amounts_active"],
+            "answer_checks": sum(t["answer_correct"] is not None for t in trace),
+            "answer_checks_failed": sum(t["answer_correct"] is False for t in trace),
             "local_processing_ms": round(elapsed_ms, 3),
         }
     finally:
@@ -143,6 +154,8 @@ def evaluate(source: Path = DEFAULT_SCENARIOS) -> dict:
             "Processing milliseconds measure local Python/SQLite execution only; machine dependent.",
             "Wrong amounts are checked after every turn, even when later repaired or voided.",
             "Completion requires an exact final ledger and no pending clarification or confirmation.",
+            "Query answers are only verified where a scenario declares expected_replies; "
+            "query_scenarios_without_answer_check counts those graded on ledger state alone.",
         ],
         "summary": {
             "scenarios": len(results),
@@ -154,6 +167,13 @@ def evaluate(source: Path = DEFAULT_SCENARIOS) -> dict:
             "median_turns_to_completion": statistics.median(r["first_completed_turn"] for r in completed) if completed else None,
             "scenarios_with_wrong_amount_at_any_turn": sum(r["ever_committed_wrong_amount"] for r in results),
             "scenarios_with_wrong_final_amount": sum(bool(r["final_wrong_amounts"]) for r in results),
+            "answer_checks": sum(r["answer_checks"] for r in results),
+            "answer_checks_failed": sum(r["answer_checks_failed"] for r in results),
+            "query_scenarios_without_answer_check": sum(
+                1 for s_, r in zip(scenarios, results)
+                if any(w in " ".join(s_["turns"]).lower()
+                       for w in ("what are my sales", "kini gbogbo", "how much", "wetin remain"))
+                and r["answer_checks"] == 0),
         },
         "results": results,
     }

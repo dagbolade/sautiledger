@@ -12536,26 +12536,30 @@
     "schema_version": 1,
     "evaluation_kind": "scripted_transcript_replay",
     "provenance": "Developer-authored scripted transcript replays. Not recorded conversations or a held-out human evaluation. Currency amounts follow each pack's storage units (USD cents). Scenarios prefixed 'field-' are verbatim turns from a real field session rather than developer-authored examples.",
-    "generated_at": "2026-09-10T01:01:38.415896+00:00",
-    "scenarios_sha256": "7acf0634bf56d127c71ff2686104e29c43d4bf0a571b42fab00d7cdc4af1568d",
-    "implementation_sha256": "96c7516e24bef9c21327a40a533eecf1c1f9d40ae16ab714abebde662d805ee1",
+    "generated_at": "2026-09-10T21:55:52.327466+00:00",
+    "scenarios_sha256": "80def54e21aa802231c58b4a704271c97067e3f0cacea0defa877d20f7626dc5",
+    "implementation_sha256": "b9f4f44ca8bc70f67ce04aa8ea3f8f5b04c4c496187c839b27de4da301aa26b0",
     "limitations": [
       "Scripted development scenarios, not held-out conversations or human participants.",
       "No ASR, TTS, network, LLM or user response time is included.",
       "Processing milliseconds measure local Python/SQLite execution only; machine dependent.",
       "Wrong amounts are checked after every turn, even when later repaired or voided.",
-      "Completion requires an exact final ledger and no pending clarification or confirmation."
+      "Completion requires an exact final ledger and no pending clarification or confirmation.",
+      "Query answers are only verified where a scenario declares expected_replies; query_scenarios_without_answer_check counts those graded on ledger state alone."
     ],
     "summary": {
-      "scenarios": 12,
-      "graded_scenarios": 11,
-      "completed": 7,
-      "completion_rate": 0.6363636363636364,
+      "scenarios": 16,
+      "graded_scenarios": 15,
+      "completed": 12,
+      "completion_rate": 0.8,
       "controls": 1,
       "controls_behaved_correctly": 1,
-      "median_turns_to_completion": 3,
+      "median_turns_to_completion": 2.0,
       "scenarios_with_wrong_amount_at_any_turn": 2,
-      "scenarios_with_wrong_final_amount": 0
+      "scenarios_with_wrong_final_amount": 0,
+      "answer_checks": 2,
+      "answer_checks_failed": 0,
+      "query_scenarios_without_answer_check": 0
     },
     "results": [
       {
@@ -12579,8 +12583,8 @@
           {
             "turn": 1,
             "input": "I sell rice for 5500 naira",
-            "reply": "Logged: rice, five thousand five hundred naira. Correct?",
-            "processing_ms": 15.516,
+            "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
+            "processing_ms": 3.673,
             "before": [],
             "after": [
               {
@@ -12600,6 +12604,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -12619,7 +12625,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.109,
+            "processing_ms": 0.136,
             "before": [
               {
                 "id": 1,
@@ -12651,6 +12657,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -12662,7 +12670,9 @@
         "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 15.625
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 3.809
       },
       {
         "id": "missing-amount",
@@ -12687,7 +12697,7 @@
             "turn": 1,
             "input": "I don sell garri finish",
             "reply": "How much did you sell the garri?",
-            "processing_ms": 0.143,
+            "processing_ms": 0.191,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -12695,6 +12705,8 @@
             "clarification_pending": true,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "not_recorded",
               "question_about": "amount",
@@ -12713,8 +12725,8 @@
           {
             "turn": 2,
             "input": "five thousand",
-            "reply": "Logged: garri, five thousand naira. Correct?",
-            "processing_ms": 0.179,
+            "reply": "Logged sale: garri, five thousand naira. Correct?",
+            "processing_ms": 0.248,
             "before": [],
             "after": [
               {
@@ -12734,6 +12746,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -12753,7 +12767,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.079,
+            "processing_ms": 0.105,
             "before": [
               {
                 "id": 1,
@@ -12785,6 +12799,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -12796,7 +12812,9 @@
         "clarification_turns": 1,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.4
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.544
       },
       {
         "id": "wrong-amount-repair",
@@ -12821,8 +12839,8 @@
           {
             "turn": 1,
             "input": "I sell rice for 5500 naira",
-            "reply": "Logged: rice, five thousand five hundred naira. Correct?",
-            "processing_ms": 0.269,
+            "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
+            "processing_ms": 0.361,
             "before": [],
             "after": [
               {
@@ -12842,6 +12860,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 1,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -12861,7 +12881,7 @@
             "turn": 2,
             "input": "no no na five thousand",
             "reply": "Corrected: rice now five thousand naira. Correct?",
-            "processing_ms": 0.105,
+            "processing_ms": 0.134,
             "before": [
               {
                 "id": 1,
@@ -12893,6 +12913,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -12912,7 +12934,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.076,
+            "processing_ms": 0.103,
             "before": [
               {
                 "id": 1,
@@ -12944,6 +12966,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -12955,7 +12979,9 @@
         "clarification_turns": 0,
         "ever_committed_wrong_amount": true,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.45
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.598
       },
       {
         "id": "reject-replace",
@@ -12981,8 +13007,8 @@
           {
             "turn": 1,
             "input": "I sell rice for 5000 naira",
-            "reply": "Logged: rice, five thousand naira. Correct?",
-            "processing_ms": 0.394,
+            "reply": "Logged sale: rice, five thousand naira. Correct?",
+            "processing_ms": 0.338,
             "before": [],
             "after": [
               {
@@ -13002,6 +13028,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 1,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13021,7 +13049,7 @@
             "turn": 2,
             "input": "no",
             "reply": "Entry removed. What should it say? Please repeat it.",
-            "processing_ms": 0.197,
+            "processing_ms": 0.177,
             "before": [
               {
                 "id": 1,
@@ -13053,13 +13081,15 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           },
           {
             "turn": 3,
             "input": "I sell rice for 6000 naira",
-            "reply": "Logged: rice, six thousand naira. Correct?",
-            "processing_ms": 0.161,
+            "reply": "Logged sale: rice, six thousand naira. Correct?",
+            "processing_ms": 0.213,
             "before": [
               {
                 "id": 1,
@@ -13102,6 +13132,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13121,7 +13153,7 @@
             "turn": 4,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.073,
+            "processing_ms": 0.091,
             "before": [
               {
                 "id": 1,
@@ -13175,6 +13207,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -13186,7 +13220,9 @@
         "clarification_turns": 0,
         "ever_committed_wrong_amount": true,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.825
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.819
       },
       {
         "id": "deleted-multiplier",
@@ -13211,7 +13247,7 @@
             "turn": 1,
             "input": "I buy fuel thousand naira",
             "reply": "Please check: one thousand naira for the fuel? Say 'yes' to record it, or say the correct amount.",
-            "processing_ms": 0.736,
+            "processing_ms": 0.306,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -13219,6 +13255,8 @@
             "clarification_pending": true,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "not_recorded",
               "question_about": "amount_confirm",
@@ -13238,7 +13276,7 @@
             "turn": 2,
             "input": "no na ten thousand",
             "reply": "Logged expense: fuel, ten thousand naira. Correct?",
-            "processing_ms": 0.298,
+            "processing_ms": 0.232,
             "before": [],
             "after": [
               {
@@ -13258,6 +13296,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13277,7 +13317,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.097,
+            "processing_ms": 0.105,
             "before": [
               {
                 "id": 1,
@@ -13309,6 +13349,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -13320,7 +13362,9 @@
         "clarification_turns": 1,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 1.132
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.643
       },
       {
         "id": "shona-sale",
@@ -13344,8 +13388,8 @@
           {
             "turn": 1,
             "input": "Ndatengesa matomatisi ethree dollars",
-            "reply": "Logged: matomatisi, three dollars. Correct?",
-            "processing_ms": 0.227,
+            "reply": "Logged sale: matomatisi, three dollars. Correct?",
+            "processing_ms": 0.305,
             "before": [],
             "after": [
               {
@@ -13365,6 +13409,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13384,7 +13430,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.063,
+            "processing_ms": 0.077,
             "before": [
               {
                 "id": 1,
@@ -13416,6 +13462,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -13427,7 +13475,9 @@
         "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.29
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.381
       },
       {
         "id": "shona-mixed-price",
@@ -13452,8 +13502,8 @@
           {
             "turn": 1,
             "input": "Ndatengesa three cups dze rice nefive dollars fifty",
-            "reply": "Logged: 3 cup of rice, five dollars fifty cents. Correct?",
-            "processing_ms": 0.34,
+            "reply": "Logged sale: 3 cup of rice, five dollars fifty cents. Correct?",
+            "processing_ms": 0.28,
             "before": [],
             "after": [
               {
@@ -13473,6 +13523,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13492,7 +13544,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.066,
+            "processing_ms": 0.067,
             "before": [
               {
                 "id": 1,
@@ -13524,6 +13576,8 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           }
         ],
@@ -13535,7 +13589,9 @@
         "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.406
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.348
       },
       {
         "id": "unanswered-question",
@@ -13560,7 +13616,7 @@
             "turn": 1,
             "input": "I don sell garri finish",
             "reply": "How much did you sell the garri?",
-            "processing_ms": 0.134,
+            "processing_ms": 0.176,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -13568,6 +13624,8 @@
             "clarification_pending": true,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "not_recorded",
               "question_about": "amount",
@@ -13592,7 +13650,9 @@
         "clarification_turns": 1,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.134
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.176
       },
       {
         "id": "field-buyer-name-suffix",
@@ -13617,81 +13677,149 @@
           {
             "turn": 1,
             "input": "i sell biscuits 220 naira for iya chinonso",
-            "reply": "What was the total amount?",
-            "processing_ms": 0.131,
+            "reply": "Logged sale: biscuits, two hundred twenty naira. Correct?",
+            "processing_ms": 0.325,
             "before": [],
-            "after": [],
-            "exact_ledger": false,
-            "completed": false,
-            "clarification_pending": true,
-            "confirmation_pending": false,
-            "wrong_amounts_active": 0,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "amount",
-              "transaction": {
+            "after": [
+              {
+                "id": 1,
                 "type": "sale",
-                "item": "biscuits 220 for iya chinonso",
+                "item": "biscuits",
                 "quantity": null,
                 "unit": null,
-                "amount": null,
+                "amount": 220,
                 "amount_each": null,
                 "currency": "NGN",
-                "payment_status": null
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": true,
+            "completed": false,
+            "clarification_pending": false,
+            "confirmation_pending": true,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "recorded_awaiting_confirmation",
+              "question_about": "recorded_entry",
+              "transaction": {
+                "type": "sale",
+                "item": "biscuits",
+                "quantity": null,
+                "unit": null,
+                "amount": 220,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
               }
             }
           },
           {
             "turn": 2,
             "input": "220 naira",
-            "reply": "I could not understand that, so nothing was recorded. Please repeat just the item and amount.",
-            "processing_ms": 0.039,
-            "before": [],
-            "after": [],
-            "exact_ledger": false,
+            "reply": "Please check the last entry: biscuits, two hundred twenty naira. Correct? Say yes or no, or repeat the corrected entry.",
+            "processing_ms": 0.217,
+            "before": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "biscuits",
+                "quantity": null,
+                "unit": null,
+                "amount": 220,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "after": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "biscuits",
+                "quantity": null,
+                "unit": null,
+                "amount": 220,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": true,
             "completed": false,
             "clarification_pending": false,
-            "confirmation_pending": false,
+            "confirmation_pending": true,
             "wrong_amounts_active": 0,
-            "review": null
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "recorded_awaiting_confirmation",
+              "question_about": "recorded_entry",
+              "transaction": {
+                "type": "sale",
+                "item": "biscuits",
+                "quantity": null,
+                "unit": null,
+                "amount": 220,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            }
           },
           {
             "turn": 3,
             "input": "yes",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.054,
-            "before": [],
-            "after": [],
-            "exact_ledger": false,
-            "completed": false,
-            "clarification_pending": true,
-            "confirmation_pending": false,
-            "wrong_amounts_active": 0,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
+            "reply": "Noted. Ledger correct.",
+            "processing_ms": 0.088,
+            "before": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "biscuits",
                 "quantity": null,
                 "unit": null,
-                "amount": null,
+                "amount": 220,
                 "amount_each": null,
-                "currency": null,
-                "payment_status": null
+                "currency": "NGN",
+                "payment_status": "paid"
               }
-            }
+            ],
+            "after": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "biscuits",
+                "quantity": null,
+                "unit": null,
+                "amount": 220,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": true,
+            "completed": true,
+            "clarification_pending": false,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": null
           }
         ],
-        "completed": false,
-        "final_ledger_exact": false,
-        "first_correct_turn": null,
-        "first_completed_turn": null,
+        "completed": true,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": 3,
         "turns_used": 3,
-        "clarification_turns": 2,
+        "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.224
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.63
       },
       {
         "id": "field-yoruba-confirmation",
@@ -13717,8 +13845,8 @@
           {
             "turn": 1,
             "input": "oya na, mo ta crate eyin meji fun 6000",
-            "reply": "Logged: 2 crate of eyin, six thousand naira. Correct?",
-            "processing_ms": 0.24,
+            "reply": "Logged sale: 2 crate of eyin, six thousand naira. Correct?",
+            "processing_ms": 0.413,
             "before": [],
             "after": [
               {
@@ -13738,6 +13866,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13756,8 +13886,8 @@
           {
             "turn": 2,
             "input": "beeni",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.108,
+            "reply": "Noted. Ledger correct.",
+            "processing_ms": 0.122,
             "before": [
               {
                 "id": 1,
@@ -13785,35 +13915,26 @@
               }
             ],
             "exact_ledger": true,
-            "completed": false,
-            "clarification_pending": true,
+            "completed": true,
+            "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
-                "quantity": null,
-                "unit": null,
-                "amount": null,
-                "amount_each": null,
-                "currency": null,
-                "payment_status": null
-              }
-            }
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": null
           }
         ],
-        "completed": false,
+        "completed": true,
         "final_ledger_exact": true,
         "first_correct_turn": 1,
-        "first_completed_turn": null,
+        "first_completed_turn": 2,
         "turns_used": 2,
-        "clarification_turns": 1,
+        "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.349
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.536
       },
       {
         "id": "field-english-sales-query",
@@ -13835,12 +13956,17 @@
             "payment_status": "paid"
           }
         ],
+        "expected_replies": {
+          "3": [
+            "five hundred naira"
+          ]
+        },
         "trace": [
           {
             "turn": 1,
             "input": "i sell 3 biscuits for 500 naira",
-            "reply": "Logged: biscuits, five hundred naira. Correct?",
-            "processing_ms": 0.243,
+            "reply": "Logged sale: 3 biscuits, five hundred naira. Correct?",
+            "processing_ms": 0.451,
             "before": [],
             "after": [
               {
@@ -13860,6 +13986,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -13879,7 +14007,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.069,
+            "processing_ms": 0.104,
             "before": [
               {
                 "id": 1,
@@ -13911,13 +14039,15 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           },
           {
             "turn": 3,
             "input": "what are my sales today",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.09,
+            "reply": "Sales today: five hundred naira from 1 sale.",
+            "processing_ms": 0.128,
             "before": [
               {
                 "id": 1,
@@ -13945,35 +14075,28 @@
               }
             ],
             "exact_ledger": true,
-            "completed": false,
-            "clarification_pending": true,
+            "completed": true,
+            "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
-                "quantity": null,
-                "unit": null,
-                "amount": null,
-                "amount_each": null,
-                "currency": null,
-                "payment_status": null
-              }
-            }
+            "expected_reply": [
+              "five hundred naira"
+            ],
+            "answer_correct": true,
+            "review": null
           }
         ],
-        "completed": false,
+        "completed": true,
         "final_ledger_exact": true,
         "first_correct_turn": 1,
         "first_completed_turn": 2,
         "turns_used": 3,
-        "clarification_turns": 1,
+        "clarification_turns": 0,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.402
+        "answer_checks": 1,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.683
       },
       {
         "id": "field-yoruba-query",
@@ -13995,12 +14118,17 @@
             "payment_status": "paid"
           }
         ],
+        "expected_replies": {
+          "3": [
+            "six thousand naira"
+          ]
+        },
         "trace": [
           {
             "turn": 1,
             "input": "oya na, mo ta isu meji fun 6000",
-            "reply": "Logged: isu, six thousand naira. Correct?",
-            "processing_ms": 0.479,
+            "reply": "Logged sale: 2 isu, six thousand naira. Correct?",
+            "processing_ms": 0.455,
             "before": [],
             "after": [
               {
@@ -14020,6 +14148,8 @@
             "clarification_pending": false,
             "confirmation_pending": true,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "recorded_awaiting_confirmation",
               "question_about": "recorded_entry",
@@ -14039,7 +14169,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.092,
+            "processing_ms": 0.103,
             "before": [
               {
                 "id": 1,
@@ -14071,13 +14201,15 @@
             "clarification_pending": false,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": null
           },
           {
             "turn": 3,
             "input": "kini gbogbo oja mi leni",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.092,
+            "reply": "Your book today. Sales: isu times 2, six thousand naira. Total sales six thousand naira.",
+            "processing_ms": 0.184,
             "before": [
               {
                 "id": 1,
@@ -14105,10 +14237,93 @@
               }
             ],
             "exact_ledger": true,
+            "completed": true,
+            "clarification_pending": false,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": [
+              "six thousand naira"
+            ],
+            "answer_correct": true,
+            "review": null
+          }
+        ],
+        "completed": true,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": 2,
+        "turns_used": 3,
+        "clarification_turns": 0,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 1,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.742
+      },
+      {
+        "id": "voice-trailing-na-particle",
+        "name": "Trailing Pidgin particle after the price",
+        "pack": "pcm-yo-NG",
+        "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+        "turns": [
+          "I dey sell one cup of rice 600 na",
+          "yes"
+        ],
+        "expected": [
+          {
+            "type": "sale",
+            "item": "rice",
+            "quantity": 1,
+            "unit": "cup",
+            "amount": 600,
+            "currency": "NGN",
+            "payment_status": "paid"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 1,
+            "input": "I dey sell one cup of rice 600 na",
+            "reply": "How much did you sell the rice 600?",
+            "processing_ms": 0.194,
+            "before": [],
+            "after": [],
+            "exact_ledger": false,
             "completed": false,
             "clarification_pending": true,
             "confirmation_pending": false,
             "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "amount",
+              "transaction": {
+                "type": "sale",
+                "item": "rice 600",
+                "quantity": 1,
+                "unit": "cup",
+                "amount": null,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": null
+              }
+            }
+          },
+          {
+            "turn": 2,
+            "input": "yes",
+            "reply": "What would you like to record? Tell me the item and amount.",
+            "processing_ms": 0.089,
+            "before": [],
+            "after": [],
+            "exact_ledger": false,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
             "review": {
               "status": "not_recorded",
               "question_about": "missing_transaction_details",
@@ -14126,14 +14341,328 @@
           }
         ],
         "completed": false,
-        "final_ledger_exact": true,
-        "first_correct_turn": 1,
-        "first_completed_turn": 2,
-        "turns_used": 3,
+        "final_ledger_exact": false,
+        "first_correct_turn": null,
+        "first_completed_turn": null,
+        "turns_used": 2,
+        "clarification_turns": 2,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.283
+      },
+      {
+        "id": "voice-add-as-command",
+        "name": "'Add' read as part of the item name",
+        "pack": "pcm-yo-NG",
+        "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+        "turns": [
+          "Add garri one cup 5000",
+          "yes"
+        ],
+        "expected": [
+          {
+            "type": "sale",
+            "item": "garri",
+            "quantity": 1,
+            "unit": "cup",
+            "amount": 5000,
+            "currency": "NGN",
+            "payment_status": "paid"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 1,
+            "input": "Add garri one cup 5000",
+            "reply": "Did you say add garri?",
+            "processing_ms": 0.268,
+            "before": [],
+            "after": [],
+            "exact_ledger": false,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "item_confirm",
+              "transaction": {
+                "type": "sale",
+                "item": "add garri",
+                "quantity": 1,
+                "unit": "cup",
+                "amount": 5000,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": null
+              }
+            }
+          },
+          {
+            "turn": 2,
+            "input": "yes",
+            "reply": "Logged sale: 1 cup of add garri, five thousand naira. Correct?",
+            "processing_ms": 0.154,
+            "before": [],
+            "after": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "add garri",
+                "quantity": 1,
+                "unit": "cup",
+                "amount": 5000,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": false,
+            "completed": false,
+            "clarification_pending": false,
+            "confirmation_pending": true,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "recorded_awaiting_confirmation",
+              "question_about": "recorded_entry",
+              "transaction": {
+                "type": "sale",
+                "item": "add garri",
+                "quantity": 1,
+                "unit": "cup",
+                "amount": 5000,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            }
+          }
+        ],
+        "completed": false,
+        "final_ledger_exact": false,
+        "first_correct_turn": null,
+        "first_completed_turn": null,
+        "turns_used": 2,
         "clarification_turns": 1,
         "ever_committed_wrong_amount": false,
         "final_wrong_amounts": 0,
-        "local_processing_ms": 0.663
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.422
+      },
+      {
+        "id": "voice-buyer-name-mid-sentence",
+        "name": "Buyer's name between item and price",
+        "pack": "pcm-yo-NG",
+        "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+        "turns": [
+          "I sell 2 carton of indomie for yaboki for 5000 naira",
+          "yes"
+        ],
+        "expected": [
+          {
+            "type": "sale",
+            "item": "indomie",
+            "quantity": 2,
+            "unit": "carton",
+            "amount": 5000,
+            "currency": "NGN",
+            "payment_status": "paid"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 1,
+            "input": "I sell 2 carton of indomie for yaboki for 5000 naira",
+            "reply": "Please repeat the sale: item, quantity and price, without the buyer's name. Was the price each or total?",
+            "processing_ms": 0.261,
+            "before": [],
+            "after": [],
+            "exact_ledger": false,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "transaction_details",
+              "transaction": {
+                "type": "sale",
+                "item": null,
+                "quantity": 2,
+                "unit": "carton",
+                "amount": null,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": null
+              }
+            }
+          },
+          {
+            "turn": 2,
+            "input": "yes",
+            "reply": "Please repeat the sale: item, quantity and price, without the buyer's name. Was the price each or total?",
+            "processing_ms": 0.032,
+            "before": [],
+            "after": [],
+            "exact_ledger": false,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "transaction_details",
+              "transaction": {
+                "type": "sale",
+                "item": null,
+                "quantity": 2,
+                "unit": "carton",
+                "amount": null,
+                "amount_each": null,
+                "currency": "NGN",
+                "payment_status": null
+              }
+            }
+          }
+        ],
+        "completed": false,
+        "final_ledger_exact": false,
+        "first_correct_turn": null,
+        "first_completed_turn": null,
+        "turns_used": 2,
+        "clarification_turns": 2,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.293
+      },
+      {
+        "id": "voice-each-pricing-regression",
+        "name": "Per-unit pricing spoken naturally (regression guard)",
+        "pack": "pcm-yo-NG",
+        "source": "Verbatim Sahara transcript of REAL SPOKEN audio from a deployed-app tester (9-10 Sep). Replayed as text, so this measures the parser against genuine ASR output, not against tidy written input.",
+        "turns": [
+          "I sell 5 crate of egg for 2000 naira each",
+          "yes"
+        ],
+        "expected": [
+          {
+            "type": "sale",
+            "item": "egg",
+            "quantity": 5,
+            "unit": "crate",
+            "amount_each": 2000,
+            "amount": 10000,
+            "currency": "NGN",
+            "payment_status": "paid"
+          }
+        ],
+        "trace": [
+          {
+            "turn": 1,
+            "input": "I sell 5 crate of egg for 2000 naira each",
+            "reply": "Logged sale: 5 crate of egg, two thousand naira each, ten thousand naira total. Correct?",
+            "processing_ms": 0.331,
+            "before": [],
+            "after": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "egg",
+                "quantity": 5,
+                "unit": "crate",
+                "amount": 10000,
+                "amount_each": 2000,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": true,
+            "completed": false,
+            "clarification_pending": false,
+            "confirmation_pending": true,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "recorded_awaiting_confirmation",
+              "question_about": "recorded_entry",
+              "transaction": {
+                "type": "sale",
+                "item": "egg",
+                "quantity": 5,
+                "unit": "crate",
+                "amount": 10000,
+                "amount_each": 2000,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            }
+          },
+          {
+            "turn": 2,
+            "input": "yes",
+            "reply": "Noted. Ledger correct.",
+            "processing_ms": 0.177,
+            "before": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "egg",
+                "quantity": 5,
+                "unit": "crate",
+                "amount": 10000,
+                "amount_each": 2000,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "after": [
+              {
+                "id": 1,
+                "type": "sale",
+                "item": "egg",
+                "quantity": 5,
+                "unit": "crate",
+                "amount": 10000,
+                "amount_each": 2000,
+                "currency": "NGN",
+                "payment_status": "paid"
+              }
+            ],
+            "exact_ledger": true,
+            "completed": true,
+            "clarification_pending": false,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": null
+          }
+        ],
+        "completed": true,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": 2,
+        "turns_used": 2,
+        "clarification_turns": 0,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.508
       }
     ]
   }

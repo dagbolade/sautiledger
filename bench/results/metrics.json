@@ -2326,10 +2326,10 @@
       "numeric_accuracy": true,
       "flags": [],
       "exact_match": false,
-      "amount_safe": false,
-      "amount_corrupted": true,
-      "got_intent": "log_transaction",
-      "got_amount": 5500
+      "amount_safe": true,
+      "amount_corrupted": false,
+      "got_intent": "clarify",
+      "got_amount": null
     },
     {
       "model": "gpt-4o-transcribe",
@@ -8901,10 +8901,10 @@
       "numeric_accuracy": true,
       "flags": [],
       "exact_match": false,
-      "amount_safe": false,
-      "amount_corrupted": true,
-      "got_intent": "log_transaction",
-      "got_amount": 50005
+      "amount_safe": true,
+      "amount_corrupted": false,
+      "got_intent": "clarify",
+      "got_amount": null
     },
     {
       "model": "sahara-v2.5",
@@ -10271,10 +10271,10 @@
       "numeric_accuracy": true,
       "flags": [],
       "exact_match": false,
-      "amount_safe": false,
-      "amount_corrupted": true,
-      "got_intent": "log_transaction",
-      "got_amount": 50005
+      "amount_safe": true,
+      "amount_corrupted": false,
+      "got_intent": "clarify",
+      "got_amount": null
     },
     {
       "model": "sahara-v2.5-raw",

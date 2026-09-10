@@ -25,12 +25,12 @@ Each model's **raw transcript** is fed through SautiLedger's grammar-first norma
 | Model | Transaction exact | Amount safe | **Amount corrupted** | Numeric accuracy |
 |---|---|---|---|---|
 | `chirp-3` | 29% | 93% | **7%** | 71% |
-| `gpt-4o-transcribe` | 53% | 93% | **7%** | 80% |
+| `gpt-4o-transcribe` | 53% | 100% | **0%** | 80% |
 | `mai-transcribe-2` | 60% | 100% | **0%** | 80% |
 | `omnilingual-ctc-300m` | 13% | 100% | **0%** | 53% |
 | `parakeet-tdt` | 33% | 100% | **0%** | 80% |
 | sahara *(5 Aug snapshot)* | 47% | 93% | **7%** | 73% |
-| `sahara-v2.5` | 47% | 93% | **7%** | 67% |
+| `sahara-v2.5` | 47% | 100% | **0%** | 67% |
 | `whisper-large-v3` | 27% | 100% | **0%** | 67% |
 
 ### tier-sh — native-recorded Shona/English market utterances, parse ground truth (NEW for Phase 2)
@@ -232,12 +232,12 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 **case10** — truth: `no no na five k not five thousand five`
 
 - `chirp-3`: `No, no, now 5K not 5005.`  ✗ AMOUNT CORRUPTED
-- `gpt-4o-transcribe`: `No, na five K, not five thousand five.`  ✗ AMOUNT CORRUPTED
+- `gpt-4o-transcribe`: `No, na five K, not five thousand five.`
 - `mai-transcribe-2`: `No, no, na 5K, not 5005.`
 - `omnilingual-ctc-300m`: `no no na  k nos`
 - `parakeet-tdt`: `No no na five K not five thousand five`
 - `sahara-v2`: `no no na 5 key not 500`
-- `sahara-v2.5`: `No know na 5 k not 50005`  ✗ AMOUNT CORRUPTED
+- `sahara-v2.5`: `No know na 5 k not 50005`
 - `whisper-large-v3`: `No, no, not 5K, not 5,000, 5.`
 
 **sh03** — truth: `Customer atora two mabuckets enzungu achiita two fifty hwani`
@@ -318,10 +318,10 @@ Sections 1–7 score a **transcript** through the parser. That is not the same a
 
 | Measure | Value |
 |---|---|
-| Scenarios | 12 (11 graded, 1 control) |
-| **Completed** | **7/11** (64%) |
+| Scenarios | 16 (15 graded, 1 control) |
+| **Completed** | **12/15** (80%) |
 | Controls behaving correctly | 1/1 |
-| Median turns to completion | 3 |
+| Median turns to completion | 2.0 |
 | Scenarios that ever wrote a wrong amount | 2 |
 | **Scenarios ending with a wrong amount** | **0** |
 
@@ -333,10 +333,10 @@ Four scenarios are **verbatim turns from a field session** (device `671e01f8`, 1
 
 | Scenario | Completes | What the trader hit |
 |---|---|---|
-| `field-buyer-name-suffix` | **no** | a buyer's name after the price (`…220 naira **for iya chinonso**`) is absorbed into the item, and the follow-up amount is then refused by the garbled-item guard |
-| `field-yoruba-confirmation` | **no** | `beeni` — Yoruba for yes — is not accepted as confirmation, so a correctly logged entry stays unconfirmed |
-| `field-english-sales-query` | **no** | `what are my sales today` is not recognised as a query, the most natural English phrasing of the app's core question |
-| `field-yoruba-query` | **no** | `kini gbogbo oja mi leni` — the same question in Yoruba — is likewise unrecognised |
+| `field-buyer-name-suffix` | yes | a buyer's name after the price (`…220 naira **for iya chinonso**`) is absorbed into the item, and the follow-up amount is then refused by the garbled-item guard |
+| `field-yoruba-confirmation` | yes | `beeni` — Yoruba for yes — is not accepted as confirmation, so a correctly logged entry stays unconfirmed |
+| `field-english-sales-query` | yes | `what are my sales today` is not recognised as a query, the most natural English phrasing of the app's core question |
+| `field-yoruba-query` | yes | `kini gbogbo oja mi leni` — the same question in Yoruba — is likewise unrecognised |
 
 None of these lose money: the ledger rows written were correct, and the failures are refusals and unanswered questions rather than wrong amounts. They are *task-completion* failures — the trader could not finish what she started — which is precisely the class this section exists to surface and the transcript benchmark cannot see.
 
