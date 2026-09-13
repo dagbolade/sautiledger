@@ -101,6 +101,13 @@ Each manifest's own sha256, so a single tier can be checked alone:
   heard, not what was said. That is why they are used only where the
   expected outcome (an empty ledger) does not depend on the words, and
   never for WER.
+- **tier-a references are the script, not a verbatim record.** In 4 of
+  15 clips (case09, case12, case13, case21) the speaker added openers such
+  as *"How far na"* or *"My guy"* that the reference does not contain. This
+  inflates tier-a WER for every model (Sahara v2.5: 0.574 with them,
+  0.358 without; the ranking barely moves). Transaction labels are
+  unaffected. The published audio set carries both the script and a
+  speaker-confirmed verbatim transcript.
 - **Speech was read, not overheard.** Native-tier clips are scripted
   utterances spoken naturally, not recordings of live trade.
 
