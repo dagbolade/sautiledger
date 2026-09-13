@@ -318,14 +318,22 @@ Sections 1–7 score a **transcript** through the parser. That is not the same a
 
 | Measure | Value |
 |---|---|
-| Scenarios | 17 (16 graded, 1 control) |
+| Scenarios | 34 (16 graded, 18 controls) |
 | **Completed** | **13/16** (81%) |
-| Controls behaving correctly | 1/1 |
+| Controls behaving correctly | 18/18 |
 | Median turns to completion | 2 |
 | Scenarios that ever wrote a wrong amount | 2 |
 | **Scenarios ending with a wrong amount** | **0** |
 
 Two rows deserve emphasis. **A control scenario asserts the agent must NOT complete** — a sale with no price spoken has to end in a question, and counting that refusal as a failed task would reward guessing. It is scored separately rather than diluting the denominator. And the last two rows are deliberately different measures: an amount can be written wrongly and *then repaired*, so we count wrong amounts **at any turn**, not just at the end. 2 scenario(s) wrote a wrong amount at some point; 0 ended with one. A benchmark that only inspected the final ledger would have scored the repair as a clean run.
+
+### Real Shona chatter: the ledger must stay untouched
+
+17 controls come from **unscripted audio**: the native Shona validator recorded 19 short clips of ordinary market talk (Ruwa 17–35) — greetings, *it's hot, business is tough*, *the market is expensive*, *your tomatoes aren't fresh*, *won't you give me a little extra?* No sale is stated in any of them. Each turn is **Sahara v2.5's verbatim transcript of that audio**, i.e. exactly what the app receives, errors included. Two clips (Ruwa 23 and 24) transcribed as empty; those never reach the agent — the API answers *please try again* — so they are not replayed.
+
+**Result: 17/17 held, 0 ledger rows written.** Every clip ended in a request for the item and amount, never a guessed entry. This is the risk that matters for a voice ledger in a noisy market: speech that is not a transaction, misrecognised into something that looks like one.
+
+**Limits.** The references for these clips are not yet verified by the speaker, so they are *not* used for WER; they test the agent only, and only on this ASR output. The expected ledger state (empty) does not depend on the exact words, which is why they can be scored before verification.
 
 ### Scenarios taken from a real session
 

@@ -711,7 +711,7 @@ def render() -> Path:
         add(f"| Measure | Value |")
         add("|---|---|")
         add(f"| Scenarios | {s['scenarios']} ({s['graded_scenarios']} graded, "
-            f"{s['controls']} control) |")
+            f"{s['controls']} control{'s' if s['controls'] != 1 else ''}) |")
         add(f"| **Completed** | **{s['completed']}/{s['graded_scenarios']}** "
             f"({s['completion_rate']:.0%}) |")
         add(f"| Controls behaving correctly | {s['controls_behaved_correctly']}/{s['controls']} |")
@@ -731,6 +731,36 @@ def render() -> Path:
             "ended with one. A benchmark that only inspected the final ledger "
             "would have scored the repair as a clean run.")
         add("")
+        chatter = [r for r in conv["results"] if r["id"].startswith("shona-chatter-")]
+        if chatter:
+            rows_written = sum(
+                len([row for row in r["trace"][-1]["after"] if row["payment_status"] != "voided"])
+                for r in chatter)
+            held = sum(not r["completed"] and not r["ever_committed_wrong_amount"] for r in chatter)
+            add("### Real Shona chatter: the ledger must stay untouched")
+            add("")
+            add(f"{len(chatter)} controls come from **unscripted audio**: the native "
+                "Shona validator recorded 19 short clips of ordinary market talk "
+                "(Ruwa 17–35) — greetings, *it's hot, business is tough*, *the "
+                "market is expensive*, *your tomatoes aren't fresh*, *won't you "
+                "give me a little extra?* No sale is stated in any of them. Each "
+                "turn is **Sahara v2.5's verbatim transcript of that audio**, i.e. "
+                "exactly what the app receives, errors included. Two clips (Ruwa 23 "
+                "and 24) transcribed as empty; those never reach the agent — the API "
+                "answers *please try again* — so they are not replayed.")
+            add("")
+            add(f"**Result: {held}/{len(chatter)} held, {rows_written} ledger rows "
+                "written.** Every clip ended in a request for the item and amount, "
+                "never a guessed entry. This is the risk that matters for a voice "
+                "ledger in a noisy market: speech that is not a transaction, "
+                "misrecognised into something that looks like one.")
+            add("")
+            add("**Limits.** The references for these clips are not yet verified "
+                "by the speaker, so they are *not* used for WER; they test the "
+                "agent only, and only on this ASR output. The expected ledger state "
+                "(empty) does not depend on the exact words, which is why they can "
+                "be scored before verification.")
+            add("")
         field = [r for r in conv["results"] if r["id"].startswith("field-")]
         if field:
             add("### Scenarios taken from a real session")
