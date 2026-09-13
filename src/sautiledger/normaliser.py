@@ -175,6 +175,10 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
         if ca == "SMALL" and cb == "TENS":
             return a * 100 + b  # "two fifty" -> 250
         return None
+    if n == 4 and ks == ["NUM"] * 4:
+        a, scale, b, hundred = vs
+        if 0 < a < 1000 and scale == 1000 and 0 < b < 10 and hundred == 100:
+            return a * 1000 + b * 100  # "four thousand five hundred"
     if n == 3 and ks == ["NUM", "NUM", "NUM"]:
         a, b, c = vs
         ca, cb, cc = _cls(a), _cls(b), _cls(c)

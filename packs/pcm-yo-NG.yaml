@@ -51,6 +51,15 @@ numbers:
   eight: 8
   nine: 9
   ten: 10
+  eleven: 11
+  twelve: 12
+  thirteen: 13
+  fourteen: 14
+  fifteen: 15
+  sixteen: 16
+  seventeen: 17
+  eighteen: 18
+  nineteen: 19
   twenty: 20
   thirty: 30
   forty: 40
@@ -116,7 +125,7 @@ units:
 # "mo taa" / "mo ta" — Yoruba first-person "I sold"
 sale_triggers: [don sell, customer take, customer buy, come buy, buy am, mo taa, mo ta, sold, sell, carry, take, buy]
 # "mo ra" — Yoruba first-person "I bought"
-expense_triggers: [i go market go buy, i go buy, i went to buy,i buy, i don buy, mo ra, bought]
+expense_triggers: [i go market go buy, i go buy, i went to buy,i buy, i don buy, mo ra, mo san, bought]
 log_triggers: [log am, log]
 
 # Typed Yoruba confirmations and explicit customer-attribution titles.
@@ -126,6 +135,8 @@ unclear_each_tokens: ["8"]
 customer_markers: [for iya, for baba, for mr, for mrs, for customer]
 
 queries:
+  - phrase: elo ni mo ta
+    query: sales_total
   - phrase: what are my sales
     query: sales_total
   - phrase: my sales
