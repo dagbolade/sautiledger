@@ -1,6 +1,6 @@
 # SautiLedger — Solution Description
 
-**Sahara CodeSwitch Africa Challenge (Phase 2) · Category: Fintech, Telco & Customer Experience**
+**Sahara CodeSwitch Africa Challenge (Phase 2) · Category: Fintech, Telco & Call Center**
 
 ## The problem
 
@@ -122,11 +122,18 @@ and it is the same code path.
   shorthand register in round one; the wholesale register (`per pack`,
   `200 per one`) in round two, taken directly from a trader's transcripts.
 - **Benchmarked against six other speech systems** on a frozen 70-clip
-  corpus of natively recorded code-switched market speech — Sahara v2.5,
+  corpus: 30 natively recorded code-switched market utterances
+  (Pidgin/Yoruba and Shona, each labelled with the ledger entry it should
+  produce) and 40 AfriSwitch broadcast clips — Sahara v2.5,
   Microsoft MAI-Transcribe-2, OpenAI GPT-4o-transcribe, NVIDIA
   Parakeet-TDT, Google Chirp-3, Whisper-large-v3 and Meta's
   omnilingual-ASR — plus a round-trip TTS benchmark. Full results:
-  [`bench/results/REPORT.md`](../bench/results/REPORT.md).
+  [`bench/results/REPORT.md`](../bench/results/REPORT.md); dataset card:
+  [`bench/DATASET.md`](../bench/DATASET.md).
+- **Conversation benchmark**: 34 scripted replays through the real agent
+  and ledger — 13 of 16 tasks completed, none ending with a wrong amount,
+  and 18 of 18 must-not-log controls held, 17 of them real unscripted
+  Shona market chatter.
 
 ### What the benchmark told us, including the inconvenient part
 
@@ -135,20 +142,22 @@ wins, and the leader flips with the language**:
 
 | | Pidgin/Yoruba | Shona |
 |---|---|---|
-| best | MAI-Transcribe-2 — 60% exact, 0% corrupted | **Sahara v2.5 — 27% exact, 0% corrupted** |
-| Sahara | 47% exact, 7% corrupted (3rd) | best, double the nearest frontier model |
+| best | MAI-Transcribe-2 — 60% exact, 0% corrupted | **Sahara v2.5 and Meta omnilingual-ASR (open), tied — 27% exact, 0% corrupted** |
+| Sahara | 47% exact, 0% corrupted (3rd) | tied first, double the best frontier model |
 | frontier models on Shona | — | 7–13% exact, three of them corrupting amounts |
 
 Sahara is **not** the strongest system on its own flagship Pidgin/Yoruba
-pair, and we report that plainly. The pattern that explains it is
-linguistic distance from English: Pidgin is lexically English-adjacent so
-strong general recognisers cope with it, while Shona is not and they
-collapse there. Code-switch-specific training is worth most exactly where
+pair, and we report that plainly. Our best explanation — a hypothesis, since
+each tier is one speaker on one phone — is linguistic distance from
+English: Pidgin is lexically English-adjacent so strong general
+recognisers cope with it, while Shona is not and they collapse there. If
+that holds, code-switch-specific training is worth most exactly where
 general models are worst.
 
 **Why the product still runs on Sahara.** It has the best WER on every
-tier; it is the only system that leads on Shona, and the only one whose
-errors on Shona stayed *safe* (zero corrupted amounts); it renders
+tier; it is tied first on Shona with zero corrupted amounts, while the
+open model it ties with records far fewer Pidgin transactions exactly
+(13% against Sahara's 47%); it renders
 Pidgin's perfective `I don sell` without inverting it into `I don't
 sell`; and it is the only vendor here that also provides TTS in the same
 Nigerian voice register, which our readback depends on. The honest

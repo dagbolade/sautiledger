@@ -191,11 +191,14 @@ perfection.
 **Headline result: no model wins everywhere, and the leader flips with the
 language.** On Pidgin/Yoruba, Microsoft's MAI-Transcribe-2 records the
 most transactions exactly (60%, zero corrupted) ahead of GPT-4o-transcribe
-(53%) and Sahara (47%). On Shona the ordering inverts — Sahara leads at
-27% with zero corrupted amounts, double the best frontier system, three of
-which start corrupting amounts there. The pattern is linguistic distance
-from English: Pidgin is lexically English-adjacent so general recognisers
-cope, Shona is not and they collapse. An earlier draft of this benchmark,
+(53%) and Sahara (47%), all three with zero corrupted amounts. On Shona
+the ordering inverts — Sahara is tied first with Meta's open
+omnilingual-ASR at 27% with zero corrupted amounts, double the best
+frontier system, three of which start corrupting amounts there. Our best
+explanation is linguistic distance from English — Pidgin is lexically
+English-adjacent so general recognisers cope, Shona is not — but it is a
+hypothesis: each tier is one speaker on one phone, so language is
+confounded with voice, microphone and room. An earlier draft of this benchmark,
 run against a weaker field, concluded there was "one viable ASR"; a
 stronger field falsified that, and the report says so.
 

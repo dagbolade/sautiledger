@@ -243,11 +243,12 @@ def render() -> Path:
         "Microsoft's MAI-Transcribe-2 records the most transactions exactly (60%) "
         "and corrupts none, ahead of GPT-4o-transcribe (53%) and Sahara (47%). On "
         "Shona — a supported Sahara *language* but **not** a code-switch pair — "
-        "that ordering inverts: Sahara leads at 27% with zero corruption, double "
-        "the best frontier system, while MAI drops to 13% and corrupts 13%.")
+        "that ordering inverts: Sahara is tied first at 27% with zero corruption "
+        "(level with Meta's open omnilingual-ASR), double the best frontier "
+        "system, while MAI drops to 13% and corrupts 13%.")
     add("")
-    add("**The pattern is linguistic distance from English, not African speech in "
-        "general.** Nigerian Pidgin is lexically English-adjacent, so a strong "
+    add("**Our best explanation is linguistic distance from English — a "
+        "hypothesis, discussed in §5, not a demonstrated cause.** Nigerian Pidgin is lexically English-adjacent, so a strong "
         "general-purpose recogniser can largely cope with it; Shona is not, and "
         "the frontier systems collapse there while the Africa-trained model holds. "
         "An earlier draft of this report — written when the comparison set was "
@@ -496,9 +497,9 @@ def render() -> Path:
     add("")
     add("**The comparison across the two native tiers is where this benchmark "
         "earns its keep.** Sahara ranks *third* on Pidgin/Yoruba (47% exact, "
-        "behind MAI-Transcribe-2 at 60% and GPT-4o-transcribe at 53%) and *first* "
-        "on Shona (27%, double the best frontier system, with zero corrupted "
-        "amounts). The frontier models do not degrade gently on Shona — they "
+        "behind MAI-Transcribe-2 at 60% and GPT-4o-transcribe at 53%) and *tied "
+        "first* on Shona with Meta's open omnilingual-ASR (both 27%, double the "
+        "best frontier system, both with zero corrupted amounts). The frontier models do not degrade gently on Shona — they "
         "collapse, and three of them start corrupting amounts as they do.")
     add("")
     add("**A hypothesis, not a demonstrated cause.** The most economical "
