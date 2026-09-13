@@ -128,10 +128,25 @@ class Agent:
         toks = tokenize(text)
         rest, rejected = _strip_leading(toks, _NO_WORDS, _NO_PHRASES)
         if rejected:
+            previous = self.ledger.last_transaction()
             self._void_last_logged()
             rest = _strip_copula(rest)
             if not rest:
                 return "I don remove am. Wetin I write wrong? Talk am again."
+            words = " " + " ".join(rest) + " "
+            triggers = self.pack.sale_triggers + self.pack.expense_triggers + self.pack.log_triggers
+            if previous is not None and not any(" " + p + " " in words for p in triggers):
+                replacement = normalise(" ".join(rest), self.pack, self.llm)
+                if replacement.intent in {"log_transaction", "clarify"}:
+                    same_item = replacement.item is None
+                    replacement = replace(replacement, type=previous["type"],
+                        currency=previous["currency"],
+                        item=replacement.item or previous["item"],
+                        quantity=previous["quantity"] if same_item else replacement.quantity,
+                        unit=previous["unit"] if same_item else replacement.unit)
+                    if replacement.amount is not None and not replacement.candidates:
+                        replacement = replace(replacement, intent="log_transaction", question_about=None)
+                    return self._dispatch(replacement, text)
             return self.handle(" ".join(rest))  # remainder is the replacement
         rest, confirmed = _strip_leading(toks, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
         if confirmed:

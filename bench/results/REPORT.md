@@ -18,7 +18,7 @@ Each model's **raw transcript** is fed through SautiLedger's grammar-first norma
 
 - **Transaction exact** — every field correct: type, item, quantity, unit, amount.
 - **Amount safe** — the amount was right, *or* the agent refused to guess and asked a clarifying question. Asking is safe; nothing is written.
-- **Amount corrupted** — a WRONG amount would have been written into someone's money records. This is the number that matters.
+- **Amount corrupted** — a WRONG amount was produced by the parser for someone's money records. This is the number that matters.
 
 ### tier-a — native-recorded market utterances (Nigerian Pidgin/Yoruba/English), parse ground truth
 
@@ -320,14 +320,14 @@ Sections 1–7 score a **transcript** through the parser. That is not the same a
 
 | Measure | Value |
 |---|---|
-| Scenarios | 34 (16 graded, 18 controls) |
-| **Completed** | **13/16** (81%) |
+| Scenarios | 37 (19 graded, 18 controls) |
+| **Completed** | **16/19** (84%) |
 | Controls behaving correctly | 18/18 |
-| Median turns to completion | 2 |
-| Scenarios that ever wrote a wrong amount | 2 |
+| Median turns to completion | 2.5 |
+| Scenarios that ever wrote a wrong amount | 5 |
 | **Scenarios ending with a wrong amount** | **0** |
 
-Two rows deserve emphasis. **A control scenario asserts the agent must NOT complete** — a sale with no price spoken has to end in a question, and counting that refusal as a failed task would reward guessing. It is scored separately rather than diluting the denominator. And the last two rows are deliberately different measures: an amount can be written wrongly and *then repaired*, so we count wrong amounts **at any turn**, not just at the end. 2 scenario(s) wrote a wrong amount at some point; 0 ended with one. A benchmark that only inspected the final ledger would have scored the repair as a clean run.
+Two rows deserve emphasis. **A control scenario asserts the agent must NOT complete** — a sale with no price spoken has to end in a question, and counting that refusal as a failed task would reward guessing. It is scored separately rather than diluting the denominator. And the last two rows are deliberately different measures: an amount can be written wrongly and *then repaired*, so we count wrong amounts **at any turn**, not just at the end. 5 scenario(s) wrote a wrong amount at some point; 0 ended with one. A benchmark that only inspected the final ledger would have scored the repair as a clean run.
 
 ### Real Shona chatter: the ledger must stay untouched
 
@@ -383,7 +383,7 @@ Offered in the spirit the challenge asked for — everything below was observed 
 - **Provenance.** tier-a utterances were drafted by an AI assistant and then CORRECTED by a native Nigerian Pidgin/Yoruba speaker before recording; tier-sh identically, by a native Shona speaker (7 September). The sw-KE and ha-NG cases remain non-native drafts and are flagged as such — they are excluded from the recorded tiers rather than presented as validated. Even our test corpus needed native repair: that is the same gap the product exists to close.
 - **Transaction accuracy** feeds each raw transcript through the shipped grammar-first normaliser with the LLM fallback disabled, so the number reflects deterministic behaviour only.
 - **Diacritic folding.** omnilingual returns correctly accented Yoruba (`ẹgbẹrùn mẹ́ta`). Our scorer folds diacritics before comparison, because penalising a model for orthographic faithfulness the reference lacks would be a bias in *our* instrument. The fold is a no-op on ASCII output, so it does not advantage any model.
-- **What the transaction metric does and does not measure.** Each transcript is passed through the shipped *normaliser* — the deterministic grammar — and the resulting ParseResult is compared to the expected one. It is **not** a simulation of the full conversation: the agent's commit gate, its unknown-item and suspicious-amount confirmations, the user's "yes"/"no" turn, and the actual database write are not exercised. Those gates can only convert a bad parse into a question, so a real session would corrupt no more often than these figures suggest — but "amount corrupted" should be read as *the parser would have produced a wrong amount*, not as *a wrong row reached a ledger*.
+- **What the transaction metric does and does not measure.** Each transcript is passed through the shipped *normaliser* — the deterministic grammar — and the resulting ParseResult is compared to the expected one. It is **not** a simulation of the full conversation: the agent's commit gate, its unknown-item and suspicious-amount confirmations, the user's "yes"/"no" turn, and the actual database write are not exercised. Conversation-state errors can introduce additional failures, so this is not an upper bound on live ledger corruption; "amount corrupted" should be read as *the parser would have produced a wrong amount*, not as *a wrong row reached a ledger*.
 - **tier-a references are the script, not a verbatim record.** In 4 of the 15 clips (case09, case12, case13, case21) the speaker added discourse openers and tails that are not in the reference, e.g. *"How far na,"* before *"wetin I sell pass this week"*, and *"My guy, … o, I don sell am finish"* around *"I don sell garri finish"*. Every model hears the extra words, so tier-a WER is inflated for all of them. Found on 13 September while preparing the audio for release, after all scoring. Sensitivity check, excluding those four clips: Sahara v2.5 0.574 → 0.358 and still first; Parakeet 0.651 → 0.397, second; MAI-Transcribe-2 and GPT-4o-transcribe swap third and fourth (0.447 and 0.450); Whisper and omnilingual swap sixth and seventh. The transaction labels are unaffected (the item, amount and intent are the same), so §1 does not change. The frozen references are left as they are and the finding is reported here.
 - **Caveats on generalisation.** Small n per tier (15 clips each on the native tiers). Tier-a is one Nigerian male speaker and tier-sh is one Zimbabwean female speaker, each recorded on their own device in their own room — so **language is confounded with speaker, microphone and acoustic environment**, and no cross-tier comparison here isolates the language. Sahara failures are reported unedited — the claim under test is downstream safety, not vendor perfection.
 - **Retired model.** `whisper-small` appeared in our August workshop benchmark as a placeholder for a frontier model we had no key for. With frontier ASR available it is replaced by MAI-Transcribe-2 rather than left in as filler; it also never ran on the Shona tier, so it could not join the comparison that matters most here. Its workshop-era numbers remain in `REPORT-workshop-2026-08.md`.

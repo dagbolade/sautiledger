@@ -7,17 +7,13 @@ commitments below are implemented and testable, not aspirational.
 
 ## 1. Privacy: where the money records actually live
 
-Sales, expenses, credit and customer notes are never transmitted to any
-third party — not to a model, not to a vendor. The only data that ever
-leaves the application is **audio**, sent for transcription, and **reply
-text**, sent to generate the spoken confirmation.
+On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
 
 **Where the ledger is stored depends on how the app is deployed, and we
 state both rather than claiming the stronger one:**
 
 - **Self-hosted** (`make phone` — the intended production shape): the
-  SQLite ledger is on the trader's own device. Nothing but audio and reply
-  text crosses the network.
+  SQLite ledger is on the machine running Python. `make phone` serves a phone browser over the LAN; it does not install storage on that phone. Sharing follows the speech and fallback configuration described above.
 - **Hosted demo** (the Railway instance our field testers used): the
   SQLite ledger is on a server volume that we operate, and the utterance
   reaches our backend on its way to Sahara. Per-device cookies give each
@@ -34,10 +30,8 @@ ship, and the code path is identical.
 
 The following are enforced structurally, in both modes:
 
-- Exactly one module (`egress.py`) may open a network connection. A test
-  in the suite parses every other module's AST and fails the build if any
-  of them imports an HTTP or socket library. The one sanctioned exception
-  (the WebSocket library, for streaming) is allowlisted to that file alone.
+- Remote speech and hosted-fallback transmissions go through `egress.py`. A test
+  in the suite parses every other module's AST and fails the build on unapproved network imports; local Ollama and development-server helpers have scoped exceptions. The streaming WebSocket library is allowlisted to the egress module.
 - Every transmission — each clip, each TTS request, each streamed chunk
   with its byte total — is written to a transmission ledger and displayed
   to the user in plain language, in their own register: *"your voice clip,
@@ -90,9 +84,9 @@ is a wrong amount silently entering someone's financial record.
   asked) as a first-class outcome for this reason.
 - **Refuse incoherence.** A readback that would echo garbled text is
   refused outright rather than offered for a tired "yes".
-- **Corrections void, never overwrite.** A rejected entry is marked
+- **Amount corrections and rejections preserve the original row.** A rejected entry is marked
   voided and stays visible — the book records that a mistake was made and
-  removed, which is what an auditor and a lender both need.
+  removed. Payment-status and due-date updates are metadata edits, not immutable revisions.
 
 This was tested by reality. On 27 August a live user's spoken "5700" was
 merged by ASR into "570007" and entered her ledger. She caught and voided

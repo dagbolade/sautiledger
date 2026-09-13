@@ -1284,3 +1284,5 @@ svg {
 .voice-options label { display:flex; flex-direction:column; gap:4px; }
 .voice-options select,.voice-options button { padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); }
 #voice-playback-status { font-size:12px; color:var(--muted); }
+
+.privacy-note { margin: 8px 0 12px; font-size: 0.8rem; line-height: 1.45; color: var(--muted, #555); }

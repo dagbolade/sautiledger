@@ -93,23 +93,9 @@ switches added for Shona (`major_unit_words` for cents-based currency,
 `number_prefixes` for concord prefixes that glue onto code-switched
 numerals) are pack-gated and provably inert for every other language.
 
-**5. Egress is auditable by construction.** Exactly one module may touch
-the network, enforced by an AST import guard in the test suite. Every
-transmission — every clip, every TTS request, every streamed byte — is
-recorded and shown to the user in plain language. The money records
-themselves are never sent to any vendor or model.
+**5. Egress is auditable.** On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
 
-**6. No cloud dependency for the bookkeeping itself.** The ledger is
-SQLite and the app runs without a network for everything except
-transcription — cloud ASR is the accuracy path, not a dependency of
-record-keeping. **Where that SQLite file sits depends on the deployment**:
-self-hosted (`make phone`) it is on the trader's own device; on the hosted
-demo our field testers used, it is on a server volume we operate, with
-per-device cookies isolating each trader's ledger from the others but not
-making the storage phone-local. We ran the hosted instance because it was
-the only way to get real traders using the app from their own phones
-inside the challenge window. The self-hosted mode is what we would ship,
-and it is the same code path.
+**6. Storage follows the backend.** SQLite lives on the machine running Python, or on the Railway server volume for the hosted demo. `make phone` serves a browser on the LAN; it does not put SQLite on the phone. Hosted use requires internet. The grammar and ledger can run without cloud inference in self-hosted none/auto mode.
 
 ## Evidence it works
 
@@ -130,8 +116,8 @@ and it is the same code path.
   omnilingual-ASR — plus a round-trip TTS benchmark. Full results:
   [`bench/results/REPORT.md`](../bench/results/REPORT.md); dataset card:
   [`bench/DATASET.md`](../bench/DATASET.md).
-- **Conversation benchmark**: 34 scripted replays through the real agent
-  and ledger — 13 of 16 tasks completed, none ending with a wrong amount,
+- **Conversation benchmark**: 37 scripted replays through the real agent
+  and ledger — 16 of 19 tasks completed, none ending with a wrong amount,
   and 18 of 18 must-not-log controls held, 17 of them real unscripted
   Shona market chatter.
 

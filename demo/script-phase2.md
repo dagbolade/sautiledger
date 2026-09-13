@@ -76,8 +76,7 @@ the ₦5,000 row replaces it.
 > "A correction doesn't erase anything. The book shows that a mistake was
 > made and fixed, which is exactly what a lender needs in order to trust it."
 
-⚠ Say the correction exactly like that, the full sentence. Two shorter
-forms currently misbehave (see *Known issues* below).
+Use the full sentence for a clear demo, and rehearse the shorter correction forms too.
 
 ---
 
@@ -102,7 +101,7 @@ Correct?"* → **"yes"**
 
 ## 1:50–2:15 · Shona, same app
 
-Switch the language menu to **Shona / English → English · USD**.
+Open a separate empty book in a private browser session (prepare it before filming), then select **Shona / English → English · USD**. Keep the naira book in the original session; switching currency in a populated book is intentionally blocked.
 
 > **"Ndatengesa matomatisi ethree dollars"**
 
@@ -128,10 +127,7 @@ device into the mic.)*
 
 Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
-> "The only thing that leaves for the speech service is the audio, and
-> every transmission is listed here in plain language. Keeping voice clips
-> is off unless she turns it on. On this hosted demo her book is stored on
-> our server; run it yourself and it stays on her own phone."
+> "Audio and readback text go to Sahara. When the grammar cannot parse an utterance, this hosted demo can send its text to Hugging Face. Every such call is listed here as agent fallback, hosted model. Retaining clips is optional and off by default. This demo stores the book on our server; self-hosting stores it on the machine running the app."
 
 ---
 
@@ -153,14 +149,9 @@ Tap **Trading statement**.
 
 ---
 
-## Known issues (found in rehearsal, 13 September; do not film these)
+## Correction rehearsal
 
-- **"no, na five thousand"** (amount only) voids the entry and then asks
-  *"Wetin she buy?"* instead of replacing it.
-- **"no, na fuel five thousand"** after an *expense* re-logs it as a
-  **sale**, flipping the money direction.
-- **"no no na five thousand"** corrects the amount in place. It works,
-  but no voided row is left on screen, so it doesn't show the audit trail.
+Rehearse amount-only and item-plus-amount expense corrections on the deployed build before filming. They must preserve expense type; amount corrections must leave the old row voided. Local regression tests cover these paths; live ASR may still change the words.
 
 ## Practical notes
 

@@ -18,7 +18,7 @@ email (never stored in this repo).
 | 3 | Code / technical documentation | ready | repo root [`README.md`](../README.md) + [`CONSTRAINTS.md`](../CONSTRAINTS.md) |
 | 4 | Benchmark report (3+ models incl. Sahara) | ready | [`bench/results/REPORT.md`](../bench/results/REPORT.md) |
 | 5 | Ethics / inclusion note | ready | [`submission/ETHICS.md`](ETHICS.md) |
-| 6 | Benchmark audios (optional, bonus points) | **blocked on consent** | see below |
+| 6 | Benchmark audios (optional, bonus points) | **release link needs verification** | see below |
 
 ## Links to paste into the form
 
@@ -79,9 +79,15 @@ inconvenient result.
 
 ## Final pre-flight
 
-- [ ] `python -m pytest` green (183 unit tests at last run)
+- [ ] `python -m pytest` green (244 unit tests in the latest local run; rerun after further code changes)
 - [ ] `python -m bench.run --score-only` regenerates the report cleanly
 - [ ] Live app answers on a phone, mic works, readback audible
 - [ ] Demo video uploaded **unlisted** and the link opens in a private window
 - [ ] No secrets in the repo (`git log -p | grep -i "api_key"` returns nothing meaningful)
 - [ ] Read `REPORT.md` top to bottom once more — it is 30% of the score
+
+## Final link verification
+
+Demo video URL: **awaiting David**. Native-audio Hugging Face dataset URL: **awaiting David**. Verify both in a private browser before submitting; do not treat publication as verified until those links work.
+
+Production keeps `SAUTI_AGENT=hosted`. Unparsed utterance text may go to `router.huggingface.co`, labelled `agent fallback (hosted model)` in the transmission list. Audio and reply text go to Sahara. Self-hosted `none` or `auto` disables remote fallback. No Railway configuration change is needed.

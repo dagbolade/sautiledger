@@ -6,10 +6,7 @@ Swahili/English, Hausa/English), the agent logs transactions to a
 local ledger, answers questions about it, and reads confirmations back.
 
 ## Hard constraints — never violate these
-1. PRIVACY IS THE PRODUCT. The ONLY data that may ever leave this
-   device is a short audio clip sent to the Sahara ASR API. The
-   ledger, transcripts, agent reasoning, and queries NEVER touch the
-   network. Any code that sends anything else is a bug.
+1. PRIVACY IS THE PRODUCT. On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
 2. Every network transmission MUST be logged to the egress ledger
    (timestamp, destination, purpose, bytes, disposition). The UI
    displays this. The app must be able to prove what it shared.

@@ -1,8 +1,8 @@
 # SautiLedger
 
 **A code-switched voice ledger for African market traders.**
-The bookkeeping runs as local code — parsing, ledger and arithmetic never
-call a cloud service; only speech does, and every byte is counted.
+The grammar, ledger and arithmetic run on the application host. The hosted
+demo also uses a metered cloud fallback for utterances the grammar cannot parse.
 Sahara CodeSwitch Africa Challenge (Phase 2) · category: Fintech.
 Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 
@@ -15,18 +15,15 @@ Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 
 A trader says *"I don sell three derica of rice five thousand five"* — Pidgin
 grammar, Yoruba numerals, market units, money slang — and the agent logs
-₦5,500 to a ledger that lives on her own device when self-hosted (see
+₦5,500 to a ledger that lives on the backend host when self-hosted (see
 "Two deployment modes" below), reads the entry back for
 confirmation, and answers *"abeg how much I don make today"* from local
-SQLite. Her financial life never exists anywhere but her own device.
+SQLite on the machine running the backend. Audio, spoken readback and fallback
+requests can contain financial details; see the disclosure below.
 
 ## The sovereignty design
 
-Most voice agents ship your audio, your transcript, your conversation
-history, and their own reasoning to someone's server. SautiLedger ships
-**the audio clip** (to Sahara ASR) and, when the spoken readback is
-enabled, **the reply sentence** (to Sahara TTS) — and nothing else, to
-nobody else.
+On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
 
 ### Two deployment modes, and the difference matters
 
@@ -34,8 +31,8 @@ nobody else.
 
 | | Where the ledger lives | What leaves it |
 |---|---|---|
-| **Self-hosted** (`make phone`, the intended production shape) | SQLite on the trader's own device | audio clip + reply text, to Sahara only |
-| **Hosted demo** ([Railway](https://sautiledger-production.up.railway.app), what our field testers used) | SQLite on a server volume we operate | same — plus the utterance reaches our backend to get there |
+| **Self-hosted** (`make phone`, the intended production shape) | SQLite on the machine running Python (`make phone` serves phones over LAN) | audio + reply text to Sahara; fallback text if hosted fallback is explicitly enabled |
+| **Hosted demo** ([Railway](https://sautiledger-production.up.railway.app), what our field testers used) | SQLite on a server volume we operate | audio + reply text to Sahara; unparsed utterance text to Hugging Face; browser requests reach our backend |
 
 **We used to call this "offline-first". That was wrong for the hosted app
 and we have dropped it.** The hosted site needs a connection to load at
@@ -48,12 +45,9 @@ so testers could use the app from a phone without installing anything,
 which was the only way to get real market usage inside the challenge
 window.
 
-What *is* true in both modes is narrower and more useful: **the
-bookkeeping engine has no cloud dependency.** Parsing, the ledger, the
-arithmetic and corrections are deterministic local code, not an API call
-to anyone — unlike most voice agents, which send the transcript to a
-model and let it decide what to do. Self-hosted, the app runs with no
-internet at all for typed input; voice needs Sahara either way.
+The grammar and ledger can run without cloud inference using `SAUTI_AGENT=none`
+or `auto` (local Ollama only). The hosted demo intentionally uses `hosted`.
+Self-hosted typed input can work without internet; this does not make the hosted website offline-capable.
 
 **What genuine offline-first would take**, so the gap is stated rather
 than discovered: a service worker for offline page load, parsing and
@@ -64,17 +58,11 @@ last piece; the rest is unbuilt.
 Two rules from [CONSTRAINTS.md](CONSTRAINTS.md) hold in **both** modes,
 and are properties of the code rather than promises:
 
-1. **Money records go to no third party.** The ledger, parses, queries and
-   agent reasoning are never transmitted to any vendor or model; only the
-   audio clip and the spoken reply text are, each one logged.
-   `tests/test_import_guard.py` walks the AST of every module and fails
-   the build if anything except `egress.py` can reach the network.
+1. **Sharing is explicit.** Audio, TTS reply text and hosted-fallback utterances
+   are transmitted through the egress recorder. The ledger database is not uploaded.
 2. **Every transmission is logged** — timestamp, destination, purpose,
    bytes, disposition — to an egress ledger displayed at the top of the
-   UI. Tap the meter, see everything the app has ever shared. In offline
-   mode it reads **0.00 KB, in green**. With Sahara's offline deployment
-   (`SaharaOfflineAsr` is the marked swap point), that line goes to zero
-   for good.
+   UI. Tap the meter, see everything the app has ever shared. With speech and remote fallback disabled, a fresh book records no external-service transmissions. The counter measures backend service requests, not all browser traffic.
 
 And the money rule: **the agent never fabricates an amount.** Ambiguous
 speech ("two two fifty" — ₦250 each or ₦2,250?) triggers a clarify
@@ -96,7 +84,7 @@ this (see below).
                                       │   │   packs/*.yaml, no LLM)  │  │
         the ONLY network path ────────┼───┼──▶ egress.py ────────────┘  │
         (logged to egress_log)        │   ├─ LLM fallback (Ollama,      │
-                                      │   │   localhost, optional)      │
+                                      │   │   local or hosted, optional)      │
                                       │   ├─ agent → 4 tools            │
                                       │   └─ SQLite data/ledger.db      │
                                       └──────────────────────────────────┘
@@ -104,7 +92,7 @@ this (see below).
 
 The normaliser is **deterministic and grammar-first**: intents, number
 systems, money slang, and market units all come from declarative language
-packs. A local 3B LLM (Ollama) is a fallback only for utterances the
+packs. A local Ollama or explicitly enabled hosted LLM is a fallback only for utterances the
 grammar cannot read at all, and it is forbidden — by prompt *and* by a
 validation layer that discards any number not literally present in the
 utterance — from inventing amounts.
@@ -281,7 +269,7 @@ built during the freeze.
 ## Built with, and thanks
 
 - **Intron Sahara v2.5** (infer.voice.intron.io) — ASR (sync and
-  streaming) and TTS, the only network calls this app makes, and the
+  streaming) and TTS, alongside the documented hosted LLM fallback, and the
   reason code-switched market speech transcribes at all.
 - **AfriSwitch** (huggingface.co/datasets/intronhealth/AfriSwitch,
   CC BY-NC-SA 4.0) — used for evaluation only, fetched at run time,

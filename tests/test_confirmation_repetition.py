@@ -51,3 +51,34 @@ def test_new_explicit_sale_during_readback_is_still_recorded():
     a.handle("i sell biscuits for 220 naira")
     a.handle("i sell rice for 500 naira")
     assert a.ledger.sales_total("today")[1] == 720
+
+
+@pytest.mark.parametrize("correction", ["no, na five thousand", "no, na fuel five thousand", "no no na five thousand"])
+def test_expense_correction_preserves_direction_and_audit(correction):
+    a = book()
+    a.handle("I buy fuel ten thousand naira")
+    reply = a.handle(correction)
+    assert "Correct?" in reply
+    rows = a.ledger.all_transactions()
+    assert len(rows) == 2
+    assert rows[0]["amount"] == 10000 and rows[0]["payment_status"] == "voided"
+    assert rows[1]["type"] == "expense" and rows[1]["amount"] == 5000
+    assert a.ledger.sales_total("today")[1] == 0
+    a.handle("no")
+    assert a.ledger.expenses_total("today")[1] == 0
+
+
+def test_amount_revision_keeps_credit_metadata_and_other_book_untouched():
+    a = book()
+    a.handle("I sell 2 cup of rice for 500 naira each")
+    a.ledger.correct_last("payment_status", "credit", "tomorrow")
+    other = a.ledger.scoped("other-book")
+    from sautiledger.models import ParseResult
+    other.add_transaction(ParseResult(intent="log_transaction", type="sale", item="egg", amount=100, currency="NGN"), "test")
+    a.ledger.correct_last("amount", 800)
+    rows = a.ledger.all_transactions()
+    assert len(rows) == 2 and rows[0]["amount"] == 1000
+    assert rows[0]["payment_status"] == "voided"
+    assert rows[1]["payment_status"] == "credit" and rows[1]["due"] == "tomorrow"
+    assert rows[1]["amount_each"] is None
+    assert other.last_transaction()["amount"] == 100

@@ -16,7 +16,7 @@ Results on this dataset: [`results/REPORT.md`](results/REPORT.md).
 | **tier-a** | `corpus/sautiledger-clips/` | 15 | 1.1 min | Nigerian Pidgin + Yoruba + English | 1 (Nigerian, male) | transcript **+ transaction label** |
 | **tier-sh** | `corpus/sh-clips/` | 15 | 1.2 min | Shona + English, prices in USD | 1 (Zimbabwean, female) | transcript **+ transaction label** |
 | **tier-b** | `corpus/afriswitch-sample/` | 40 | 8.2 min | Pidgin 16 · Swahili 12 · Yoruba 6 · Hausa 6 (each with English) | many (broadcast) | transcript only |
-| **conversations** | `conversation_scenarios.json` | 34 scenarios | text | Pidgin/Yoruba/English, Shona/English | — | final ledger state, expected replies |
+| **conversations** | `conversation_scenarios.json` | 37 scenarios | text | Pidgin/Yoruba/English, Shona/English | — | final ledger state, expected replies |
 
 **Frozen corpus hash (manifests):**
 `50e5e064312fd6bfe05c5aad6662be75f2b31e1525f57917d403849dd4377aeb`.
@@ -82,7 +82,7 @@ Each manifest's own sha256, so a single tier can be checked alone:
   republished on 7 September, so a re-fetch today may return different
   rows. Compare the manifest's sha256 above: if it differs, the tier-b
   numbers are not comparable with ours.
-- **Conversations.** 8 written by us, 4 taken verbatim from a field
+- **Conversations.** 11 written by us, 4 taken verbatim from a field
   tester's typed session, 5 taken verbatim from Sahara transcripts of real
   spoken sessions, and 17 of real Shona chatter (above). Scenarios whose
   correct outcome is *not* completing are scored as controls, separately.
@@ -120,9 +120,12 @@ Each manifest's own sha256, so a single tier can be checked alone:
   (CC BY-NC-SA 4.0, gated). We redistribute neither its audio nor its
   transcripts. `python -m bench.fetch_afriswitch --confirm` rebuilds the
   tier from the source after you accept its terms.
-- **Native-tier audio is not in the repository.** It is a person's voice,
-  and we share a voice only with that person's explicit consent for that
-  use (see `submission/ETHICS.md` §2).
+- **Native-tier audio is not in the repository**, but both native tiers
+  (30 clips) are published on Hugging Face, each with its speaker's
+  explicit consent to public release given on 13 September 2026, as
+  16 kHz WAV with transcripts, durations and ledger labels. Voices from
+  other app testers are not included: the in-app consent covers testing
+  inside the app, not publication (see `submission/ETHICS.md` §2).
 - **Scores can be checked without any audio.** `results/metrics.json`
   holds every model's per-clip transcript and score for tier-a and
   tier-sh. For tier-b, where the transcripts are AfriSwitch's text, it

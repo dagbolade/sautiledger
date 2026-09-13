@@ -217,7 +217,7 @@ def render() -> Path:
     add("- **Transaction exact** — every field correct: type, item, quantity, unit, amount.")
     add("- **Amount safe** — the amount was right, *or* the agent refused to guess and "
         "asked a clarifying question. Asking is safe; nothing is written.")
-    add("- **Amount corrupted** — a WRONG amount would have been written into "
+    add("- **Amount corrupted** — a WRONG amount was produced by the parser for "
         "someone's money records. This is the number that matters.")
     add("")
     gt_tiers = [t for t in tiers if any(r.get("has_expected") for r in sel(tier=t))]
@@ -959,9 +959,8 @@ def render() -> Path:
         "the expected one. It is **not** a simulation of the full conversation: "
         "the agent's commit gate, its unknown-item and suspicious-amount "
         "confirmations, the user's \"yes\"/\"no\" turn, and the actual database "
-        "write are not exercised. Those gates can only convert a bad parse into "
-        "a question, so a real session would corrupt no more often than these "
-        "figures suggest — but \"amount corrupted\" should be read as *the "
+        "write are not exercised. Conversation-state errors can introduce additional "
+        "failures, so this is not an upper bound on live ledger corruption; \"amount corrupted\" should be read as *the "
         "parser would have produced a wrong amount*, not as *a wrong row reached "
         "a ledger*.")
     add("- **tier-a references are the script, not a verbatim record.** In 4 of "

@@ -543,6 +543,63 @@
       ],
       "expected": [],
       "expect_completion": false
+    },
+    {
+      "id": "expense-correction-1",
+      "name": "Preserve expense direction and repair (no, na five thousand)",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I buy fuel ten thousand naira",
+        "no, na five thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "expense",
+          "item": "fuel",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
+    },
+    {
+      "id": "expense-correction-2",
+      "name": "Preserve expense direction and repair (no, na fuel five thousand)",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I buy fuel ten thousand naira",
+        "no, na fuel five thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "expense",
+          "item": "fuel",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
+    },
+    {
+      "id": "expense-correction-3",
+      "name": "Preserve expense direction and repair (no no na five thousand)",
+      "pack": "pcm-yo-NG",
+      "turns": [
+        "I buy fuel ten thousand naira",
+        "no no na five thousand",
+        "yes"
+      ],
+      "expected": [
+        {
+          "type": "expense",
+          "item": "fuel",
+          "amount": 5000,
+          "currency": "NGN",
+          "payment_status": "paid"
+        }
+      ]
     }
   ]
 }

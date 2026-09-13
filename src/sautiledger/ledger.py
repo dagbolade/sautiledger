@@ -127,6 +127,20 @@ class Ledger:
         last = self.last_transaction()
         if last is None:
             return None
+        if field == "amount":
+            # Retain the original financial value for the audit trail.
+            with self.conn:
+                self.conn.execute("UPDATE transactions SET payment_status = 'voided' WHERE id = ?", (last["id"],))
+                self.conn.execute(
+                    """INSERT INTO transactions
+                    (ts, type, item, quantity, unit, amount, amount_each, currency,
+                     raw_utterance, session_id, payment_status, due)
+                    VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?)""",
+                    (last["ts"], last["type"], last["item"], last["quantity"], last["unit"],
+                     value, last["currency"], last["raw_utterance"], self.session_id,
+                     last["payment_status"], due if due is not None else last["due"]),
+                )
+            return self.last_transaction()
         self.conn.execute(
             f"UPDATE transactions SET {field} = ?, due = COALESCE(?, due) WHERE id = ?",
             (value, due, last["id"]),

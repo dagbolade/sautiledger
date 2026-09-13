@@ -26,12 +26,13 @@
       <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/>
     </svg>
     <div class="body">
-      <div class="label">Sent off this phone</div>
+      <div class="label">Sent to external services</div>
       <div class="value" id="egress-total">0.00 KB</div>
     </div>
     <span class="chev">Privacy &#8599;</span>
   </div>
 
+  <p class="privacy-note">Hosted demo: audio and readback text go to Sahara. Unparsed utterance text may go to Hugging Face (router.huggingface.co), listed as “agent fallback (hosted model)”. Your book is stored on our server. Self-hosted: use SAUTI_AGENT=none or auto to disable remote fallback.</p>
   <div id="privacy-control" aria-label="Voice clip privacy">
       <label id="consent">
         <span class="consent-text"><strong class="privacy-heading">Voice privacy</strong>
@@ -151,7 +152,7 @@
       <h1>Know what you share.</h1>
       <ul class="ob-points">
         <li><b>See every recorded transmission.</b> The byte counter stays visible above your book. Open Privacy to see its details.</li>
-        <li><b>Understand voice processing.</b> Online speech recognition sends your audio to the speech service. Online readback also sends the reply text.</li>
+        <li><b>Understand voice processing.</b> Online speech recognition sends your audio to the speech service. Online readback also sends the reply text. On this hosted demo, text the grammar cannot parse may go to router.huggingface.co; the transmission list calls this “agent fallback (hosted model)”.</li>
         <li><b>Choose whether this app keeps clips.</b> Retention is off by default. You can use your book without enabling it; turning it off stops future retention.</li>
       </ul>
       <label class="ob-consent" id="ob-consent">

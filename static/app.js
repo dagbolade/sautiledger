@@ -581,7 +581,7 @@ $("egress").addEventListener("click", () => {
   const rows = $("egress-rows");
   rows.innerHTML = "";
   if (!egressLog.length) {
-    rows.innerHTML = '<div class="empty">Nothing has ever left this device.</div>';
+    rows.innerHTML = '<div class="empty">No external-service transmissions recorded for this book.</div>';
   } else {
     egressLog.forEach((r) => {
       const div = document.createElement("div");
