@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SautiLedger Benchmark Report</title>
+<style>
+  @page { size: A4; margin: 11mm 12mm 11mm 12mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, Helvetica, sans-serif; font-size: 8.7pt; line-height: 1.34;
+         color: #1a1a1a; margin: 0; }
+  h1 { font-size: 15pt; margin: 0 0 1mm; letter-spacing: -0.2px; }
+  h2 { font-size: 10pt; margin: 3.2mm 0 1.2mm; padding-bottom: 0.6mm; border-bottom: 1.2px solid #1f5f8b; color: #123f5c; }
+  h3 { font-size: 8.6pt; margin: 2mm 0 0.8mm; color: #123f5c; }
+  p { margin: 0 0 1.4mm; }
+  ul { margin: 0 0 1.4mm; padding-left: 4.2mm; }
+  li { margin-bottom: 0.5mm; }
+  .sub { color: #444; font-size: 8pt; margin-bottom: 1.6mm; }
+  .key { background: #eef5fa; border-left: 3px solid #1f5f8b; padding: 1.6mm 2.4mm; margin: 1.6mm 0 1.6mm; }
+  .key ul { margin: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 0.6mm 0 1.6mm; font-size: 8pt; }
+  th, td { border: 0.6px solid #b9c6cf; padding: 0.7mm 1.3mm; text-align: left; vertical-align: top; }
+  th { background: #dde9f1; font-weight: 600; }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  .best { font-weight: 700; background: #e3f4e3; }
+  .bad { color: #a31515; font-weight: 600; }
+  .note { font-size: 7.5pt; color: #555; margin-top: -0.6mm; }
+  .pb { page-break-before: always; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 7.4pt; }
+  .qual td { font-size: 7.5pt; line-height: 1.26; }
+  .qual td:first-child { font-weight: 600; white-space: nowrap; }
+  .two { display: flex; gap: 3mm; }
+  .two > div { flex: 1; }
+</style>
+</head>
+<body>
+
+<h1>SautiLedger — Code-Switch Speech Benchmark</h1>
+<div class="sub">Sahara CodeSwitch Africa Challenge, Phase 2 · David Agbolade · 7 speech systems on code-switched African market and broadcast speech, scored on whether <b>the money</b> survives, not only the words ·
+Full report, data card and code: <b>github.com/dagbolade/sautiledger</b> (<code>bench/results/REPORT.md</code>, <code>bench/DATASET.md</code>)</div>
+
+<div class="key"><b>Summary.</b>
+<ul>
+<li><b>No model wins everywhere; the leader flips with the language.</b> On Nigerian Pidgin/Yoruba market speech, MAI-Transcribe-2 records the most transactions exactly (60%), ahead of GPT-4o-transcribe (53%) and Sahara v2.5 (47%), all three with 0% corrupted amounts. On Shona the order inverts: Sahara v2.5 and Meta's open omnilingual-ASR tie at 27% exact with 0% corrupted, double the best frontier system, while three frontier systems start writing wrong amounts.</li>
+<li><b>WER hid the Shona failure; the task metric exposed it.</b> Sahara's Shona WER (0.566) is slightly <i>better</i> than its Pidgin WER (0.574), yet its transaction accuracy falls from 47% to 27%. It keeps the Shona words and loses the English price (<i>"ne five dollars fifty"</i> → <code>ne50</code>).</li>
+<li><b>Sahara v2.5 has the lowest WER on all three corpus tiers</b>, but not on every language: on AfriSwitch Yoruba and Hausa, Google Chirp-3 is better.</li>
+<li><b>Safety has to be engineered, not inferred from accuracy.</b> A plausible-but-wrong transcript is more dangerous than a garbled one, because only the plausible one parses. Our grammar turns uncertainty into a question; on Shona, Sahara produced 15/15 amount-safe outcomes.</li>
+</ul></div>
+
+<h2>1. Data</h2>
+<table>
+<tr><th>Tier</th><th>Source</th><th>Languages</th><th class="n">Clips</th><th class="n">Audio</th><th>Speakers</th><th>Ground truth</th></tr>
+<tr><td><b>tier-a</b> market</td><td>Recorded for this benchmark; sentences corrected by a native speaker before recording</td><td>Nigerian Pidgin + Yoruba + English</td><td class="n">15</td><td class="n">1.1 min</td><td>1 Nigerian male, own phone</td><td>Transcript + <b>ledger entry</b> (intent, item, qty, unit, amount)</td></tr>
+<tr><td><b>tier-sh</b> market</td><td>Recorded 7 Sep by a native Shona speaker, who also rewrote the sentences</td><td>Shona + English, prices in USD</td><td class="n">15</td><td class="n">1.2 min</td><td>1 Zimbabwean female, own phone</td><td>Transcript + <b>ledger entry</b> (amounts in cents)</td></tr>
+<tr><td><b>tier-b</b> broadcast</td><td>intronhealth/AfriSwitch <code>test</code> split, first rows per language (CC BY-NC-SA 4.0), release before 7 Sep</td><td>Pidgin 16 · Swahili 12 · Yoruba 6 · Hausa 6 (each + English)</td><td class="n">40</td><td class="n">8.2 min</td><td>many</td><td>Transcript only</td></tr>
+</table>
+<p><b>Total: 70 clips, 10.5 audio-minutes.</b> The 30 native clips cover 15 transactions, 5 cases where the correct response is to <i>ask</i> (e.g. a sale with no price), 4 ledger queries, 4 corrections and 2 daily summaries.
+<b>Preprocessing:</b> phone audio converted to 16 kHz mono 16-bit PCM WAV, with quality gates (1–15 s, not silent); AfriSwitch audio used as published. Text normalised for scoring: lower-case, punctuation removed, whitespace collapsed, diacritics folded (so a model is not penalised for correct Yoruba tone marks the reference lacks). Raw, unnormalised scores are in the full report.
+<b>Frozen:</b> the manifest sha256 <code>50e5e064…d4377aeb</code> was fixed before the first model ran, and no clip was added or dropped afterwards.</p>
+
+<h2>2. Systems and metrics</h2>
+<p><b>Systems (September 2026):</b> Intron <b>Sahara v2.5</b> (sync API, explicit <code>use_language_asr_input</code>); <b>MAI-Transcribe-2</b> (Microsoft), <b>GPT-4o-transcribe</b> (OpenAI), <b>Chirp-3</b> (Google) and <b>Parakeet-TDT 0.6B v3</b> (NVIDIA), all via OpenRouter; <b>Whisper-large-v3</b> (local) and Meta <b>omnilingual-ASR CTC-300M</b> (local, open weights). Every transcript is cached, so all scores can be recomputed without new API calls.</p>
+<table>
+<tr><th>Metric</th><th>What it measures</th><th>Why it is appropriate here</th></tr>
+<tr><td><b>Transaction exact</b></td><td>Transcript fed through the app's real parser; every field of the resulting ledger entry correct</td><td>The task is bookkeeping. At Intron's 28 Aug masterclass, the metric recommended for a financial app was "how many transactions were actually correctly recorded".</td></tr>
+<tr><td><b>Amount corrupted</b></td><td>A <i>wrong</i> amount would have been written</td><td>The one error a ledger cannot tolerate. It is kept separate from <b>amount safe</b> (right <i>or</i> the app asked), because asking is safe.</td></tr>
+<tr><td><b>Numeric accuracy</b></td><td>Every number in the reference survives transcription</td><td>Isolates the digits a ledger depends on, independent of our parser.</td></tr>
+<tr><td><b>WER / CER</b></td><td>Word and character error rate</td><td>Comparable with public leaderboards. CER is fairer for morphologically rich Bantu languages, where one wrong affix costs a whole word.</td></tr>
+</table>
+
+<h2 class="pb">3. Downstream task results (native market speech)</h2>
+<table>
+<tr><th rowspan="2">Model</th><th colspan="3" style="text-align:center">tier-a · Pidgin / Yoruba / English (n=15)</th><th colspan="3" style="text-align:center">tier-sh · Shona / English (n=15)</th></tr>
+<tr><th class="n">Transaction exact</th><th class="n">Amount corrupted</th><th class="n">Numeric acc.</th><th class="n">Transaction exact</th><th class="n">Amount corrupted</th><th class="n">Numeric acc.</th></tr>
+<tr><td>Sahara v2.5</td><td class="n">47%</td><td class="n">0%</td><td class="n">67%</td><td class="n best">27%</td><td class="n">0%</td><td class="n">40%</td></tr>
+<tr><td>MAI-Transcribe-2</td><td class="n best">60%</td><td class="n">0%</td><td class="n">80%</td><td class="n">13%</td><td class="n bad">13%</td><td class="n">53%</td></tr>
+<tr><td>GPT-4o-transcribe</td><td class="n">53%</td><td class="n">0%</td><td class="n">80%</td><td class="n">13%</td><td class="n bad">7%</td><td class="n">67%</td></tr>
+<tr><td>Parakeet-TDT</td><td class="n">33%</td><td class="n">0%</td><td class="n">80%</td><td class="n">7%</td><td class="n bad">13%</td><td class="n">93%</td></tr>
+<tr><td>Chirp-3 <span class="note">(14/15 on tier-a)</span></td><td class="n">29%</td><td class="n bad">7%</td><td class="n">71%</td><td class="n">13%</td><td class="n">0%</td><td class="n">53%</td></tr>
+<tr><td>Whisper-large-v3</td><td class="n">27%</td><td class="n">0%</td><td class="n">67%</td><td class="n">7%</td><td class="n bad">13%</td><td class="n">60%</td></tr>
+<tr><td>omnilingual CTC-300M</td><td class="n">13%</td><td class="n">0%</td><td class="n">53%</td><td class="n best">27%</td><td class="n">0%</td><td class="n">47%</td></tr>
+</table>
+<p class="note">With n=15, one clip moves a percentage by about 7 points, so differences of one or two clips are not meaningful. A high numeric accuracy with a low transaction score (Parakeet on Shona, 93% vs 7%) means the digits were heard but the item or structure was lost.</p>
+
+<h2>4. WER / CER per language</h2>
+<table>
+<tr><th rowspan="2">Model</th><th colspan="2" style="text-align:center">Pidgin market (15)</th><th colspan="2" style="text-align:center">Shona market (15)</th><th colspan="2" style="text-align:center">AfriSwitch Pidgin (16)</th><th colspan="2" style="text-align:center">AfriSwitch Swahili (12)</th><th colspan="2" style="text-align:center">AfriSwitch Yoruba (6)</th><th colspan="2" style="text-align:center">AfriSwitch Hausa (6)</th></tr>
+<tr><th class="n">WER</th><th class="n">CER</th><th class="n">WER</th><th class="n">CER</th><th class="n">WER</th><th class="n">CER</th><th class="n">WER</th><th class="n">CER</th><th class="n">WER</th><th class="n">CER</th><th class="n">WER</th><th class="n">CER</th></tr>
+<tr><td>Sahara v2.5</td><td class="n best">.574</td><td class="n">.490</td><td class="n best">.566</td><td class="n best">.328</td><td class="n best">.232</td><td class="n">.174</td><td class="n best">.295</td><td class="n">.154</td><td class="n">.896</td><td class="n">.559</td><td class="n">.356</td><td class="n">.182</td></tr>
+<tr><td>MAI-Transcribe-2</td><td class="n">.663</td><td class="n">.496</td><td class="n">.869</td><td class="n">.399</td><td class="n">.294</td><td class="n best">.149</td><td class="n">.370</td><td class="n best">.116</td><td class="n">.862</td><td class="n best">.376</td><td class="n">.790</td><td class="n">.290</td></tr>
+<tr><td>GPT-4o-transcribe</td><td class="n">.652</td><td class="n best">.404</td><td class="n">1.018</td><td class="n">.402</td><td class="n">.497</td><td class="n">.423</td><td class="n">.463</td><td class="n">.325</td><td class="n">.747</td><td class="n">.556</td><td class="n">.931</td><td class="n">.699</td></tr>
+<tr><td>Parakeet-TDT</td><td class="n">.651</td><td class="n">.413</td><td class="n">1.131</td><td class="n">.478</td><td class="n">.370</td><td class="n">.223</td><td class="n">.765</td><td class="n">.346</td><td class="n">.909</td><td class="n">.700</td><td class="n">.855</td><td class="n">.578</td></tr>
+<tr><td>Chirp-3</td><td class="n">.778*</td><td class="n">.598*</td><td class="n">.900</td><td class="n">.467</td><td class="n">.316</td><td class="n">.204</td><td class="n">.335*</td><td class="n">.157*</td><td class="n best">.683</td><td class="n">.599</td><td class="n best">.305</td><td class="n best">.140</td></tr>
+<tr><td>Whisper-large-v3</td><td class="n">.963</td><td class="n">.710</td><td class="n">1.232</td><td class="n">.537</td><td class="n">.335</td><td class="n">.217</td><td class="n">1.189</td><td class="n">.728</td><td class="n">.912</td><td class="n">.637</td><td class="n">.914</td><td class="n">.700</td></tr>
+<tr><td>omnilingual CTC-300M</td><td class="n">.861</td><td class="n">.542</td><td class="n">.790</td><td class="n">.342</td><td class="n">.952</td><td class="n">.887</td><td class="n">.678</td><td class="n">.383</td><td class="n">.806</td><td class="n">.410</td><td class="n">.878</td><td class="n">.552</td></tr>
+</table>
+<p class="note">Normalised mean per clip; lower is better; best per column shaded. * one clip returned no transcript and is excluded (14/15, 11/12). The Yoruba and Hausa columns have 6 clips each and are indicative only. Sahara transcribes spoken "five thousand five" as "5,500", which is exact for a ledger but counts as a word error, one reason WER understates usefulness here.</p>
+
+<h2>5. Strengths and weaknesses, per model per language</h2>
+<table class="qual">
+<tr><th style="width:15%">Model</th><th style="width:29%">Pidgin / Yoruba market</th><th style="width:28%">Shona market</th><th style="width:28%">Broadcast (AfriSwitch)</th></tr>
+<tr><td>Sahara v2.5</td><td><b>+</b> Keeps Pidgin's perfective <i>"I don sell"</i> (a sale); 0% corrupted. <b>−</b> 3rd on transactions (47%); one clip lost a unit and a factor of ten (<i>"3 derica of rice 5,500"</i> → <code>3 of rice 500</code>).</td><td><b>+</b> Best WER and CER; Shona words intact (<i>ndatengesa, matomatisi, chikwereti</i>); tied first, 0% corrupted. <b>−</b> The English price collapses into the numeral (<code>ne50</code>, <code>etridos</code>); lowest numeric accuracy (40%).</td><td><b>+</b> Best WER on Pidgin and Swahili. <b>−</b> Weak on Yoruba (.896); behind Chirp-3 on Hausa. No model-version field, so drift between our Aug and Sep runs cannot be attributed.</td></tr>
+<tr><td>MAI-Transcribe-2</td><td><b>+</b> Best transactions (60%) with 0% corrupted. <b>−</b> Inverts the perfective into <i>"I don't sell"</i>, turning a sale into its denial.</td><td><b>−</b> Collapses: 13% exact and 13% corrupted.</td><td><b>+</b> Best CER on Pidgin, Swahili and Yoruba. <b>−</b> High WER on Hausa (.790) and Yoruba.</td></tr>
+<tr><td>GPT-4o-transcribe</td><td><b>+</b> 53% exact, 0% corrupted; often verbatim (<i>"five thousand five"</i>). <b>−</b> Once turned the perfective into <i>"I no sell"</i>.</td><td><b>−</b> WER above 1; wrote a wrong amount on per-unit pricing (<i>"two fifty hwani"</i>, 7%).</td><td><b>−</b> Weakest cloud system on Hausa (.931); .497 on Pidgin, behind all but omnilingual.</td></tr>
+<tr><td>Parakeet-TDT</td><td><b>+</b> 0% corrupted; very cheap ($0.0015/min). <b>−</b> 33% exact; inverts the perfective.</td><td><b>−</b> 7% exact and 13% corrupted despite the highest numeric accuracy (93%): digits heard, sentence lost.</td><td><b>+</b> Reasonable on Pidgin (.370). <b>−</b> Poor on Swahili, Yoruba and Hausa.</td></tr>
+<tr><td>Chirp-3</td><td><b>−</b> 29% exact, 7% corrupted; mangles market units (<i>derica</i> → <code>L</code>); inverts the perfective; one empty result.</td><td><b>+</b> 0% corrupted; keeps the amount (<code>$5.50</code>). <b>−</b> Degrades the Shona verb and concord, so only 13% exact.</td><td><b>+</b> Best WER on Yoruba and Hausa; third on Pidgin (.316). <b>−</b> One empty Swahili result.</td></tr>
+<tr><td>Whisper-large-v3</td><td><b>+</b> Offline, free. <b>−</b> Anglicises the speech and inverts the perfective; 27% exact.</td><td><b>−</b> Hallucinated <i>"Thank you for watching"</i> on two clips; turned a spoken correction into the very amount being corrected away from (550); 13% corrupted.</td><td><b>+</b> Competitive on Pidgin (.335). <b>−</b> WER above 1 on Swahili.</td></tr>
+<tr><td>omnilingual CTC-300M</td><td><b>+</b> Open weights; correct Yoruba tone marks. <b>−</b> 13% exact; hears the words but drops the digits.</td><td><b>+</b> Tied first (27%), 0% corrupted, second-best CER. <b>−</b> Phonetic spelling.</td><td><b>−</b> Worst on Pidgin (.952). About 1–2 min per clip on a CPU laptop; not free without hardware.</td></tr>
+</table>
+
+<h2 class="pb">6. Beyond transcription: the full loop</h2>
+<div class="two"><div>
+<h3>Conversation benchmark (agent + real ledger)</h3>
+<p>34 scripted sessions replayed through the real agent and SQLite ledger: clarifying questions, confirmations, rejections and repairs included. <b>13 of 16 tasks completed, none ending with a wrong amount.</b> <b>18 of 18 controls</b> correctly did <i>not</i> complete. 17 of those are real, unscripted Shona market chatter (greetings, <i>"your tomatoes aren't fresh"</i>, <i>"won't you give me a little extra?"</i>), replayed exactly as Sahara transcribed it: <b>0 ledger rows written</b>. Wrong amounts are counted at every turn, not only at the end, so a repaired mistake still shows up.</p>
+</div><div>
+<h3>TTS round-trip (Sahara TTS)</h3>
+<p>The app reads every entry back aloud. We synthesised its real confirmations and transcribed them with an independent ASR (Whisper-small). The first run caught a product bug: the app was <b>speaking its punctuation</b> (<i>"expense<b>:</b> fuel"</i> came back as <i>"expense call on"</i>), which corrupted the amount. After the fix: <b>hallucination 0.117 → 0.000, amount survival 91% → 100%</b> (Pidgin voice; Yoruba-accent voice 91% → 100%).</p>
+</div></div>
+
+<h2>7. Qualitative findings</h2>
+<ul>
+<li><b>The meaning-reversal error.</b> Four of the seven systems transcribe Pidgin's perfective <i>"I don sell"</i> ("I have sold") as <i>"I don't sell"</i>. WER counts that as one wrong word, but it reverses the transaction. Of the three such sentences in the corpus, Sahara v2.5 kept the meaning in all three; GPT-4o in two (the third became <i>"I no sell"</i>, also a negation).</li>
+<li><b>Which half of a code-switched sentence survives depends on the model.</b> On Shona, Sahara keeps the Shona and loses the English price; Chirp-3 keeps the price and loses the Shona. For a ledger, losing the noun is safer: the app can ask for a missing amount, but cannot recover a missing item. This asymmetry comes from the task, and WER cannot see it.</li>
+<li><b>The ranking does not transfer between languages.</b> A team that benchmarked only on Pidgin would pick MAI-Transcribe-2 and then corrupt 13% of Shona amounts. A team that benchmarked only on Shona would pick Sahara and give up 13 points on Pidgin. A production system should <b>route by language</b>, and only a per-language, per-task benchmark shows that.</li>
+<li><b>A registered prediction, partly falsified.</b> Before any Shona audio existed, we predicted (in a committed file) that Sahara would degrade on Shona, which is a supported language but not a documented code-switch pair. On WER we were wrong; on transactions we were right.</li>
+</ul>
+
+<h2>8. Limitations and product feedback</h2>
+<ul>
+<li><b>Small and confounded.</b> 15 clips per native tier, one speaker each, so language is confounded with voice, microphone and room. Our explanation for the Pidgin/Shona reversal (Pidgin is lexically close to English, Shona is not) is a <b>hypothesis</b>; testing it would need the same speakers across languages. The speech is read, not live trade.</li>
+<li><b>Moving targets.</b> Sahara's output on identical audio changed between 5 Aug and 9 Sep (broadcast WER .424 → .369, market numeric accuracy 73% → 67%), and the API returns no version field. AfriSwitch was also republished on 7 Sep; our sample predates it, and the hash shows which version we used.</li>
+<li><b>Null result.</b> <code>use_disable_llm_corrections=TRUE</code> returned byte-identical transcripts on all 70 clips, and an invalid value was accepted with HTTP 200, so the documented control has no observable effect.</li>
+<li><b>Feedback to Intron:</b> add a model-version field; reject unknown <code>use_*</code> fields (a misspelt language parameter silently fell back to English); make Shona a code-switch pair (AfriSwitch already has 3.86 h at CMI 24.55); fix streaming <code>COMMIT</code>, which returns <code>INPUT_ERROR</code>.</li>
+</ul>
+<h2>9. What we did with the result</h2>
+<p>SautiLedger runs on <b>Sahara v2.5</b> for speech input and read-back, and the benchmark shows why that is a reasoned choice rather than a default. Sahara has the lowest WER on all three tiers, ties for first on Shona with no corrupted amounts, and was the only system to transcribe all three Pidgin perfective sentences with the verb intact and not negated. It is also the only vendor here that provides TTS in the same Nigerian register, which the spoken read-back depends on. It is <b>not</b> the best transcriber of Pidgin transactions: MAI-Transcribe-2 is. Our engineering answer is to make the <b>ledger</b> safe whatever the ASR does. One gate sits in front of every write, the app never records an amount that is not literally present in what was said, and it asks when unsure. The next step the data points to is <b>per-language routing</b>, re-measured on this frozen corpus.</p>
+<p class="note">Reproduce: <code>python -m bench.run --score-only</code> rebuilds every score from cached transcripts; <code>python -m bench.conversations</code> replays the sessions. Native-tier audio from the Pidgin/Yoruba speaker is published with consent (link in submission); AfriSwitch audio is not redistributed.</p>
+
+</body>
+</html>
