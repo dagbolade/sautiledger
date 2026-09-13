@@ -337,18 +337,23 @@ Two rows deserve emphasis. **A control scenario asserts the agent must NOT compl
 
 **Limits.** The references for these clips are not yet verified by the speaker, so they are *not* used for WER; they test the agent only, and only on this ASR output. The expected ledger state (empty) does not depend on the exact words, which is why they can be scored before verification.
 
-### Scenarios taken from a real session
+### Scenarios taken from real phone sessions
 
-Four scenarios are **verbatim turns from a field session** (device `671e01f8`, 10 September) rather than authored examples — what a trader actually typed when left alone with the app. They are kept in the suite while failing, because a benchmark you only add passing cases to stops being a measurement:
+9 scenarios are **verbatim turns from field testing of the live app on phones**, not authored examples: 4 typed (`field-`) and 5 spoken (`voice-`, replayed as Sahara's actual transcript of the audio). They come from sessions of the author and testers using the app as a trader would. Each was added when it exposed a failure, and each stays in the suite after it is fixed, so a regression would show. **6 of 9 now complete; 3 still fail and are counted as failures above.**
 
-| Scenario | Completes | What the trader hit |
+| Scenario | Completes | What the session exposed |
 |---|---|---|
-| `field-buyer-name-suffix` | yes | a buyer's name after the price (`…220 naira **for iya chinonso**`) is absorbed into the item, and the follow-up amount is then refused by the garbled-item guard |
-| `field-yoruba-confirmation` | yes | `beeni` — Yoruba for yes — is not accepted as confirmation, so a correctly logged entry stays unconfirmed |
-| `field-english-sales-query` | yes | `what are my sales today` is not recognised as a query, the most natural English phrasing of the app's core question |
-| `field-yoruba-query` | yes | `kini gbogbo oja mi leni` — the same question in Yoruba — is likewise unrecognised |
+| `field-buyer-name-suffix` | yes | a buyer's name after the price (`…220 naira **for iya chinonso**`) was absorbed into the item name |
+| `field-yoruba-confirmation` | yes | `beeni`, Yoruba for yes, was not accepted as confirmation |
+| `field-english-sales-query` | yes | `what are my sales today` was not recognised as a query |
+| `field-yoruba-query` | yes | `kini gbogbo oja mi leni`, the same question in Yoruba, was not recognised |
+| `voice-trailing-na-particle` | **no** | a trailing Pidgin particle (`…rice 600 **na**`) blocks the sale |
+| `voice-add-as-command` | **no** | `**Add** garri one cup 5000`: the command verb becomes part of the item name |
+| `voice-buyer-name-mid-sentence` | **no** | a buyer's name between item and price (`indomie **for yaboki** for 5000 naira`) |
+| `voice-each-pricing-regression` | yes | per-unit pricing (`5 crate of egg for 2000 naira each`) kept working through later grammar changes |
+| `voice-leading-copula` | yes | a sentence-initial `Na` was read as a price marker and the sale refused; fixed 11 September |
 
-None of these lose money: the ledger rows written were correct, and the failures are refusals and unanswered questions rather than wrong amounts. They are *task-completion* failures — the trader could not finish what she started — which is precisely the class this section exists to surface and the transcript benchmark cannot see.
+None of the remaining failures writes a wrong amount. Two end in a question the trader cannot get past; the third (`Add garri`) records the right amount under the wrong item name, *add garri*, and asks the trader to confirm it. They are *task-completion* failures, the class this section exists to surface and a transcript benchmark cannot see.
 
 ## 9. Product feedback to Intron
 

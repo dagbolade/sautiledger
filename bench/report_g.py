@@ -780,44 +780,58 @@ def render() -> Path:
                 "(empty) does not depend on the exact words, which is why they can "
                 "be scored before verification.")
             add("")
-        field = [r for r in conv["results"] if r["id"].startswith("field-")]
+        field = [r for r in conv["results"] if r["id"].startswith(("field-", "voice-"))]
         if field:
-            add("### Scenarios taken from a real session")
+            done = sum(r["completed"] for r in field)
+            add("### Scenarios taken from real phone sessions")
             add("")
-            add("Four scenarios are **verbatim turns from a field session** "
-                "(device `671e01f8`, 10 September) rather than authored "
-                "examples — what a trader actually typed when left alone with "
-                "the app. They are kept in the suite while failing, because a "
-                "benchmark you only add passing cases to stops being a "
-                "measurement:")
+            add(f"{len(field)} scenarios are **verbatim turns from field testing of the "
+                "live app on phones**, not authored examples: 4 typed (`field-`) and "
+                "5 spoken (`voice-`, replayed as Sahara's actual transcript of the "
+                "audio). They come from sessions of the author and testers using the "
+                "app as a trader would. Each was added when it exposed a failure, and "
+                "each stays in the suite after it is fixed, so a regression would show. "
+                f"**{done} of {len(field)} now complete; {len(field) - done} still "
+                "fail and are counted as failures above.**")
             add("")
-            add("| Scenario | Completes | What the trader hit |")
+            add("| Scenario | Completes | What the session exposed |")
             add("|---|---|---|")
             notes = {
                 "field-buyer-name-suffix":
                     "a buyer's name after the price (`…220 naira **for iya "
-                    "chinonso**`) is absorbed into the item, and the follow-up "
-                    "amount is then refused by the garbled-item guard",
+                    "chinonso**`) was absorbed into the item name",
                 "field-yoruba-confirmation":
-                    "`beeni` — Yoruba for yes — is not accepted as confirmation, "
-                    "so a correctly logged entry stays unconfirmed",
+                    "`beeni`, Yoruba for yes, was not accepted as confirmation",
                 "field-english-sales-query":
-                    "`what are my sales today` is not recognised as a query, the "
-                    "most natural English phrasing of the app's core question",
+                    "`what are my sales today` was not recognised as a query",
                 "field-yoruba-query":
-                    "`kini gbogbo oja mi leni` — the same question in Yoruba — is "
-                    "likewise unrecognised",
+                    "`kini gbogbo oja mi leni`, the same question in Yoruba, was "
+                    "not recognised",
+                "voice-trailing-na-particle":
+                    "a trailing Pidgin particle (`…rice 600 **na**`) blocks the sale",
+                "voice-add-as-command":
+                    "`**Add** garri one cup 5000`: the command verb becomes part of "
+                    "the item name",
+                "voice-buyer-name-mid-sentence":
+                    "a buyer's name between item and price (`indomie **for "
+                    "yaboki** for 5000 naira`)",
+                "voice-each-pricing-regression":
+                    "per-unit pricing (`5 crate of egg for 2000 naira each`) kept "
+                    "working through later grammar changes",
+                "voice-leading-copula":
+                    "a sentence-initial `Na` was read as a price marker and the "
+                    "sale refused; fixed 11 September",
             }
             for r in field:
                 add(f"| `{r['id']}` | {'yes' if r['completed'] else '**no**'} "
                     f"| {notes.get(r['id'], '')} |")
             add("")
-            add("None of these lose money: the ledger rows written were correct, "
-                "and the failures are refusals and unanswered questions rather "
-                "than wrong amounts. They are *task-completion* failures — the "
-                "trader could not finish what she started — which is precisely "
-                "the class this section exists to surface and the transcript "
-                "benchmark cannot see.")
+            add("None of the remaining failures writes a wrong amount. Two end in "
+                "a question the trader cannot get past; the third (`Add garri`) "
+                "records the right amount under the wrong item name, *add garri*, "
+                "and asks the trader to confirm it. They are *task-completion* "
+                "failures, the class this section exists to surface and a "
+                "transcript benchmark cannot see.")
             add("")
 
     # ---------------------------------------------------------------- 9
