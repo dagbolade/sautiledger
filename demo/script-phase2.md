@@ -1,141 +1,171 @@
-# SautiLedger — Phase 2 demo video script (~2:40)
+# SautiLedger — Phase 2 demo video script (~3:00)
 
-Shoot on a **phone**, using the live deployment
-`https://sautiledger-production.up.railway.app` (installed to the home
-screen so there is no browser chrome). Real product, real network, no
-localhost. Speak the lines yourself; the sound of a real voice in a real
-room is the point.
+**Form rules:** max 5 minutes · public or **unlisted** YouTube · must show
+code-switching. This script runs about 3 minutes.
 
-**Before you start:** open the app, clear the day if needed, and check the
-egress strip reads a low number in green. Have the volume up — the
-readback voice is part of the demo.
+**Every spoken line below was rehearsed on 13 September through the same
+code that is deployed**, and the app's reply is written under it. If
+the app says something different on camera, the speech recogniser heard
+you differently. Keep the take: an honest clarifying question is part of
+the story.
+
+Shoot on a **phone** against the live app
+`https://sautiledger-production.up.railway.app` (added to the home screen,
+so no browser bar). Volume up: the spoken read-back is part of the demo.
+
+**Before you start**
+- Language menu (top of the book): **English / Pidgin / Yoruba → Pidgin**.
+- Start from an empty day, so the totals on screen match what you say.
+- Landscape, phone propped. Quiet room.
 
 ---
 
 ## 0:00–0:15 · The problem
 
-*On camera or voiceover, over a shot of a market stall or your sister's
-stock:*
+*On camera or voiceover, over a shot of a stall or stock:*
 
-> "My sister sells eggs. She sells forty times a morning with her hands
-> full. Her books live in her head — so when a bank asks what her business
-> earns, there's nothing to show. Not because the business is small.
-> Because nobody built a book she could keep while trading."
+> "A market trader sells forty times a morning with her hands full. Her
+> books live in her head, so when a bank asks what the business earns,
+> there's nothing to show. Not because the business is small, but because
+> nobody built a book she could keep while trading."
 
 ---
 
-## 0:15–0:50 · The core loop, in her actual language
+## 0:15–0:50 · The core loop, in her language
 
-Hold the mic button and say, naturally:
+Hold the mic and say:
 
 > **"I don sell three derica of rice five thousand five"**
 
-Show: the transcript appears, the entry lands in the ledger, the total
-counts up — **and let the readback play out loud**: *"Logged: 3 derica of
-rice, five thousand five hundred naira. Correct?"*
+App (spoken aloud): *"Logged sale: 3 derica of rice, five thousand five
+hundred naira. Correct?"* → say **"yes"** → *"Noted. Ledger correct."*
 
-*Voiceover, while that happens:*
+*Voiceover while it plays:*
 
-> "One sentence, three languages — Pidgin, English, a Yoruba measure. And
-> it answers in a Nigerian voice, because it has to be checkable by ear.
-> This isn't transcription. The voice did something: it wrote a row."
-
-Then, without touching a setting:
+> "One sentence, three languages: Pidgin, English, and derica, a Nigerian
+> market measure. The voice didn't just become text. It wrote a row, and
+> it read the row back so she can check it by ear."
 
 > **"customer take two paint rubber of garri two two fifty"**
 
-> "'Two two fifty' is not ambiguous to a trader — reduplicated money is
-> the per-unit price. We only know that because a native speaker corrected
-> us. That correction is now a rule in the language pack."
+App: *"Logged sale: 2 paint rubber of garri, two hundred fifty naira each,
+five hundred naira total. Correct?"* → **"yes"**
+
+> "'Two two fifty' means two hundred and fifty each. Every trader knows
+> that. We only know it because a native speaker corrected us, and that
+> correction is now a rule in the language pack."
 
 ---
 
 ## 0:50–1:20 · It's an agent, not a dictaphone
 
-> **"wetin remain?"**
+> **"wetin remain"**
 
-Show the spoken answer with real arithmetic over the real rows.
+App: *"You sell six thousand naira, you spend zero naira — wetin remain na
+six thousand naira."*
 
-> **"I buy fuel ten thousand naira"** → then **"no, na five thousand"**
+> **"I buy fuel ten thousand naira"** → App: *"Logged expense: fuel, ten
+> thousand naira. Correct?"*
 
-Show the correction: the wrong row is **voided, not deleted** — it stays
-visible.
+> **"no, I buy fuel five thousand naira"** → App: *"Logged expense: fuel,
+> five thousand naira. Correct?"* → **"yes"**
 
-> "Corrections void rather than overwrite. The book records that a mistake
-> was made and removed — which is exactly what a lender needs to trust it."
+Point at the entries: the ₦10,000 row is **voided and still visible**, and
+the ₦5,000 row replaces it.
+
+> "A correction doesn't erase anything. The book shows that a mistake was
+> made and fixed, which is exactly what a lender needs in order to trust it."
+
+⚠ Say the correction exactly like that, the full sentence. Two shorter
+forms currently misbehave (see *Known issues* below).
 
 ---
 
-## 1:20–1:50 · The part that matters: it refuses to guess
+## 1:20–1:50 · It refuses to guess
 
-> **"I don sell garri finish"** — a sale with no price spoken.
+> **"I don sell garri finish"**, a sale with no price.
 
-Show that **nothing is written**, and it asks: *"How much you sell the
-garri?"* Answer **"five thousand"** and let it log.
+App: *"How much you sell the garri?"* Nothing is written.
+Say **"five thousand"** → *"Logged sale: garri, five thousand naira.
+Correct?"* → **"yes"**
 
-*Voiceover — this is the emotional centre of the video:*
+*Voiceover, the heart of the video:*
 
 > "On the 27th of August a real user said 'five thousand seven hundred'.
-> The speech model heard five hundred and seventy thousand and seven. The
-> entry that reached her ledger was wrong by a hundred times. She caught
-> it, and it's still in her book — voided, on the record. We traced the
-> exact code path that let it through and closed it everywhere. Now a
-> number with a strange shape gets read back before anything is written.
+> The speech model heard five hundred and seventy thousand and seven, and
+> the entry reached her ledger wrong by a factor of a hundred. It's still
+> in her book, voided, on the record. We closed that path everywhere: an
+> amount with a strange shape is now read back before anything is written.
 > A ledger that guesses is worse than no ledger."
 
 ---
 
-## 1:50–2:10 · Privacy you can watch
+## 1:50–2:15 · Shona, same app
 
-Open the privacy sheet. Point at the transmission list and the counter.
+Switch the language menu to **Shona / English → English · USD**.
 
-> "Her money records never leave the phone. The only thing that goes out
-> is the audio, and every single byte is listed here in her own language.
-> Keeping voice clips is off by default — she turns it on, or it doesn't
-> happen."
+> **"Ndatengesa matomatisi ethree dollars"**
 
----
+App: *"Logged sale: matomatisi, three dollars. Correct?"* → **"yes"**
 
-## 2:10–2:35 · The reason a bank cares
+> **"Ndatengesa three cups dze rice nefive dollars fifty"**
 
-Tap **Export my statement**.
+App: *"Logged sale: 3 cup of rice, five dollars fifty cents. Correct?"* →
+**"yes"**
 
-> "Totals, net position, average daily revenue, and how many of the last
-> seven days actually have sales in them — the consistency a lender
-> actually asks about. It says plainly that it's transaction history, not
-> a credit score. For a trader with no formal books, this is the first
-> document she's ever been able to hand anyone."
+> "Shona and English, in US dollars and cents, because that's how
+> Zimbabwean traders price. A native Shona speaker wrote and recorded
+> these phrases for our benchmark. Adding a language meant adding data,
+> not rewriting the app."
 
----
-
-## 2:35–2:40 · Close
-
-> "Five languages. Built with Sahara, benchmarked against four other
-> speech systems, and tested by traders who don't care what any of it is
-> called — only whether the number is right."
+*(If your Shona pronunciation gets misheard, that is fine to show: the app
+asks instead of guessing. Or play one of her recorded clips from a second
+device into the mic.)*
 
 ---
 
-## Optional insert · Shona (shoot separately if you want it)
+## 2:15–2:35 · Privacy you can see
 
-The deployed instance runs the Nigerian pack; the Shona pack ships in the
-repo with its own native-recorded test tier. To show it, run locally:
+Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
-```
-SAUTI_PACK=sh-ZW .venv/Scripts/python -m sautiledger.phone
-```
-
-and say **"Ndatengesa matomatisi ethree dollars"**. Worth 10 seconds if
-you want the multilingual claim on screen rather than only in the report —
-otherwise leave it to the report, which has the full Shona benchmark.
+> "The only thing that leaves for the speech service is the audio, and
+> every transmission is listed here in plain language. Keeping voice clips
+> is off unless she turns it on. On this hosted demo her book is stored on
+> our server; run it yourself and it stays on her own phone."
 
 ---
+
+## 2:35–2:50 · Why a bank cares
+
+Tap **Trading statement**.
+
+> "Totals, net position, average daily takings, and how many days actually
+> had sales: the consistency a lender asks about. It says plainly that it's
+> a transaction history, not a credit score."
+
+---
+
+## 2:50–3:00 · Close
+
+> "Pidgin, Yoruba, English and Shona. Built on Sahara, benchmarked against
+> six other speech systems on whether the money survives, not just the
+> words, and tested on real phones."
+
+---
+
+## Known issues (found in rehearsal, 13 September; do not film these)
+
+- **"no, na five thousand"** (amount only) voids the entry and then asks
+  *"Wetin she buy?"* instead of replacing it.
+- **"no, na fuel five thousand"** after an *expense* re-logs it as a
+  **sale**, flipping the money direction.
+- **"no no na five thousand"** corrects the amount in place. It works,
+  but no voided row is left on screen, so it doesn't show the audit trail.
 
 ## Practical notes
 
-- **Landscape**, phone braced or propped; don't narrate over the readback
-  — let the app's voice be heard at least once, clean.
-- If a take mishears you, **keep it in**. A clarify question on camera is
-  a feature: it shows the agent asking instead of inventing.
-- Upload **unlisted** to YouTube; paste the link in the submission form.
-- Keep it under three minutes. Judges are watching many of these.
+- If a take mishears you, keep it. A clarifying question on camera shows
+  the agent asking instead of inventing.
+- Don't talk over the read-back. Let the app's voice be heard clearly at
+  least once.
+- Upload **unlisted**; paste the link into the form.
