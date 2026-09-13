@@ -27,17 +27,17 @@ def speakable(text: str) -> str:
 
     Found by the TTS round-trip benchmark (bench/tts_bench.py): our
     readback "Logged expense: fuel, ten thousand naira." came back from
-    the round trip as "Log the expense COLON ..." — the trader was being
+    the round trip as "Log the expense COLON ...", the trader was being
     read the punctuation. Commas and full stops are prosody; colons and
     parentheses are not, so they become pauses instead of words.
     """
-    for src, dst in ((":", " —"), ("(", ", "), (")", ""), (";", ",")):
+    for src, dst in ((":", ", "), ("(", ", "), (")", ""), (";", ",")):
         text = text.replace(src, dst)
     return " ".join(text.split())
 
 
 class NullTts:
-    """Silence — used in tests and when the browser handles voice-out."""
+    """Silence, used in tests and when the browser handles voice-out."""
 
     def speak(self, text: str) -> bytes:
         return b""
@@ -46,7 +46,7 @@ class NullTts:
 class PiperLocalTts:
     """Local neural TTS via the `piper` CLI. Fully offline.
 
-    Install: https://github.com/rhasspy/piper — download a voice model
+    Install: https://github.com/rhasspy/piper, download a voice model
     (e.g. en_US-lessac-medium.onnx) into voices/ and pass its path.
     """
 
@@ -82,7 +82,7 @@ def voice_profile(reply_language: str, accent: str = "yoruba", gender: str = "fe
 
 
 class SaharaTts:
-    """Intron's Sahara TTS — a real Pidgin voice for the readback.
+    """Intron's Sahara TTS, a real Pidgin voice for the readback.
 
     The reply text echoes ledger amounts, so every call is a transmission:
     both the generate POST and the audio fetch route through
@@ -103,7 +103,7 @@ class SaharaTts:
 
     def speak(self, text: str) -> bytes:
         if not text.strip() or len(speakable(text)) > 4096:
-            raise ValueError("TTS text must contain 1–4096 characters")
+            raise ValueError("TTS text must contain 1-4096 characters")
         body = json.dumps({
             "text": speakable(text),
             "output_audio_format": "wav",

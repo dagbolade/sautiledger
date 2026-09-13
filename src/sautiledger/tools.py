@@ -116,12 +116,12 @@ def query_ledger(
             return f"Nothing don enter the book {when} yet."
         if balance < 0:
             return (f"You sell {_money(sales_total, currency)}, you spend "
-                    f"{_money(exp_total, currency)} — you don spend pass sales by "
+                    f"{_money(exp_total, currency)}, you don spend pass sales by "
                     f"{_money(-balance, currency)} o.")
         return (f"You sell {_money(sales_total, currency)}, you spend "
-                f"{_money(exp_total, currency)} — wetin remain na "
+                f"{_money(exp_total, currency)}, wetin remain na "
                 f"{_money(balance, currency)}.")
-    # default: profit_or_sales_total — native-speaker ruling: when a trader
+    # default: profit_or_sales_total, native-speaker ruling: when a trader
     # says "make", they mean PROFIT (net), so spend is subtracted when present
     n, total = ledger.sales_total(period)
     _en, exp_total = ledger.expenses_total(period)
@@ -130,10 +130,10 @@ def query_ledger(
     if exp_total:
         balance = total - exp_total
         if balance < 0:
-            return (f"{when.capitalize()} you never make anything o — "
+            return (f"{when.capitalize()} you never make anything o, "
                     f"{_money(total, currency)} in sales but {_money(exp_total, currency)} "
                     f"spend: you dey down {_money(-balance, currency)}.")
-        return (f"You don make {_money(balance, currency)} {when} — "
+        return (f"You don make {_money(balance, currency)} {when}, "
                 f"{_money(total, currency)} in sales, {_money(exp_total, currency)} spend.")
     return f"You don make {_money(total, currency)} from {n} sale{'s' if n != 1 else ''} {when}."
 
@@ -143,7 +143,7 @@ def correct_last_entry(
 ) -> str:
     row = ledger.correct_last(field, new_value, due)
     if row is None:
-        return "Nothing to correct yet — no entry in the ledger."
+        return "Nothing to correct yet, no entry in the ledger."
     if field == "amount":
         return f"Corrected: {row['item'] or 'last entry'} now {_money(new_value, row['currency'])}. Correct?"
     if field == "payment_status":
@@ -185,7 +185,7 @@ def daily_summary(
         tail = (f" Sales {_money(sales_total, currency)}; "
                 f"spend {_money(exp_total, currency)}; "
                 f"wetin remain na {_money(abs(balance), currency)}"
-                f"{' — you don spend pass sales o' if balance < 0 else ''}."
+                f"{', you don spend pass sales o' if balance < 0 else ''}."
                 if exp_total else f" Total sales {_money(sales_total, currency)}.")
         skipped = len(rows) - len(sales) - len(expenses)
         extra = f" And {skipped} more." if skipped > 0 else ""

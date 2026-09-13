@@ -1,10 +1,10 @@
-"""Positive-path tests against the REAL llama3.2:3b — no mocks.
+"""Positive-path tests against the REAL llama3.2:3b, no mocks.
 
 Excluded from `make test` (pytest addopts -m 'not live'); run explicitly:
   make test-live   (= python -m pytest -m live -q)
 
 Every test asserts on LEDGER STATE, not just reply text. Fresh in-memory
-DB per test. If these fail, fix the pipeline — never loosen the asserts.
+DB per test. If these fail, fix the pipeline: never loosen the asserts.
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ def test_sale_logs_exactly_one_correct_row(agent):
     assert "five thousand five hundred" in reply
 
 
-# (b) reduplication distributive — confident one-turn log (native-validated)
+# (b) reduplication distributive: confident one-turn log (native-validated)
 def test_reduplication_logs_in_one_turn(agent):
     reply = agent.handle("customer take two paint rubber of garri two two fifty")
     rows = _rows(agent)
@@ -56,7 +56,7 @@ def test_reduplication_logs_in_one_turn(agent):
     assert "two hundred fifty" in reply
 
 
-# (b2) case 21: the natural clarify beat — no row until the amount arrives
+# (b2) case 21: the natural clarify beat, no row until the amount arrives
 def test_amountless_sale_clarify_round_trip(agent):
     reply = agent.handle("I don sell garri finish")
     assert "How much" in reply and "?" in reply
@@ -82,7 +82,7 @@ def test_query_sums_ledger_exactly(agent):
 
 # (b3) v2 flattened-distributive guard: both resolutions. Since the
 # 2026-08-27 incident, pending-resolution commits pass the SAME unknown-item
-# confirm as direct ones — "pint garri" (ASR debris for "paint") is asked
+# confirm as direct ones: "pint garri" (ASR debris for "paint") is asked
 # about before the row is written, exactly like the unambiguous path.
 def test_flattened_guard_resolves_each(agent):
     reply = agent.handle("customer take 2 pint of garri 250")
@@ -108,7 +108,7 @@ def test_flattened_guard_resolves_total(agent):
     assert rows[0]["amount"] == 250 and rows[0]["amount_each"] is None
 
 
-# (c2) item-filtered query — asks the ledger, never logs
+# (c2) item-filtered query: asks the ledger, never logs
 def test_item_filtered_query(agent):
     agent.handle("I sell groundnut 3 for 500")
     assert len(_rows(agent)) == 1
@@ -135,7 +135,7 @@ def test_mangled_narration_with_literal_amount(agent):
     assert len(rows) <= 1
     if rows:  # if the fallback completed the parse, the amount must be literal
         assert rows[0]["amount"] in (700, 2100)  # 700 total or 700 x 3
-    # and never anything else — no invented figures
+    # and never anything else: no invented figures
     for row in rows:
         assert row["amount"] != 500 and row["amount"] != 7000
 
@@ -186,7 +186,7 @@ def test_chatter_leaves_ledger_unchanged(agent):
     assert after == before  # row count AND contents unchanged
 
 
-# (field round one) "worth" as a money connective — real model in the loop
+# (field round one) "worth" as a money connective: real model in the loop
 def test_worth_connective_logs_field(agent):
     agent.handle("I sell egg worth 12000 naira")
     rows = _rows(agent)

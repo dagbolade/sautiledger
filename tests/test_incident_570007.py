@@ -60,13 +60,13 @@ def test_clean_restate_after_refusal_logs_normally():
 def test_round_amounts_keep_zero_friction():
     agent = _agent()
     agent.handle("i don sell 3 crayfish")
-    reply = agent.handle("5700")               # 4 digits, round — no guard
+    reply = agent.handle("5700")               # 4 digits, round, no guard
     assert "Logged" in reply
     assert agent.ledger.entries("today")[0]["amount"] == 5700
 
     agent2 = _agent()
     agent2.handle("i don sell 3 crayfish")
-    reply = agent2.handle("285000")            # big but round — no guard
+    reply = agent2.handle("285000")            # big but round: no guard
     assert "Logged" in reply
 
 
@@ -94,7 +94,7 @@ def test_pending_path_now_gets_item_confirm_too():
 
 def test_llm_fallback_never_resolves_a_candidates_question():
     """The flattened-distributive guard asks 'each or total?' on purpose.
-    A fallback model must never answer that question by itself — even one
+    A fallback model must never answer that question by itself: even one
     that confidently returns a literal-amount log parse."""
     import json
 

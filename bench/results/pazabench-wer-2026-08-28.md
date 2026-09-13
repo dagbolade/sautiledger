@@ -1,4 +1,4 @@
-# PazaBench WER snapshot — captured 2026-08-28
+# PazaBench WER snapshot: captured 2026-08-28
 
 Source: the live PazaBench leaderboard (aka.ms/pazabench →
 huggingface.co/spaces/microsoft/paza-bench), Microsoft Research Africa,
@@ -26,7 +26,7 @@ sh-ZW planned on Shona). Column order is the leaderboard's own WER ranking.
    dominant contact language of West African commerce that the leading
    low-resource ASR leaderboard does not yet cover. (Precision note,
    verified 28 Aug: facebook's omnilingual-ASR *claims* `pcm_Latn` among
-   its 1,672 supported languages — so the gap is in public *evaluation*,
+   its 1,672 supported languages, so the gap is in public *evaluation*,
    not claimed coverage. Phrase it as: "no public leaderboard currently
    evaluates Nigerian Pidgin; our benchmark provides that measurement,
    including the first Pidgin numbers for omnilingual-ASR we know of.")
@@ -34,19 +34,19 @@ sh-ZW planned on Shona). Column order is the leaderboard's own WER ranking.
    is therefore the only place (we know of) where Sahara is measured
    side-by-side with the PazaBench model families on this speech.
 3. **omnilingual (facebook) is the strongest model on all five languages**
-   (WER 0.29–0.51), consistently ahead of facebook-mms; every other family
-   sits at or above ~0.95 WER on Hausa/Igbo/Yoruba — effectively
+   (WER 0.29-0.51), consistently ahead of facebook-mms; every other family
+   sits at or above ~0.95 WER on Hausa/Igbo/Yoruba: effectively
    unusable. This is why omnilingual-ASR is the scientifically strongest
    open-weights comparator for Phase G.
-4. **nvidia-nemo ranks 11th of 16 families** on average and shows 1.09–1.40
-   WER on our languages — a datapoint to pair with the Nemotron 3.5 ASR
+4. **nvidia-nemo ranks 11th of 16 families** on average and shows 1.09-1.40
+   WER on our languages: a datapoint to pair with the Nemotron 3.5 ASR
    finding (its 40 supported locales include no African language).
 
 ## Citation pointers
 
-- Leaderboard: PazaBench — ASR Leaderboard for Low Resource Languages,
+- Leaderboard: PazaBench, ASR Leaderboard for Low Resource Languages,
   Microsoft Research Africa (Nairobi), https://aka.ms/pazabench.
   Snapshot taken 2026-08-28; values may move as the leaderboard updates.
 - The PazaBench paper was stated (Deep Learning Indaba 2026 masterclass,
-  M. Muchai) to be accepted at Indaba 2026 — cite the paper once public,
+  M. Muchai) to be accepted at Indaba 2026: cite the paper once public,
   the leaderboard URL until then.

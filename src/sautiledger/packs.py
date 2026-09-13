@@ -1,4 +1,4 @@
-"""Language pack loading. A pack is pure data (packs/*.yaml) — adding a
+"""Language pack loading. A pack is pure data (packs/*.yaml): adding a
 language means adding a pack file and test cases, never code."""
 
 from __future__ import annotations
@@ -37,14 +37,14 @@ class Pack:
     reduplication_distributive: bool = False
     # v2: accept "5k 5" as the digit twin of spoken "five thousand five"
     digit_twin_thousands: bool = False
-    # "3 FOR 500" — connective marking the following figure as a total
+    # "3 FOR 500": connective marking the following figure as a total
     price_connectives: frozenset[str] = frozenset()
     # sentence-initial copulas ("NA three carton of..."), stripped from the
-    # item — a leading copula is never a price marker, a trailing one is
+    # item: a leading copula is never a price marker, a trailing one is
     copula_openers: frozenset[str] = frozenset()
     # multi-word item names known to the language ("pure water")
     multi_word_items: frozenset[str] = frozenset()
-    # size/attribute words ("1 big egg") — bonus detail on an item name,
+    # size/attribute words ("1 big egg"): bonus detail on an item name,
     # never a reason to doubt it
     descriptors: frozenset[str] = frozenset()
     # question markers: interrogative + sale trigger = query, not transaction
@@ -53,7 +53,7 @@ class Pack:
     # into cents; "five dollars fifty" = 550. Empty for major-unit packs.
     major_unit_words: frozenset = frozenset()
     # Bantu concord prefixes that glue onto code-switched numbers
-    # ("NEfive dollars", "YEten") — split only when the remainder is a
+    # ("NEfive dollars", "YEten"): split only when the remainder is a
     # known number word, never elsewhere
     number_prefixes: frozenset = frozenset()
 

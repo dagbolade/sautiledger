@@ -10,7 +10,7 @@
   report; never drop clips after seeing results.
 - Raw transcripts are cached to bench/results/raw/<model>/<clip>.json so
   reruns never re-spend API credits.
-- Tier-a audio may arrive as 01.wav..20.wav or case01.wav..case20.wav —
+- Tier-a audio may arrive as 01.wav..20.wav or case01.wav..case20.wav:
   both resolve; absent case IDs are listed clearly so a partial recording
   session still runs.
 """
@@ -108,7 +108,7 @@ def _fake_anglicised(text: str) -> str:
 
 
 def _fake_mangler(text: str) -> str:
-    """Deterministic amount-corruptor: truncates trailing money words —
+    """Deterministic amount-corruptor: truncates trailing money words,
     the failure class the transaction metric exists to catch."""
     for src, dst in [
         ("five thousand five", "five thousand"), ("two two fifty", "two fifty"),
@@ -135,7 +135,7 @@ def estimate_whisper(clips: list[dict]) -> None:
     try:
         from faster_whisper import WhisperModel
     except ImportError:
-        print("faster-whisper not installed — pip install -r bench/requirements.txt")
+        print("faster-whisper not installed, pip install -r bench/requirements.txt")
         return
     sample = next((c for c in clips if c["audio_path"]), None)
     if sample is None:
@@ -155,7 +155,7 @@ def estimate_whisper(clips: list[dict]) -> None:
         sample_path = RESULTS_DIR / "_timing_probe.wav"
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         sample_path.write_bytes(buf.getvalue())
-        print("(no corpus audio yet — timing a synthetic 5s clip)")
+        print("(no corpus audio yet, timing a synthetic 5s clip)")
     else:
         sample_path = sample["audio_path"]
 
@@ -186,7 +186,7 @@ def main() -> None:
     parser.add_argument("--fake", action="store_true", help="dry-run the pipeline with fake models")
     parser.add_argument("--models", default=None,
                         help="comma-separated model names to run (default: all). "
-                             "Local models are memory-hungry — run them in "
+                             "Local models are memory-hungry: run them in "
                              "separate passes, then --score-only.")
     parser.add_argument("--score-only", action="store_true",
                         help="score every cached transcript and render the "
@@ -232,7 +232,7 @@ def main() -> None:
         run_fake(clips, manifest_hash)
         return
     if not present:
-        print("No audio present — record clips or run fetch_afriswitch.py first.")
+        print("No audio present, record clips or run fetch_afriswitch.py first.")
         sys.exit(1)
     if not args.confirm:
         print("Dry run only. Re-run with --confirm to transcribe (or --fake for the report pipeline).")
@@ -296,7 +296,7 @@ def run_fake(clips: list[dict], manifest_hash: str) -> None:
 
 
 def run_score_only(clips: list[dict], manifest_hash: str) -> None:
-    """Score every cached transcript — no model is loaded, nothing is sent.
+    """Score every cached transcript, no model is loaded, nothing is sent.
     Lets each model run in its own memory-light pass, then one scoring pass
     assembles the whole report."""
     by_id = {c["id"]: c for c in clips}

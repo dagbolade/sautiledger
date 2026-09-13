@@ -1,7 +1,7 @@
 [project]
 name = "sautiledger"
 version = "1.0.0"
-description = "Offline-first, code-switched voice ledger for African market traders"
+description = "Code-switched voice ledger for African market traders"
 authors = [{ name = "David Agbolade" }]
 license = { text = "MIT" }
 requires-python = ">=3.11"
@@ -13,7 +13,7 @@ dependencies = [
     "certifi>=2024.0",
     "av>=12.0",
     "numpy>=1.26",  # av frame -> bytes without plane padding (audio.py)
-    # the ONE sanctioned websocket client — used only inside egress.py,
+    # the ONE sanctioned websocket client: used only inside egress.py,
     # enforced by tests/test_import_guard.py
     "websockets>=12.0",
 ]

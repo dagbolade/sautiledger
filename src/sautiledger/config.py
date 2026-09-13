@@ -1,5 +1,5 @@
 """Runtime configuration. Secrets come from the environment or a local
-.env file (gitignored — the API key must never be committed)."""
+.env file (gitignored: the API key must never be committed)."""
 
 from __future__ import annotations
 
@@ -29,7 +29,7 @@ class Settings:
     sahara_api_key: str | None
     asr_path: str = "sync"  # "sync" | "async" (async: upload + poll)
     # "auto": local Ollama if running, else grammar-only. "hosted" (remote
-    # inference for the fallback step) must be chosen explicitly — utterance
+    # inference for the fallback step) must be chosen explicitly: utterance
     # text leaving the device is never a silent default.
     agent: str = "auto"  # "auto" | "local" | "hosted" | "none"
     hf_token: str | None = None

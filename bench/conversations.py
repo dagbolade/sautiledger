@@ -134,7 +134,7 @@ def evaluate(source: Path = DEFAULT_SCENARIOS) -> dict:
     # Some scenarios are CONTROLS: they assert the agent must NOT complete
     # (a safe refusal is not a completed transaction). Counting them in the
     # denominator would report a correct refusal as a failure, so they are
-    # scored separately — a control "passes" by staying incomplete.
+    # scored separately: a control "passes" by staying incomplete.
     graded = [(s, r) for s, r in zip(scenarios, results)
               if s.get("expect_completion", True)]
     controls = [(s, r) for s, r in zip(scenarios, results)

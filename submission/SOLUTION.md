@@ -1,4 +1,4 @@
-# SautiLedger — Solution Description
+# SautiLedger: Solution Description
 
 **Sahara CodeSwitch Africa Challenge (Phase 2) · Category: Fintech, Telco & Call Center**
 
@@ -7,18 +7,18 @@
 A market trader in Lagos sells forty times a morning. Her hands are full,
 her customers are waiting, and her record of the day lives in her head
 until it doesn't. When a lender later asks "what does this business
-earn?", there is nothing to show — not because the business is small, but
+earn?", there is nothing to show, not because the business is small, but
 because nobody built a book she could keep while trading.
 
 Typing is the wrong interface: it needs a free hand, a still moment, and a
-keyboard that assumes English. Voice is the right interface — but voice
+keyboard that assumes English. Voice is the right interface, but voice
 tools fail her twice over. They don't understand Nigerian Pidgin, and they
 break at exactly the moment she mixes languages, which is every sentence:
 *"I don sell three derica of rice five thousand five."* One utterance,
 three languages, one price, and no mainstream ASR renders it correctly.
 
-The gap is measurable and, until now, unmeasured. Microsoft's PazaBench —
-the leading ASR leaderboard for low-resource languages — covers 61 African
+The gap is measurable and, until now, unmeasured. Microsoft's PazaBench,
+the leading ASR leaderboard for low-resource languages, covers 61 African
 languages across 53 models. **Nigerian Pidgin is not among them.** The
 dominant contact language of West African commerce is absent from the
 scoreboard.
@@ -38,7 +38,7 @@ cover:
 | `sw-KE` | Swahili + English | grammar complete, native validation pending |
 | `ha-NG` | Hausa + English | grammar complete, native validation pending |
 
-We label the last two honestly as unvalidated rather than claiming four
+We label the last two as unvalidated rather than claiming four
 finished languages.
 
 ## The solution
@@ -57,9 +57,9 @@ The voice input drives real downstream actions, not transcription for its
 own sake:
 
 - **Log** sales, expenses and credit, with quantity, unit, item and price.
-- **Answer** questions against the ledger — *"wetin remain?"* returns real
+- **Answer** questions against the ledger: *"wetin remain?"* returns real
   arithmetic over real rows, not a guess.
-- **Correct** entries by voice — *"no, na ten thousand"* voids and replaces.
+- **Correct** entries by voice: *"no, na ten thousand"* voids and replaces.
 - **Summarise** the day, and **export a bank-readiness statement**: totals,
   net position, average daily revenue, a days-active consistency line, and
   a disclaimer stating plainly that it is transaction history, not a credit
@@ -73,7 +73,7 @@ grammar has no reading at all, and its output is discarded if it contains
 any amount not literally present in the utterance. The invariant is
 absolute: **never fabricate an amount.**
 
-**2. Clarify over guess.** Where meaning is genuinely ambiguous, the agent
+**2. Clarify over guess.** Where meaning is ambiguous, the agent
 asks. A ledger that asks is safe; a ledger that guesses is a liability.
 This is why our benchmark scores *amount safe* (correct **or** asked)
 separately from *transaction exact*.
@@ -81,14 +81,14 @@ separately from *transaction exact*.
 **3. One gate in front of every write.** A single `_gate_and_commit` path
 guards every commit: garbled items are refused outright, unknown items are
 confirmed, and strangely-shaped amounts are verified once before writing.
-This exists because of a real incident — on 27 August a live user's spoken
+This exists because of a real incident: on 27 August a live user's spoken
 "5700" was transcribed as "570007" and reached the ledger. The gate now
 closes that class of failure everywhere, and the flawed row remains in her
 book, voided, as an audit trail.
 
 **4. Languages are data, not code.** A language pack is a YAML file:
 numbers, units, connectives, triggers, grammar switches. Adding Shona
-meant adding a file and a test corpus — no parser changes. Two grammar
+meant adding a file and a test corpus: no parser changes. Two grammar
 switches added for Shona (`major_unit_words` for cents-based currency,
 `number_prefixes` for concord prefixes that glue onto code-switched
 numerals) are pack-gated and provably inert for every other language.
@@ -110,14 +110,14 @@ numerals) are pack-gated and provably inert for every other language.
 - **Benchmarked against six other speech systems** on a frozen 70-clip
   corpus: 30 natively recorded code-switched market utterances
   (Pidgin/Yoruba and Shona, each labelled with the ledger entry it should
-  produce) and 40 AfriSwitch broadcast clips — Sahara v2.5,
+  produce) and 40 AfriSwitch broadcast clips, Sahara v2.5,
   Microsoft MAI-Transcribe-2, OpenAI GPT-4o-transcribe, NVIDIA
   Parakeet-TDT, Google Chirp-3, Whisper-large-v3 and Meta's
-  omnilingual-ASR — plus a round-trip TTS benchmark. Full results:
+  omnilingual-ASR, plus a round-trip TTS benchmark. Full results:
   [`bench/results/REPORT.md`](../bench/results/REPORT.md); dataset card:
   [`bench/DATASET.md`](../bench/DATASET.md).
 - **Conversation benchmark**: 37 scripted replays through the real agent
-  and ledger — 16 of 19 tasks completed, none ending with a wrong amount,
+  and ledger, 16 of 19 tasks completed, none ending with a wrong amount,
   and 18 of 18 must-not-log controls held, 17 of them real unscripted
   Shona market chatter.
 
@@ -133,13 +133,13 @@ Chirp-3 and Whisper at p < 0.05.
 
 | | Pidgin/Yoruba | Shona |
 |---|---|---|
-| best | MAI-Transcribe-2 — 60% exact, 0% corrupted | **Sahara v2.5 and Meta omnilingual-ASR (open), tied — 27% exact, 0% corrupted** |
+| best | MAI-Transcribe-2: 60% exact, 0% corrupted | **Sahara v2.5 and Meta omnilingual-ASR (open), tied: 27% exact, 0% corrupted** |
 | Sahara | 47% exact, 0% corrupted (3rd) | tied first, double the best frontier model |
-| frontier models on Shona | — | 7–13% exact, three of them corrupting amounts |
+| frontier models on Shona | - | 7-13% exact, three of them corrupting amounts |
 
 Sahara is **not** the strongest system on its own flagship Pidgin/Yoruba
-pair, and we report that plainly. Our best explanation — a hypothesis, since
-each tier is one speaker on one phone — is linguistic distance from
+pair, and we report that plainly. Our best explanation, a hypothesis, since
+each tier is one speaker on one phone, is linguistic distance from
 English: Pidgin is lexically English-adjacent so strong general
 recognisers cope with it, while Shona is not and they collapse there. If
 that holds, code-switch-specific training is worth most exactly where
@@ -153,7 +153,7 @@ Pidgin's perfective `I don sell` without inverting it into `I don't
 sell`; and it is the only vendor here that also provides TTS in the same
 Nigerian voice register, which our readback depends on. The honest
 engineering conclusion is that a production deployment should **route by
-language** — and the benchmark is what tells us that, which is the point
+language**, and the benchmark is what tells us that, which is the point
 of running one properly rather than as a formality.
 
 ## Prior work

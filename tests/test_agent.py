@@ -1,5 +1,5 @@
 """End-to-end agent tests over the corpus cases: utterance in, spoken reply
-out, ledger rows checked. Uses an in-memory DB and a raising LLM — the
+out, ledger rows checked. Uses an in-memory DB and a raising LLM: the
 whole flow must work grammar-only."""
 
 from __future__ import annotations
@@ -60,7 +60,7 @@ def test_expense(agent):
     assert row["type"] == "expense" and row["amount"] == 10000 and row["item"] == "fuel"
 
 
-# case 4 — reduplication distributive logs CONFIDENTLY (native-validated)
+# case 4: reduplication distributive logs CONFIDENTLY (native-validated)
 def test_reduplication_distributive_logs_directly(agent):
     reply = agent.handle("customer take two paint rubber of garri two two fifty")
     rows = _rows(agent)
@@ -70,7 +70,7 @@ def test_reduplication_distributive_logs_directly(agent):
     assert "two hundred fifty" in reply and "each" in reply
 
 
-# case 21 — the natural clarify beat: sale completed, amount unspoken
+# case 21: the natural clarify beat: sale completed, amount unspoken
 def test_amountless_sale_asks_then_logs(agent):
     reply = agent.handle("I don sell garri finish")
     assert "How much you sell the garri?" == reply
@@ -126,7 +126,7 @@ def test_multiword_item(agent):
     assert row["item"] == "pure water" and row["amount"] == 1200
 
 
-# case 20 — the no-content guard
+# case 20: the no-content guard
 def test_empty_log_request_never_writes(agent):
     reply = agent.handle("log am make I hear")
     assert "?" in reply
@@ -148,7 +148,7 @@ def test_agent_refuses_amountless_log(agent):
 
 
 def test_confirmation_yes_with_new_content(agent):
-    """'yes, and then …' — confirm and process the rest in one breath."""
+    """'yes, and then …', confirm and process the rest in one breath."""
     agent.handle("I don sell three derica of rice five thousand five")
     reply = agent.handle("yes and I sell garri egberun meta")
     assert "three thousand naira" in reply

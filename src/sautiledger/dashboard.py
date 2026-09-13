@@ -1,4 +1,4 @@
-"""Admin analytics dashboard: the whole fleet on one page — sessions,
+"""Admin analytics dashboard: the whole fleet on one page, sessions,
 outcomes, daily activity, and per-session export links. Read-only,
 token-gated in api.py, styled like the app so it feels like the same
 product from the operator's side.
@@ -11,7 +11,7 @@ from datetime import datetime
 
 
 def _pct(part: int, whole: int) -> str:
-    return f"{round(100 * part / whole)}%" if whole else "–"
+    return f"{round(100 * part / whole)}%" if whole else "-"
 
 
 def build_dashboard_html(sessions, outcomes, by_day, modes: dict, token: str) -> str:

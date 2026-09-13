@@ -1,5 +1,5 @@
 """Field-testing round one: three real gaps from David's and his sister's
-drafts — 'worth' as a money connective, confirm-time notes that keep the
+drafts, 'worth' as a money connective, confirm-time notes that keep the
 captured money, and the typed-shorthand register ('Mr olaolu 1big egg @5700')."""
 
 from __future__ import annotations
@@ -95,7 +95,7 @@ def test_at_with_space_and_small_descriptor():
 
 
 def test_shorthand_never_guesses_a_bad_amount():
-    # hard-money phrase after "@" still refuses to value — clarify, no guess
+    # hard-money phrase after "@" still refuses to value: clarify, no guess
     r = grammar_parse("oga sam 2big egg @ egbeje o din owo", PACK)
     assert r.intent == "clarify"
     assert r.question_about == "amount"
@@ -114,11 +114,11 @@ def test_cueless_chatter_during_confirm_never_touches_the_row():
     before = [dict(r) for r in agent.ledger.entries("today")]
     agent.handle("my friend how your body today")
     after = [dict(r) for r in agent.ledger.entries("today")]
-    assert after == before  # no note, no void — cue-less chatter is inert
+    assert after == before  # no note, no void, cue-less chatter is inert
 
 
 # ---------------- 4. field round two: the wholesale register (2026-09-02,
-# sister's session — "200 per one", "4000 per pack", item "per" logged)
+# sister's session: "200 per one", "4000 per pack", item "per" logged)
 
 
 def test_per_one_answer_resolves_pending_amount():
@@ -126,7 +126,7 @@ def test_per_one_answer_resolves_pending_amount():
     reply = agent.handle("I don sell choco ball")
     assert "How much" in reply
     reply = agent.handle("200 per one")
-    # unknown 2-word item still confirms before commit — then logs cleanly
+    # unknown 2-word item still confirms before commit, then logs cleanly
     assert reply == "Na choco ball you talk?"
     agent.handle("yes")
     rows = agent.ledger.entries("today")
@@ -145,7 +145,7 @@ def test_per_pack_prices_each_pack():
 
 
 def test_trailing_copula_never_enters_the_item():
-    # production row "choco ball pack is" (2026-08-29) — the copula is a
+    # production row "choco ball pack is" (2026-08-29): the copula is a
     # price marker, not part of the name
     r = grammar_parse("choco ball pack is 4000", PACK)
     assert r.item == "choco ball"
@@ -154,7 +154,7 @@ def test_trailing_copula_never_enters_the_item():
 
 
 def test_function_word_item_never_logs():
-    # production row "Logged: per, fifty naira" (2026-09-02) — an item made
+    # production row "Logged: per, fifty naira" (2026-09-02), an item made
     # only of function words keeps the money and asks for the thing
     agent = _agent()
     reply = agent.handle("i don sell per for 200")

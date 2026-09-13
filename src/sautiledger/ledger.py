@@ -1,4 +1,4 @@
-"""SQLite ledger — plain SQL, stdlib sqlite3, no ORM.
+"""SQLite ledger: plain SQL, stdlib sqlite3, no ORM.
 
 Every row belongs to a session (one visitor's book). A Ledger object is a
 session-scoped view: it shares one connection with its siblings but every
@@ -151,7 +151,7 @@ class Ledger:
     def void_transaction(self, txn_id: int) -> sqlite3.Row | None:
         """Soft delete: the row stays in the DB marked 'voided' (auditable,
         never silent) and drops out of every total and the UI list. Only
-        rows in this session's book are reachable — no cross-book voiding."""
+        rows in this session's book are reachable: no cross-book voiding."""
         row = self.conn.execute(
             "SELECT * FROM transactions WHERE id = ? AND session_id = ?",
             (txn_id, self.session_id),
@@ -166,7 +166,7 @@ class Ledger:
         return row
 
     # -------------------------------------------------- field-test observability
-    # (usage_log is local to the database like everything else — it is
+    # (usage_log is local to the database like everything else: it is
     #  never transmitted; the admin export reads it out with consent)
 
     def record_usage(self, input_mode: str, transcript: str | None,
@@ -222,7 +222,7 @@ class Ledger:
         return row["n"]
 
     def sessions_overview(self) -> list[sqlite3.Row]:
-        """One row per session across the whole database (admin view) —
+        """One row per session across the whole database (admin view),
         sessions that only asked questions still appear."""
         return self.conn.execute(
             """SELECT s.session_id,
@@ -353,7 +353,7 @@ class Ledger:
 
     def append_note(self, txn_id: int, note: str) -> sqlite3.Row | None:
         """Attach a spoken detail note to a row's provenance ('Na Michael
-        come'). The note is labelled inside raw_utterance — auditable,
+        come'). The note is labelled inside raw_utterance: auditable,
         never silently merged into the parsed fields."""
         row = self.conn.execute(
             "SELECT * FROM transactions WHERE id = ? AND session_id = ?",
@@ -369,7 +369,7 @@ class Ledger:
         return row
 
     def statement_rows(self, since_iso: str) -> list[sqlite3.Row]:
-        """Non-voided rows from a date onward — the statement's raw truth."""
+        """Non-voided rows from a date onward, the statement's raw truth."""
         return self.conn.execute(
             "SELECT * FROM transactions WHERE session_id = ? "
             "AND payment_status != 'voided' AND ts >= ? ORDER BY ts",

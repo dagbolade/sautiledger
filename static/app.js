@@ -1,4 +1,4 @@
-/* SautiLedger UI — no frameworks, no CDN, works with wifi off in offline mode. */
+/* SautiLedger UI: no frameworks, no CDN, works with wifi off in offline mode. */
 "use strict";
 
 const $ = (id) => document.getElementById(id);
@@ -43,7 +43,7 @@ async function refreshState() {
       }
     }
   } catch (err) {
-    /* server briefly unreachable — keep last view */
+    /* server briefly unreachable, keep last view */
   }
 }
 
@@ -80,7 +80,7 @@ function renderEgress(total, log) {
 const reduceMotion = window.matchMedia
   && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-// the total counts up to its new value — money arriving should feel like it
+// the total counts up to its new value: money arriving should feel like it
 let lastTotal = null;
 function renderTotal(newTotal) {
   const el = $("total");
@@ -469,7 +469,7 @@ function extensionFor(mime) {
 }
 
 // Say what actually went wrong. "Microphone unavailable" sent testers to
-// check a microphone that was fine — the usual cause is a blocked
+// check a microphone that was fine: the usual cause is a blocked
 // permission, which needs a different action entirely.
 function micFailure(err) {
   const name = (err && err.name) || "";
@@ -493,7 +493,7 @@ async function startRecording() {
       stream.getTracks().forEach((t) => t.stop());
       // First run: the permission dialog steals the press-and-hold. The
       // finger lifts to tap "Allow", which cancels the recording before it
-      // begins — so the user grants access and gets silence. Tell them it
+      // begins, so the user grants access and gets silence. Tell them it
       // worked and invite a fresh hold instead of failing quietly.
       if (!micPrimed) {
         micPrimed = true;
@@ -512,7 +512,7 @@ async function startRecording() {
         showStatus("Listening. Release the microphone when you finish.");
         return;
       } catch (err) {
-        teardownStreaming(); // relay unreachable — classic path takes over
+        teardownStreaming(); // relay unreachable: classic path takes over
       }
     }
     chunks = [];
@@ -524,7 +524,7 @@ async function startRecording() {
       stream.getTracks().forEach((t) => t.stop());
       const blob = new Blob(chunks, { type: recordedType });
       if (blob.size < 1000) {
-        // accidental tap — teach the gesture instead of going silent
+        // accidental tap, teach the gesture instead of going silent
         bubble("That recording was too short. Hold the microphone while speaking, then release.", "sauti");
         return;
       }
@@ -596,13 +596,13 @@ $("egress").addEventListener("click", () => {
   $("modal").classList.add("open");
 });
 $("close").addEventListener("click", () => $("modal").classList.remove("open"));
-// tapping the dimmed backdrop closes the sheet too — the gesture people expect
+// tapping the dimmed backdrop closes the sheet too: the gesture people expect
 $("modal").addEventListener("click", (e) => {
   if (e.target === $("modal")) $("modal").classList.remove("open");
 });
 
 // ------------------------------------------------- welcome guide
-// The landing experience lives in the app: three screens — what it is,
+// The landing experience lives in the app: three screens, what it is,
 // how to talk, and the data story with the consent choice made openly.
 
 const OB_KEY = "sauti_onboarded";
@@ -688,8 +688,8 @@ function renderTransactionReview(review) {
   if (transaction.payment_status === "credit") details.push("On credit");
   $("review-details").textContent = details.join(" · ");
   $("review-status").textContent = review.status === "not_recorded"
-    ? "Not recorded — answer the question below."
-    : "Recorded — please check. Rejecting this entry will void it.";
+    ? "Not recorded: answer the question below."
+    : "Recorded, please check. Rejecting this entry will void it.";
 }
 $("replay").addEventListener("click", () => { if (pendingReply) speak(pendingReply); });
 function answer(text) { $("text").value = text; sendText(); }

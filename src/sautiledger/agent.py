@@ -1,6 +1,6 @@
 """The agent loop: transcript -> normaliser -> {tool dispatch | clarify}.
 
-Turn state is one pending ParseResult held in memory — nothing beyond
+Turn state is one pending ParseResult held in memory: nothing beyond
 the ledger is ever persisted.
 """
 
@@ -17,7 +17,7 @@ from .packs import Pack
 
 _YES_WORDS = {"yes", "yeah", "yep", "correct", "ok", "okay", "sure"}
 _NO_WORDS = {"no", "nope"}
-# longest first — matched as leading token sequences
+# longest first: matched as leading token sequences
 _YES_PHRASES = [["na", "so"], ["na", "him"], ["e", "correct"]]
 _NO_PHRASES = [
     ["i", "no", "talk", "that", "one"], ["i", "no", "talk"],
@@ -40,7 +40,7 @@ def _strip_leading(toks: list[str], words: set[str], phrases: list[list[str]]):
 
 def _strip_copula(toks: list[str]) -> list[str]:
     """After a rejection, 'na …' introduces the restatement ('no, na 2
-    biscuits for 350') — drop the copula so it never pollutes the parse.
+    biscuits for 350'), drop the copula so it never pollutes the parse.
     'na so' / 'na him' are affirmations, not copulas: leave those."""
     if len(toks) >= 2 and toks[0] == "na" and toks[1] not in ("so", "him"):
         return toks[1:]
@@ -55,7 +55,7 @@ class Agent:
         self.pending: ParseResult | None = None
         self.awaiting_confirm = False
         self.last_logged_id: int | None = None
-        # strange-shape amount already queried once — repeating it is consent
+        # strange-shape amount already queried once: repeating it is consent
         self._odd_amount_offered: int | None = None
 
     def handle(self, text: str) -> str:
@@ -70,7 +70,7 @@ class Agent:
             reply = self._try_resolve_pending(text)
             if reply is not None:
                 return reply
-            self.pending = None  # answer didn't fit — treat as a fresh utterance
+            self.pending = None  # answer didn't fit, treat as a fresh utterance
         was_confirming = False
         if self.awaiting_confirm:
             self.awaiting_confirm = False
@@ -90,7 +90,7 @@ class Agent:
         ):
             # a copula-led confirm-time reply with nothing loggable in it
             # ("Na Michael come") is a detail note on the entry, not a new
-            # transaction — the money already captured must survive. The
+            # transaction: the money already captured must survive. The
             # copula is the cue (same rule as corrections); cue-less chatter
             # still never touches the ledger.
             return self._note_on_last(text)
@@ -117,7 +117,7 @@ class Agent:
 
     def _handle_confirmation(self, text: str) -> str | None:
         """A reply to '… Correct?' may reject, confirm, or carry new content
-        in the same breath. A rejection VOIDS the just-logged row first —
+        in the same breath. A rejection VOIDS the just-logged row first:
         the ledger must never keep an entry the user refused."""
         # a full correction ("no no na five thousand") fixes in place and
         # outranks yes/no stripping
@@ -153,7 +153,7 @@ class Agent:
             if not rest:
                 return "Noted. Ledger correct."
             return self.handle(" ".join(rest))  # fresh utterance, same breath
-        return None  # not a confirmation — process normally
+        return None  # not a confirmation: process normally
 
     def _void_last_logged(self) -> None:
         if self.last_logged_id is not None:
@@ -195,7 +195,7 @@ class Agent:
 
     # a real item name is a few words; a sentence in the item slot is a
     # mis-parse ("was 285000 so still have 10 crites left…", production
-    # incident 2026-08-27) — never written, never read back as "Correct?"
+    # incident 2026-08-27): never written, never read back as "Correct?"
     _MAX_ITEM_WORDS = 4
 
     def _item_is_garbled(self, item: str | None) -> bool:
@@ -205,16 +205,16 @@ class Agent:
         return len(core) > self._MAX_ITEM_WORDS
 
     def _gate_and_commit(self, parse: ParseResult, raw: str) -> str:
-        """The single gate in front of EVERY write — dispatch and every
+        """The single gate in front of EVERY write, dispatch and every
         pending-resolution path alike. A garbled item is refused outright:
         offering 'Correct?' on an incoherent readback invites a tired yes
         onto a corrupted row."""
         if self._item_is_garbled(parse.item):
             self.pending = None
             return ("Wetin I hear no clear at all, so I no write anything. "
-                    "Abeg talk am again — just the item and the amount.")
+                    "Abeg talk am again: just the item and the amount.")
         if self._item_is_junk(parse.item):
-            # an "item" made only of function words ('per', 'is' — production
+            # an "item" made only of function words ('per', 'is': production
             # row "Logged: per, fifty naira", 2026-09-02) is a mis-parse,
             # never a product: keep the captured money, ask for the thing
             self.pending = replace(parse, intent="clarify",
@@ -229,7 +229,7 @@ class Agent:
                                  parse.currency or self.pack.currency)
             thing = (f"the {parse.item}"
                      if parse.item and len(parse.item.split()) <= 3 else "am")
-            return (f"Make I sure first — na {money} for {thing}? "
+            return (f"Make I sure first, na {money} for {thing}? "
                     f"Talk 'yes' make I write am, or talk the correct amount.")
         if self._needs_item_confirm(parse):
             # suspicious item name: confirm BEFORE anything is written
@@ -245,7 +245,7 @@ class Agent:
         return reply
 
     def _item_is_junk(self, item: str | None) -> bool:
-        """True when every word of the item is a function word or a number —
+        """True when every word of the item is a function word or a number,
         connective debris that landed in the item slot, never a product."""
         if not item:
             return False
@@ -268,7 +268,7 @@ class Agent:
     def _needs_item_confirm(self, parse: ParseResult) -> bool:
         """Multi-word item names the pack has never heard of and this ledger
         has never logged ("combined space", "to buy") are usually ASR
-        debris — those get confirmed before commit. Known items and single
+        debris, those get confirmed before commit. Known items and single
         new words (real products like "biscuits") log normally."""
         if not parse.item:
             return False
@@ -299,7 +299,7 @@ class Agent:
             )
         if parse.question_about == "amount":
             # NO-ECHO RULE: never rebuild the user's utterance inside our own
-            # question — a mangled parse would parrot garbage back. Only a
+            # question: a mangled parse would parrot garbage back. Only a
             # short, clean item name may be mentioned; otherwise fixed template.
             if parse.item and len(parse.item.split()) <= 3:
                 verb = "pay for" if parse.type == "expense" else "sell"
@@ -336,7 +336,7 @@ class Agent:
                                            amount=None, amount_each=None,
                                            amount_suspect=False)
                     return self._clarify_question(self.pending)
-                # "no, na ten thousand" — the remainder is the REPLACEMENT
+                # "no, na ten thousand": the remainder is the REPLACEMENT
                 # amount for the same entry, never a fresh utterance
                 rest_money = [t for t in rest if is_moneyish(t, self.pack)]
                 if rest_money:
@@ -362,7 +362,7 @@ class Agent:
                                 amount=m.get("amount"),
                                 amount_each=m.get("amount_each")), text
                     )
-            return None  # restated something else — parse it fresh
+            return None  # restated something else, parse it fresh
 
         if pending.question_about == "item_confirm":
             rest, confirmed = _strip_leading(lowered, _YES_WORDS, _YES_PHRASES + [phrase.split() for phrase in self.pack.affirmation_phrases])
@@ -378,7 +378,7 @@ class Agent:
                 if not rest:
                     return "Oya talk am again make I hear well."
                 return self.handle(" ".join(rest))  # rejection + restatement
-            return None  # they restated instead — parse it fresh
+            return None  # they restated instead, parse it fresh
 
         if pending.candidates:
             if pending.question_about == "price_basis":
@@ -418,14 +418,14 @@ class Agent:
             m = parse_money(money_toks, pending.quantity, self.pack, total_marked=True)
             if isinstance(m, dict) and "ambiguous" not in m:
                 if m.get("suspect"):
-                    # bare scale word as an ANSWER ("thousand") — echo the
+                    # bare scale word as an ANSWER ("thousand"): echo the
                     # full amount before writing, same as the direct path
                     filled = replace(pending, amount=m.get("amount"),
                                      amount_each=m.get("amount_each"),
                                      amount_suspect=True)
                     self.pending = replace(filled, question_about="amount_confirm")
                     money = tools._money(filled.amount or 0, self.pack.currency)
-                    return (f"Make I sure first — na {money}? "
+                    return (f"Make I sure first: na {money}? "
                             f"Talk 'yes' make I write am, or talk the correct amount.")
                 amount = m.get("amount")
                 if (
@@ -434,11 +434,11 @@ class Agent:
                 ):
                     # ASR digit-merge signature: spoken "5700" arrived as
                     # "570007" (production incident 2026-08-27). Big and
-                    # not ending in a round figure — verify before writing.
+                    # not ending in a round figure: verify before writing.
                     # Repeating the same figure accepts it: the trader's
                     # word wins over the heuristic.
                     self._odd_amount_offered = amount
-                    return (f"I hear {tools.spoken_number(amount)} naira — "
+                    return (f"I hear {tools.spoken_number(amount)} naira: "
                             f"that number get strange shape. Abeg talk the "
                             f"amount one more time make I sure.")
                 self._odd_amount_offered = None

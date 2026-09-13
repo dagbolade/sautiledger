@@ -1,7 +1,7 @@
 """Convert phone recordings into the corpus format: 16 kHz mono PCM wav.
 
 Handles anything PyAV can decode (m4a/mp4 AAC voice notes, .opus WhatsApp
-notes, ogg, …) — so the Swahili voice notes arriving later go through the
+notes, ogg, …), so the Swahili voice notes arriving later go through the
 same path. Originals are preserved in a gitignored raw/ subfolder.
 
 Usage:  python -m bench.convert_clips            (= make convert)
@@ -60,7 +60,7 @@ def verify_wav(path: Path) -> tuple[bool, str, float]:
         abs(int.from_bytes(frames[i:i + 2], "little", signed=True))
         for i in range(0, min(len(frames), 2_000_000), 2)
     )
-    if peak < 500:  # ~1.5% full scale — a silent/botched take
+    if peak < 500:  # ~1.5% full scale, a silent/botched take
         return False, f"near-silent (peak {peak})", duration
     return True, "", duration
 

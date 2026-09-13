@@ -3,20 +3,20 @@
 Intron's guidance (WhatsApp, 9 Sep) asks TTS submissions to report
 Hallucination, Transcript loss, Segment loss, WER and Accuracy. The paper
 they cite (Rai et al., ASR-FairBench, Interspeech 2025) defines none of
-these — it is an ASR *fairness* benchmark — so each metric is defined
+these, it is an ASR *fairness* benchmark, so each metric is defined
 here, explicitly, and the report states these definitions.
 
 Method: round-trip (no human listeners). Text -> TTS -> audio -> a
 NEUTRAL third-party ASR -> transcript, then compare transcript to the
 input text. Every metric derives from one word-level alignment.
 
-  WER             (S+D+I)/N  — the standard rate
+  WER             (S+D+I)/N, the standard rate
   Accuracy        1.0 if the normalised transcript matches exactly
-  Transcript loss D/N        — input words that vanished
-  Hallucination   I/N        — words that appeared from nowhere
-  Segment loss    longest contiguous deletion run / N — a dropped PHRASE
+  Transcript loss D/N, input words that vanished
+  Hallucination   I/N, words that appeared from nowhere
+  Segment loss    longest contiguous deletion run / N, a dropped PHRASE
                   (truncated audio), which D/N alone hides
-  Amount survival did the money figure survive? — the product metric:
+  Amount survival did the money figure survive? The product metric:
                   a readback is a safety device, so a lost or altered
                   amount is a failure even at low WER
 """

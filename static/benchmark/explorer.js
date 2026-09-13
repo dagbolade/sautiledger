@@ -49,7 +49,7 @@ function renderComparison() {
   const clip = selectedClip();
   if (!clip) return;
   $("clip-label").textContent = `${clip.id} · ${tierNames[clip.tier] || clip.tier}`;
-  $("reference-text").textContent = clip.redacted ? "Transcript withheld — evaluation-only corpus. Numerical scores remain available." : clip.truth;
+  $("reference-text").textContent = clip.redacted ? "Transcript withheld: evaluation-only corpus. Numerical scores remain available." : clip.truth;
   $("expected").textContent = expectedDescription(clip.expected);
   const audio = $("reference-audio");
   audio.pause(); audio.removeAttribute("src");
@@ -65,7 +65,7 @@ function renderComparison() {
     const card=node("article",null,"model-card");
     const head=node("div",null,"card-head"); head.append(node("h3",modelLabel(model)),resultBadge(row)); card.append(head);
     if (!row) { card.append(node("p","No cached output for this clip. Excluded from scored denominators.","transcript")); return card; }
-    card.append(node("p",row.redacted ? "Transcript withheld — evaluation-only corpus." : row.hyp || "(Empty transcript)","transcript"));
+    card.append(node("p",row.redacted ? "Transcript withheld: evaluation-only corpus." : row.hyp || "(Empty transcript)","transcript"));
     card.append(node("div",`WER ${Number(row.wer).toFixed(3)} · CER ${Number(row.cer).toFixed(3)}`,"card-metrics"));
     if (row.has_expected) {
       card.append(node("p",`Cached normaliser: ${(row.got_intent || "unknown").replaceAll("_"," ")} · ${money(row.got_amount,clip.expected && clip.expected.currency)}`,"outcome"));
@@ -77,7 +77,7 @@ function renderComparison() {
   renderSummary();
 }
 function fraction(rows, field) {
-  if (!rows.length) return "—";
+  if (!rows.length) return ", ";
   const n=rows.filter(r=>r[field]).length;
   return `${n}/${rows.length} (${Math.round(100*n/rows.length)}%)`;
 }
@@ -88,7 +88,7 @@ function renderSummary() {
     const rows=evidence.asr.filter(r=>r.model===model && r.tier===tier);
     const scored=rows.filter(r=>r.has_expected);
     const tr=node("tr");
-    [modelLabel(model),`${rows.length}/${total}`,rows.length ? (rows.reduce((n,r)=>n+r.wer,0)/rows.length).toFixed(3) : "—",fraction(scored,"exact_match"),fraction(scored,"amount_safe"),fraction(scored,"amount_corrupted")].forEach(value=>tr.append(node("td",value)));
+    [modelLabel(model),`${rows.length}/${total}`,rows.length ? (rows.reduce((n,r)=>n+r.wer,0)/rows.length).toFixed(3) : ", ",fraction(scored,"exact_match"),fraction(scored,"amount_safe"),fraction(scored,"amount_corrupted")].forEach(value=>tr.append(node("td",value)));
     return tr;
   }));
 }
@@ -134,7 +134,7 @@ async function boot() {
     $("tier").replaceChildren(...[...new Set(evidence.clips.map(c=>c.tier))].sort((a,b)=>a==="sautiledger-clips" ? -1 : b==="sautiledger-clips" ? 1 : a.localeCompare(b)).map(t=>option(t,tierNames[t]||t)));
     setModels(); setClips();
     const report=evidence.conversations, summary=report.summary;
-    $("conversation-stats").replaceChildren(stat(`${summary.completed}/${summary.scenarios}`,"scripts completed"),stat(summary.median_turns_to_completion ?? "—","median turns · completed scripts only"),stat(summary.scenarios_with_wrong_amount_at_any_turn,"scripts with any wrong-amount write"),stat(summary.scenarios_with_wrong_final_amount,"scripts with a wrong final amount"));
+    $("conversation-stats").replaceChildren(stat(`${summary.completed}/${summary.scenarios}`,"scripts completed"),stat(summary.median_turns_to_completion ?? ": ","median turns · completed scripts only"),stat(summary.scenarios_with_wrong_amount_at_any_turn,"scripts with any wrong-amount write"),stat(summary.scenarios_with_wrong_final_amount,"scripts with a wrong final amount"));
     $("scenario").replaceChildren(...report.results.map(r=>option(r.id,r.name)));
     renderConversation();
     const descriptions=[

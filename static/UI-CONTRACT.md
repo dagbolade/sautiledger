@@ -1,12 +1,12 @@
 # UI handoff contract
 
 **For a designer or agent rebuilding the front end.** The visual layer is
-yours — layout, motion, type, colour, components, all of it. This file
+yours: layout, motion, type, colour, components, all of it. This file
 records the parts that are *not* cosmetic, because they are either graded
 in the competition submission or load-bearing for safety.
 
 Only `static/index.html` and `static/app.js` should change. **Do not edit
-anything under `src/sautiledger/`** — that is the parser, the safety
+anything under `src/sautiledger/`**: that is the parser, the safety
 gates and the API, and it is covered by 183 tests that a UI change should
 never need to touch.
 
@@ -21,7 +21,7 @@ These are judged. Losing them costs more than any visual gain.
 The strip showing bytes sent (`#egress`, `#egress-total`) is the single
 most distinctive claim the product makes: *every byte that leaves this
 device is counted, in the open.* It must be visible on the main screen at
-all times — not behind a tap, not in a settings page, not only in the
+all times, not behind a tap, not in a settings page, not only in the
 privacy sheet. Restyle it however you like; do not demote it.
 
 ### b. Voice-clip consent is OFF by default and explicitly opt-in
@@ -32,7 +32,7 @@ setting. Rules:
 - It must start **off**. Never pre-checked, never "on by default", never
   bundled into an "accept all" control.
 - The wording must stay plain and honest. Current text: *"Keep my voice
-  clips make dem help test the speech model. Na only if you gree — you fit
+  clips make dem help test the speech model. Na only if you gree: you fit
   off am anytime. Clips stay for this app, nowhere else."*
 - The welcome guide must only ever POST an explicit **yes**. Skipping,
   dismissing or closing the guide must not enable retention.
@@ -53,19 +53,19 @@ hides or truncates them, the product's core behaviour becomes invisible.
 
 ---
 
-## 2. API contract — do not change these shapes
+## 2. API contract: do not change these shapes
 
 All requests are same-origin. The `sauti_device` cookie carries session
 identity; **always send credentials** (default `fetch` same-origin is
-fine — do not switch to a cross-origin or no-cookie mode).
+fine: do not switch to a cross-origin or no-cookie mode).
 
 | Endpoint | Method | Body | Returns |
 |---|---|---|---|
 | `/utterance` | POST | `FormData` with `text=…` **or** `audio=<blob>` | `{transcript, reply_text, parse, egress_delta, egress_total}` |
-| `/state` | GET | – | `{mode, pack, entries[], total, retain_audio, tts, stream, egress{...}}` |
+| `/state` | GET | - | `{mode, pack, entries[], total, retain_audio, tts, stream, egress{...}}` |
 | `/consent` | POST | `FormData` `retain_audio=true|false` | `{retain_audio}` |
 | `/tts` | POST | `FormData` `text=…` | `audio/wav` bytes, **or HTTP 204** |
-| `/void/{id}` | POST | – | voids that row |
+| `/void/{id}` | POST | - | voids that row |
 | `/statement` | GET | `?period=week` | printable HTML page |
 
 Two behaviours are easy to break by accident:
@@ -88,7 +88,7 @@ retain-ob  scroll  send  talk  talk-label  text  total
 ```
 
 `#talk` is the push-to-talk control: **press and hold to record, release
-to send**. It also needs a `.recording` state — the trader is in a market
+to send**. It also needs a `.recording` state: the trader is in a market
 and must be able to tell at a glance whether it is listening.
 
 ## 4. Things worth keeping (not graded, but hard-won)
@@ -102,14 +102,14 @@ and must be able to tell at a glance whether it is listening.
 - **`prefers-reduced-motion`** is respected. Keep it.
 - **Sunlight legibility.** The warm-paper palette was chosen because the
   users are outdoors on market stalls. Any new palette needs real
-  contrast in bright light — this is a functional constraint, not taste.
+  contrast in bright light: this is a functional constraint, not taste.
 - **Streaming path** (`SAUTI_STREAM`): currently disabled server-side, but
   the client code paths exist. If they are in the way, leave them dormant
   rather than deleting them.
 
 ## 5. How to verify you have not broken anything
 
-There are **no automated tests over the front end** — the 183 tests cover
+There are **no automated tests over the front end**: the 183 tests cover
 the parser and API only. So a UI change is unguarded, and this checklist
 is the safety net:
 

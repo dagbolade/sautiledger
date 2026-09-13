@@ -1,8 +1,8 @@
 """FastAPI app: POST /utterance (audio or text), GET /state, static UI.
 
 Every visitor gets their own book. A long-lived cookie names the device;
-each device id maps to a session — its own ledger view, agent turn-state,
-egress meter, and ASR client — so two traders on the same URL can never
+each device id maps to a session, its own ledger view, agent turn-state,
+egress meter, and ASR client, so two traders on the same URL can never
 see or touch each other's records.
 
 Run: python -m uvicorn sautiledger.api:app --port 8090
@@ -48,7 +48,7 @@ DEVICE_COOKIE = "sauti_device"
 _COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 _DEVICE_ID = re.compile(r"[0-9a-f]{16}")
 # in-memory sessions kept at once; oldest-idle is dropped beyond this
-# (its ledger rows persist — a returning cookie just gets a fresh session)
+# (its ledger rows persist: a returning cookie just gets a fresh session)
 MAX_LIVE_SESSIONS = 300
 # per-device transcriptions per day: enough for a full trading day, small
 # enough that a shared link cannot drain the ASR credits
@@ -58,7 +58,7 @@ _ASR_PURPOSE = "your voice clip, sent for transcription"
 
 def _make_llm(settings: Settings, recorder: EgressRecorder):
     """Fallback-model selection. "hosted" needs an explicit opt-in AND a
-    token; "auto" tries local Ollama and otherwise runs grammar-only —
+    token; "auto" tries local Ollama and otherwise runs grammar-only:
     utterance text never leaves the device by default."""
     if settings.agent == "none":
         return None
@@ -76,7 +76,7 @@ class _Session:
             asr_cls = SaharaAsyncAsr if settings.asr_path == "async" else SaharaCloudAsr
             self.asr = asr_cls(self.recorder, settings.sahara_api_key)
         else:
-            # Offline: FakeAsr stands in until the on-device engine lands —
+            # Offline: FakeAsr stands in until the on-device engine lands,
             # nothing touches the network in this mode.
             self.asr = FakeAsr()
         self.tts = None
@@ -166,7 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         def friendly(reply: str, error: str, outcome: str) -> dict:
             # spoken-style bubble instead of a raw error (the UI reads this
-            # aloud); every turn — failures included — lands in usage_log
+            # aloud); every turn, failures included, lands in usage_log
             if sess.reply_language == "en":
                 reply = english_reply(reply)
             ledger.record_usage(input_mode, transcript_text or None, reply,
@@ -210,7 +210,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 print(f"ASR send failed: {exc}; content_type={content_type} "
                       f"bytes={len(blob)}", flush=True)
                 return friendly(
-                    "Network wahala — I no fit reach the cloud right now. Try again small time.",
+                    "Network wahala, I no fit reach the cloud right now. Try again small time.",
                     str(exc), "asr_failed",
                 )
             if not transcript_text:
@@ -246,7 +246,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/void/{txn_id}")
     def void(txn_id: int, request: Request, response: Response):
         sess = session_for(resolve_device(request, response))
-        # the scoped ledger only reaches this session's rows — a guessed id
+        # the scoped ledger only reaches this session's rows: a guessed id
         # from another book 404s rather than voiding someone else's sale
         row = sess.ledger.void_transaction(txn_id)
         if row is None:
@@ -360,7 +360,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             try:
                 await ws.send_json({
                     "type": "error",
-                    "reply_text": ("The voice service is unavailable. Please try again or type your entry." if sess.reply_language == "en" else "Network wahala — I no fit stream right now. Try talk am again."),
+                    "reply_text": ("The voice service is unavailable. Please try again or type your entry." if sess.reply_language == "en" else "Network wahala: I no fit stream right now. Try talk am again."),
                 })
                 await ws.close()
             except Exception:
@@ -411,7 +411,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         })
         await ws.close()
 
-    # replies repeat constantly ("Noted. Ledger correct.") — cached audio
+    # replies repeat constantly ("Noted. Ledger correct."): cached audio
     # answers instantly, spends no credits, and egresses nothing
     tts_cache = (Path(settings.db_path).parent / "tts-cache"
                  if settings.db_path != ":memory:" else None)
@@ -425,7 +425,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return Response(status_code=204)
         text = text.strip()
         if not text or len(text) > 4096:
-            return JSONResponse(status_code=400, content={"error": "Reply must contain 1–4096 characters."})
+            return JSONResponse(status_code=400, content={"error": "Reply must contain 1-4096 characters."})
         profile = voice_profile(sess.reply_language, sess.voice_accent, sess.voice_gender)
         cached = None
         if tts_cache is not None:
@@ -436,7 +436,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return Response(status_code=204)
         try:
             audio = SaharaTts(sess.recorder, settings.sahara_api_key, **profile).speak(text)
-        except Exception as exc:  # voice is optional — any failure degrades
+        except Exception as exc:  # voice is optional, any failure degrades
             print(f"TTS failed: {exc}", flush=True)
             return Response(status_code=204)
         if not audio:
@@ -450,7 +450,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def consent(request: Request, response: Response, retain_audio: str = Form(...)):
         """The voice-clip retention switch. Off by default; the visitor flips
         it knowingly from the UI, and can flip it back any time (already
-        saved clips stay until the admin removes them — the toggle governs
+        saved clips stay until the admin removes them: the toggle governs
         new clips only)."""
         sess = session_for(resolve_device(request, response))
         value = retain_audio.strip().lower() in ("1", "true", "yes", "on")
@@ -515,7 +515,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         days = 30 if period == "month" else 7
         since = (date.today() - timedelta(days=days - 1)).isoformat()
         label = f"Last {days} days · {since} to {date.today().isoformat()}"
-        # a short bank-style reference, never the raw session id — a
+        # a short bank-style reference, never the raw session id: a
         # non-technical reader should not meet a UUID fragment here
         owner = f"Statement ref {ledger.session_id[:4].upper()}"
         page = build_statement_html(
@@ -531,7 +531,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return _statement_response(sess.ledger, period, sess.agent.pack.currency)
 
     # -------------------------------------------------- admin (field test)
-    # Token-gated export of one session's usage evidence — pulled with the
+    # Token-gated export of one session's usage evidence: pulled with the
     # participant's permission. No token configured = no admin surface.
 
     def _admin_denied(request: Request):

@@ -1,4 +1,4 @@
-# SautiLedger Market-Speech Benchmark — dataset card
+# SautiLedger Market-Speech Benchmark: dataset card
 
 A benchmark for **voice bookkeeping in code-switched African market
 speech**. Most ASR test sets can tell you whether the words came out
@@ -16,7 +16,7 @@ Results on this dataset: [`results/REPORT.md`](results/REPORT.md).
 | **tier-a** | `corpus/sautiledger-clips/` | 15 | 1.1 min | Nigerian Pidgin + Yoruba + English | 1 (Nigerian, male) | transcript **+ transaction label** |
 | **tier-sh** | `corpus/sh-clips/` | 15 | 1.2 min | Shona + English, prices in USD | 1 (Zimbabwean, female) | transcript **+ transaction label** |
 | **tier-b** | `corpus/afriswitch-sample/` | 40 | 8.2 min | Pidgin 16 · Swahili 12 · Yoruba 6 · Hausa 6 (each with English) | many (broadcast) | transcript only |
-| **conversations** | `conversation_scenarios.json` | 37 scenarios | text | Pidgin/Yoruba/English, Shona/English | — | final ledger state, expected replies |
+| **conversations** | `conversation_scenarios.json` | 37 scenarios | text | Pidgin/Yoruba/English, Shona/English | - | final ledger state, expected replies |
 
 **Frozen corpus hash (manifests):**
 `50e5e064312fd6bfe05c5aad6662be75f2b31e1525f57917d403849dd4377aeb`.
@@ -68,12 +68,12 @@ Each manifest's own sha256, so a single tier can be checked alone:
 
 - **Recording.** Each native tier was recorded by one speaker on their own
   phone in their own room, then converted to 16 kHz mono 16-bit PCM WAV
-  (`convert_clips.py`). Quality gates: 1–15 s long, readable, not silent.
+  (`convert_clips.py`). Quality gates: 1-15 s long, readable, not silent.
 - **tier-a** was recorded in August for our workshop entry. The manifest
-  lists 21 cases; cases 14–19 were never recorded and are left out of
+  lists 21 cases; cases 14-19 were never recorded and are left out of
   every score rather than silently dropped.
 - **tier-sh** was recorded on 7 September. The speaker's files arrived
-  numbered "Ruwa 2–16"; we matched them to script cases 1–15 by content,
+  numbered "Ruwa 2-16"; we matched them to script cases 1-15 by content,
   using a local model, and checked the order.
 - **tier-b** is the first *N* rows of the AfriSwitch `test` split for each
   language, in stream order with no filtering by result

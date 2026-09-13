@@ -1,4 +1,4 @@
-"""Persistent omnilingual-ASR worker — runs INSIDE WSL (fairseq2 ships no
+"""Persistent omnilingual-ASR worker: runs INSIDE WSL (fairseq2 ships no
 Windows wheels). Loads the model once, then serves clips over stdin/stdout
 as JSON lines: {"path": "/mnt/c/...", "lang": "pcm_Latn"} in,
 {"transcript": "..."} (or {"error": "..."}) out.

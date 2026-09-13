@@ -1,4 +1,4 @@
-# Nigerian Pidgin / Yoruba / English mix — NGN
+# Nigerian Pidgin / Yoruba / English mix: NGN
 # Declarative only: the normaliser has NO language knowledge of its own.
 name: pcm-yo-NG
 description: Nigerian Pidgin / Yoruba / English mix
@@ -9,19 +9,19 @@ connectives: [of]
 # ("finish" = completive marker: "I don sell garri finish")
 fillers: [i, abeg, oya, am, make, hear, she, go, pay, on, the, a, please, give, me, finish]
 
-# NATIVE-VALIDATED: reduplicated money is the distributive —
+# NATIVE-VALIDATED: reduplicated money is the distributive,
 # "two two fifty" = 250 each, unambiguously (not an ambiguity to clarify)
 reduplication_distributive: true
 
-# v2 amendment: "5k 5" = digit twin of spoken "five thousand five" (5500) —
+# v2 amendment: "5k 5" = digit twin of spoken "five thousand five" (5500),
 # Sahara's numeric normalisation emits this form
 digit_twin_thousands: true
 
-# "groundnut 3 FOR 500" — the connective marks 500 as an explicit total;
+# "groundnut 3 FOR 500": the connective marks 500 as an explicit total;
 # "fun" is the Yoruba equivalent ("mo taa ede FUN 300"); "worth"/"cost"
 # from field testing ("egg worth 12000"); "goes" pairs with "for" so
 # "goes for" falls out of the trailing-connective pop. is/na/be/dey:
-# field round two — a trailing copula ("choco ball pack IS 4000") is a
+# field round two: a trailing copula ("choco ball pack IS 4000") is a
 # price marker, never part of the item name
 price_connectives: [for, at, fun, worth, cost, goes, is, na, be, dey]
 
@@ -30,10 +30,10 @@ price_connectives: [for, at, fun, worth, cost, goes, is, na, be, dey]
 # sale; only a TRAILING copula ("choco ball pack IS 4000") marks a price.
 copula_openers: [na, oya, abeg, so]
 
-# size words riding on item names: "1 big egg" — extra detail, not doubt
+# size words riding on item names: "1 big egg", extra detail, not doubt
 descriptors: [big, small, medium, large]
 
-# multi-word item names known to the language — exempt from the
+# multi-word item names known to the language: exempt from the
 # unknown-item confirmation guard
 multi_word_items: [pure water, palm oil, pure water bag]
 
@@ -78,7 +78,7 @@ numbers:
   marun: 5
 
 k_words: [k]
-# "per" — field round two: the wholesale register prices by the piece
+# "per": field round two: the wholesale register prices by the piece
 # ("200 per one", "4000 per pack")
 each_words: [each, per]
 # Yoruba subtractive/vigesimal money phrases the grammar refuses to value.
@@ -122,9 +122,9 @@ units:
 # anything BEFORE the matched trigger is narration (names get ASR-mangled,
 # never require recognising them). Bare "buy" is a SALE unless first-person
 # ("i buy" = expense, checked first).
-# "mo taa" / "mo ta" — Yoruba first-person "I sold"
+# "mo taa" / "mo ta": Yoruba first-person "I sold"
 sale_triggers: [don sell, customer take, customer buy, come buy, buy am, mo taa, mo ta, sold, sell, carry, take, buy]
-# "mo ra" — Yoruba first-person "I bought"
+# "mo ra": Yoruba first-person "I bought"
 expense_triggers: [i go market go buy, i go buy, i went to buy,i buy, i don buy, mo ra, mo san, bought]
 log_triggers: [log am, log]
 
@@ -143,7 +143,7 @@ queries:
     query: sales_total
   - phrase: total sales
     query: sales_total
-  # net balance (sales minus spend) — the book doing arithmetic
+  # net balance (sales minus spend): the book doing arithmetic
   - phrase: wetin remain
     query: net_balance
   - phrase: how much remain

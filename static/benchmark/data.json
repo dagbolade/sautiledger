@@ -12536,9 +12536,9 @@
     "schema_version": 1,
     "evaluation_kind": "scripted_transcript_replay",
     "provenance": "Developer-authored scripted transcript replays. Not recorded conversations or a held-out human evaluation. Currency amounts follow each pack's storage units (USD cents). Scenarios prefixed 'field-' are verbatim turns from a real field session rather than developer-authored examples. Scenarios prefixed 'shona-chatter-' replay Sahara v2.5 transcripts of 17 unscripted clips recorded by the native Shona validator (Ruwa 17-35); they are controls asserting nothing is logged. Ruwa 23 and 24 returned empty transcripts and never reach the agent (the API answers 'please try again'), so they are not replayed.",
-    "generated_at": "2026-09-13T22:27:51.064149+00:00",
+    "generated_at": "2026-09-13T23:06:42.082020+00:00",
     "scenarios_sha256": "424ead595291c977955114d2fdfdb2da29d543c67bf0d8cfa92ed2434df7d2de",
-    "implementation_sha256": "a649e3c89cadb53fe2679f36fc0de825d43a79de2c096ab43e3b59b7cd7cd204",
+    "implementation_sha256": "0b17523dd6a19f136e652e3c7170db3e514df0de79cf362d1952c516d3027239",
     "limitations": [
       "Scripted development scenarios, not held-out conversations or human participants.",
       "No ASR, TTS, network, LLM or user response time is included.",
@@ -12584,7 +12584,7 @@
             "turn": 1,
             "input": "I sell rice for 5500 naira",
             "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
-            "processing_ms": 2.986,
+            "processing_ms": 2.687,
             "before": [],
             "after": [
               {
@@ -12625,7 +12625,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.143,
+            "processing_ms": 0.099,
             "before": [
               {
                 "id": 1,
@@ -12672,7 +12672,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 3.129
+        "local_processing_ms": 2.786
       },
       {
         "id": "missing-amount",
@@ -12697,7 +12697,7 @@
             "turn": 1,
             "input": "I don sell garri finish",
             "reply": "How much did you sell the garri?",
-            "processing_ms": 0.172,
+            "processing_ms": 0.154,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -12726,7 +12726,7 @@
             "turn": 2,
             "input": "five thousand",
             "reply": "Logged sale: garri, five thousand naira. Correct?",
-            "processing_ms": 0.219,
+            "processing_ms": 0.186,
             "before": [],
             "after": [
               {
@@ -12767,7 +12767,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.114,
+            "processing_ms": 0.082,
             "before": [
               {
                 "id": 1,
@@ -12814,7 +12814,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.505
+        "local_processing_ms": 0.422
       },
       {
         "id": "wrong-amount-repair",
@@ -12840,7 +12840,7 @@
             "turn": 1,
             "input": "I sell rice for 5500 naira",
             "reply": "Logged sale: rice, five thousand five hundred naira. Correct?",
-            "processing_ms": 0.322,
+            "processing_ms": 0.316,
             "before": [],
             "after": [
               {
@@ -12881,7 +12881,7 @@
             "turn": 2,
             "input": "no no na five thousand",
             "reply": "Corrected: rice now five thousand naira. Correct?",
-            "processing_ms": 0.137,
+            "processing_ms": 0.116,
             "before": [
               {
                 "id": 1,
@@ -12945,7 +12945,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.091,
+            "processing_ms": 0.082,
             "before": [
               {
                 "id": 1,
@@ -13014,7 +13014,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.55
+        "local_processing_ms": 0.514
       },
       {
         "id": "reject-replace",
@@ -13041,7 +13041,7 @@
             "turn": 1,
             "input": "I sell rice for 5000 naira",
             "reply": "Logged sale: rice, five thousand naira. Correct?",
-            "processing_ms": 0.315,
+            "processing_ms": 0.295,
             "before": [],
             "after": [
               {
@@ -13082,7 +13082,7 @@
             "turn": 2,
             "input": "no",
             "reply": "Entry removed. What should it say? Please repeat it.",
-            "processing_ms": 0.213,
+            "processing_ms": 0.172,
             "before": [
               {
                 "id": 1,
@@ -13122,7 +13122,7 @@
             "turn": 3,
             "input": "I sell rice for 6000 naira",
             "reply": "Logged sale: rice, six thousand naira. Correct?",
-            "processing_ms": 0.218,
+            "processing_ms": 0.184,
             "before": [
               {
                 "id": 1,
@@ -13186,7 +13186,7 @@
             "turn": 4,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.088,
+            "processing_ms": 0.077,
             "before": [
               {
                 "id": 1,
@@ -13255,7 +13255,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.834
+        "local_processing_ms": 0.728
       },
       {
         "id": "deleted-multiplier",
@@ -13280,7 +13280,7 @@
             "turn": 1,
             "input": "I buy fuel thousand naira",
             "reply": "Please check: one thousand naira for the fuel? Say 'yes' to record it, or say the correct amount.",
-            "processing_ms": 0.282,
+            "processing_ms": 0.201,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -13309,7 +13309,7 @@
             "turn": 2,
             "input": "no na ten thousand",
             "reply": "Logged expense: fuel, ten thousand naira. Correct?",
-            "processing_ms": 0.214,
+            "processing_ms": 0.431,
             "before": [],
             "after": [
               {
@@ -13350,7 +13350,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.096,
+            "processing_ms": 0.338,
             "before": [
               {
                 "id": 1,
@@ -13397,7 +13397,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.593
+        "local_processing_ms": 0.971
       },
       {
         "id": "shona-sale",
@@ -13422,7 +13422,7 @@
             "turn": 1,
             "input": "Ndatengesa matomatisi ethree dollars",
             "reply": "Logged sale: matomatisi, three dollars. Correct?",
-            "processing_ms": 0.253,
+            "processing_ms": 0.231,
             "before": [],
             "after": [
               {
@@ -13463,7 +13463,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.066,
+            "processing_ms": 0.059,
             "before": [
               {
                 "id": 1,
@@ -13510,7 +13510,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.319
+        "local_processing_ms": 0.29
       },
       {
         "id": "shona-mixed-price",
@@ -13536,7 +13536,7 @@
             "turn": 1,
             "input": "Ndatengesa three cups dze rice nefive dollars fifty",
             "reply": "Logged sale: 3 cup of rice, five dollars fifty cents. Correct?",
-            "processing_ms": 0.279,
+            "processing_ms": 0.24,
             "before": [],
             "after": [
               {
@@ -13577,7 +13577,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.066,
+            "processing_ms": 0.059,
             "before": [
               {
                 "id": 1,
@@ -13624,7 +13624,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.345
+        "local_processing_ms": 0.299
       },
       {
         "id": "unanswered-question",
@@ -13649,7 +13649,7 @@
             "turn": 1,
             "input": "I don sell garri finish",
             "reply": "How much did you sell the garri?",
-            "processing_ms": 0.129,
+            "processing_ms": 0.12,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -13685,7 +13685,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.129
+        "local_processing_ms": 0.12
       },
       {
         "id": "field-buyer-name-suffix",
@@ -13711,7 +13711,7 @@
             "turn": 1,
             "input": "i sell biscuits 220 naira for iya chinonso",
             "reply": "Logged sale: biscuits, two hundred twenty naira. Correct?",
-            "processing_ms": 0.322,
+            "processing_ms": 0.281,
             "before": [],
             "after": [
               {
@@ -13752,7 +13752,7 @@
             "turn": 2,
             "input": "220 naira",
             "reply": "Please check the last entry: biscuits, two hundred twenty naira. Correct? Say yes or no, or repeat the corrected entry.",
-            "processing_ms": 0.204,
+            "processing_ms": 0.181,
             "before": [
               {
                 "id": 1,
@@ -13805,7 +13805,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.081,
+            "processing_ms": 0.073,
             "before": [
               {
                 "id": 1,
@@ -13852,7 +13852,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.607
+        "local_processing_ms": 0.535
       },
       {
         "id": "field-yoruba-confirmation",
@@ -13879,7 +13879,7 @@
             "turn": 1,
             "input": "oya na, mo ta crate eyin meji fun 6000",
             "reply": "Logged sale: 2 crate of eyin, six thousand naira. Correct?",
-            "processing_ms": 0.311,
+            "processing_ms": 0.276,
             "before": [],
             "after": [
               {
@@ -13920,7 +13920,7 @@
             "turn": 2,
             "input": "beeni",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.089,
+            "processing_ms": 0.08,
             "before": [
               {
                 "id": 1,
@@ -13967,7 +13967,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.4
+        "local_processing_ms": 0.356
       },
       {
         "id": "field-english-sales-query",
@@ -13999,7 +13999,7 @@
             "turn": 1,
             "input": "i sell 3 biscuits for 500 naira",
             "reply": "Logged sale: 3 biscuits, five hundred naira. Correct?",
-            "processing_ms": 0.343,
+            "processing_ms": 0.273,
             "before": [],
             "after": [
               {
@@ -14040,7 +14040,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.085,
+            "processing_ms": 0.08,
             "before": [
               {
                 "id": 1,
@@ -14080,7 +14080,7 @@
             "turn": 3,
             "input": "what are my sales today",
             "reply": "Sales today: five hundred naira from 1 sale.",
-            "processing_ms": 0.11,
+            "processing_ms": 0.102,
             "before": [
               {
                 "id": 1,
@@ -14129,7 +14129,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 1,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.537
+        "local_processing_ms": 0.455
       },
       {
         "id": "field-yoruba-query",
@@ -14161,7 +14161,7 @@
             "turn": 1,
             "input": "oya na, mo ta isu meji fun 6000",
             "reply": "Logged sale: 2 isu, six thousand naira. Correct?",
-            "processing_ms": 0.313,
+            "processing_ms": 0.32,
             "before": [],
             "after": [
               {
@@ -14202,7 +14202,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.085,
+            "processing_ms": 0.078,
             "before": [
               {
                 "id": 1,
@@ -14242,7 +14242,7 @@
             "turn": 3,
             "input": "kini gbogbo oja mi leni",
             "reply": "Your book today. Sales: isu times 2, six thousand naira. Total sales six thousand naira.",
-            "processing_ms": 0.173,
+            "processing_ms": 0.156,
             "before": [
               {
                 "id": 1,
@@ -14291,7 +14291,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 1,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.571
+        "local_processing_ms": 0.554
       },
       {
         "id": "voice-trailing-na-particle",
@@ -14318,7 +14318,7 @@
             "turn": 1,
             "input": "I dey sell one cup of rice 600 na",
             "reply": "How much did you sell the rice 600?",
-            "processing_ms": 0.169,
+            "processing_ms": 0.185,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -14347,7 +14347,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.081,
+            "processing_ms": 0.083,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -14383,7 +14383,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.25
+        "local_processing_ms": 0.268
       },
       {
         "id": "voice-add-as-command",
@@ -14410,7 +14410,7 @@
             "turn": 1,
             "input": "Add garri one cup 5000",
             "reply": "Did you say add garri?",
-            "processing_ms": 0.237,
+            "processing_ms": 0.248,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -14439,7 +14439,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Logged sale: 1 cup of add garri, five thousand naira. Correct?",
-            "processing_ms": 0.136,
+            "processing_ms": 0.137,
             "before": [],
             "after": [
               {
@@ -14487,7 +14487,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.373
+        "local_processing_ms": 0.384
       },
       {
         "id": "voice-buyer-name-mid-sentence",
@@ -14514,7 +14514,7 @@
             "turn": 1,
             "input": "I sell 2 carton of indomie for yaboki for 5000 naira",
             "reply": "Please repeat the sale: item, quantity and price, without the buyer's name. Was the price each or total?",
-            "processing_ms": 0.197,
+            "processing_ms": 0.19,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -14543,7 +14543,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Please repeat the sale: item, quantity and price, without the buyer's name. Was the price each or total?",
-            "processing_ms": 0.028,
+            "processing_ms": 0.026,
             "before": [],
             "after": [],
             "exact_ledger": false,
@@ -14579,7 +14579,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.225
+        "local_processing_ms": 0.216
       },
       {
         "id": "voice-each-pricing-regression",
@@ -14607,7 +14607,7 @@
             "turn": 1,
             "input": "I sell 5 crate of egg for 2000 naira each",
             "reply": "Logged sale: 5 crate of egg, two thousand naira each, ten thousand naira total. Correct?",
-            "processing_ms": 0.318,
+            "processing_ms": 0.323,
             "before": [],
             "after": [
               {
@@ -14648,7 +14648,7 @@
             "turn": 2,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.08,
+            "processing_ms": 0.079,
             "before": [
               {
                 "id": 1,
@@ -14695,7 +14695,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.398
+        "local_processing_ms": 0.402
       },
       {
         "id": "voice-leading-copula",
@@ -14723,7 +14723,7 @@
             "turn": 1,
             "input": "Na three carton of indomie for 600 naira each",
             "reply": "Logged sale: 3 carton of indomie, six hundred naira each, one thousand eight hundred naira total. Correct?",
-            "processing_ms": 0.329,
+            "processing_ms": 0.314,
             "before": [],
             "after": [
               {
@@ -14811,7 +14811,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.408
+        "local_processing_ms": 0.392
       },
       {
         "id": "shona-chatter-ruwa17",
@@ -14828,7 +14828,7 @@
             "turn": 1,
             "input": "ndege",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.067,
+            "processing_ms": 0.071,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -14864,7 +14864,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.067
+        "local_processing_ms": 0.071
       },
       {
         "id": "shona-chatter-ruwa18",
@@ -14881,7 +14881,7 @@
             "turn": 1,
             "input": "ndeyese",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.072,
+            "processing_ms": 0.069,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -14917,7 +14917,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.072
+        "local_processing_ms": 0.069
       },
       {
         "id": "shona-chatter-ruwa19",
@@ -14934,7 +14934,7 @@
             "turn": 1,
             "input": "maswera emhuni",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.087,
+            "processing_ms": 0.078,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -14970,7 +14970,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.087
+        "local_processing_ms": 0.078
       },
       {
         "id": "shona-chatter-ruwa20",
@@ -14987,7 +14987,7 @@
             "turn": 1,
             "input": "haborbow",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.067,
+            "processing_ms": 0.068,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15023,7 +15023,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.067
+        "local_processing_ms": 0.068
       },
       {
         "id": "shona-chatter-ruwa21",
@@ -15040,7 +15040,7 @@
             "turn": 1,
             "input": "ari maruni",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.077,
+            "processing_ms": 0.084,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15076,7 +15076,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.077
+        "local_processing_ms": 0.084
       },
       {
         "id": "shona-chatter-ruwa22",
@@ -15093,7 +15093,7 @@
             "turn": 1,
             "input": "zvikufamba here panapo",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.081,
+            "processing_ms": 0.084,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15129,7 +15129,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.081
+        "local_processing_ms": 0.084
       },
       {
         "id": "shona-chatter-ruwa25",
@@ -15146,7 +15146,7 @@
             "turn": 1,
             "input": "hasokungoda ku",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.091,
+            "processing_ms": 0.075,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15182,7 +15182,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.091
+        "local_processing_ms": 0.075
       },
       {
         "id": "shona-chatter-ruwa26",
@@ -15198,112 +15198,6 @@
           {
             "turn": 1,
             "input": "Aya kuti akanongotaurirana munhu",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.087,
-            "before": [],
-            "after": [],
-            "exact_ledger": true,
-            "completed": false,
-            "clarification_pending": true,
-            "confirmation_pending": false,
-            "wrong_amounts_active": 0,
-            "expected_reply": null,
-            "answer_correct": null,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
-                "quantity": null,
-                "unit": null,
-                "amount": null,
-                "amount_each": null,
-                "currency": null,
-                "payment_status": null
-              }
-            }
-          }
-        ],
-        "completed": false,
-        "final_ledger_exact": true,
-        "first_correct_turn": 1,
-        "first_completed_turn": null,
-        "turns_used": 1,
-        "clarification_turns": 1,
-        "ever_committed_wrong_amount": false,
-        "final_wrong_amounts": 0,
-        "answer_checks": 0,
-        "answer_checks_failed": 0,
-        "local_processing_ms": 0.087
-      },
-      {
-        "id": "shona-chatter-ruwa27",
-        "name": "Real Shona market chatter must never write to the ledger",
-        "pack": "sh-ZW",
-        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 27). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
-        "turns": [
-          "ii kana sekaweda kana asi"
-        ],
-        "expected": [],
-        "expect_completion": false,
-        "trace": [
-          {
-            "turn": 1,
-            "input": "ii kana sekaweda kana asi",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.096,
-            "before": [],
-            "after": [],
-            "exact_ledger": true,
-            "completed": false,
-            "clarification_pending": true,
-            "confirmation_pending": false,
-            "wrong_amounts_active": 0,
-            "expected_reply": null,
-            "answer_correct": null,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
-                "quantity": null,
-                "unit": null,
-                "amount": null,
-                "amount_each": null,
-                "currency": null,
-                "payment_status": null
-              }
-            }
-          }
-        ],
-        "completed": false,
-        "final_ledger_exact": true,
-        "first_correct_turn": 1,
-        "first_completed_turn": null,
-        "turns_used": 1,
-        "clarification_turns": 1,
-        "ever_committed_wrong_amount": false,
-        "final_wrong_amounts": 0,
-        "answer_checks": 0,
-        "answer_checks_failed": 0,
-        "local_processing_ms": 0.096
-      },
-      {
-        "id": "shona-chatter-ruwa28",
-        "name": "Real Shona market chatter must never write to the ledger",
-        "pack": "sh-ZW",
-        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 28). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
-        "turns": [
-          "haabot"
-        ],
-        "expected": [],
-        "expect_completion": false,
-        "trace": [
-          {
-            "turn": 1,
-            "input": "haabot",
             "reply": "What would you like to record? Tell me the item and amount.",
             "processing_ms": 0.085,
             "before": [],
@@ -15344,21 +15238,21 @@
         "local_processing_ms": 0.085
       },
       {
-        "id": "shona-chatter-ruwa29",
+        "id": "shona-chatter-ruwa27",
         "name": "Real Shona market chatter must never write to the ledger",
         "pack": "sh-ZW",
-        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 29). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty. Draft meaning (unverified): 'yeah, it's hot, it's tough'.",
+        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 27). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
         "turns": [
-          "hing"
+          "ii kana sekaweda kana asi"
         ],
         "expected": [],
         "expect_completion": false,
         "trace": [
           {
             "turn": 1,
-            "input": "hing",
+            "input": "ii kana sekaweda kana asi",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.1,
+            "processing_ms": 0.114,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15394,7 +15288,113 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.1
+        "local_processing_ms": 0.114
+      },
+      {
+        "id": "shona-chatter-ruwa28",
+        "name": "Real Shona market chatter must never write to the ledger",
+        "pack": "sh-ZW",
+        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 28). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
+        "turns": [
+          "haabot"
+        ],
+        "expected": [],
+        "expect_completion": false,
+        "trace": [
+          {
+            "turn": 1,
+            "input": "haabot",
+            "reply": "What would you like to record? Tell me the item and amount.",
+            "processing_ms": 0.066,
+            "before": [],
+            "after": [],
+            "exact_ledger": true,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "missing_transaction_details",
+              "transaction": {
+                "type": null,
+                "item": null,
+                "quantity": null,
+                "unit": null,
+                "amount": null,
+                "amount_each": null,
+                "currency": null,
+                "payment_status": null
+              }
+            }
+          }
+        ],
+        "completed": false,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": null,
+        "turns_used": 1,
+        "clarification_turns": 1,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.066
+      },
+      {
+        "id": "shona-chatter-ruwa29",
+        "name": "Real Shona market chatter must never write to the ledger",
+        "pack": "sh-ZW",
+        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 29). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty. Draft meaning (unverified): 'yeah, it's hot, it's tough'.",
+        "turns": [
+          "hing"
+        ],
+        "expected": [],
+        "expect_completion": false,
+        "trace": [
+          {
+            "turn": 1,
+            "input": "hing",
+            "reply": "What would you like to record? Tell me the item and amount.",
+            "processing_ms": 0.067,
+            "before": [],
+            "after": [],
+            "exact_ledger": true,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "missing_transaction_details",
+              "transaction": {
+                "type": null,
+                "item": null,
+                "quantity": null,
+                "unit": null,
+                "amount": null,
+                "amount_each": null,
+                "currency": null,
+                "payment_status": null
+              }
+            }
+          }
+        ],
+        "completed": false,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": null,
+        "turns_used": 1,
+        "clarification_turns": 1,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.067
       },
       {
         "id": "shona-chatter-ruwa30",
@@ -15410,59 +15410,6 @@
           {
             "turn": 1,
             "input": "aipazasi matoma zvisingaite",
-            "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.176,
-            "before": [],
-            "after": [],
-            "exact_ledger": true,
-            "completed": false,
-            "clarification_pending": true,
-            "confirmation_pending": false,
-            "wrong_amounts_active": 0,
-            "expected_reply": null,
-            "answer_correct": null,
-            "review": {
-              "status": "not_recorded",
-              "question_about": "missing_transaction_details",
-              "transaction": {
-                "type": null,
-                "item": null,
-                "quantity": null,
-                "unit": null,
-                "amount": null,
-                "amount_each": null,
-                "currency": null,
-                "payment_status": null
-              }
-            }
-          }
-        ],
-        "completed": false,
-        "final_ledger_exact": true,
-        "first_correct_turn": 1,
-        "first_completed_turn": null,
-        "turns_used": 1,
-        "clarification_turns": 1,
-        "ever_committed_wrong_amount": false,
-        "final_wrong_amounts": 0,
-        "answer_checks": 0,
-        "answer_checks_failed": 0,
-        "local_processing_ms": 0.176
-      },
-      {
-        "id": "shona-chatter-ruwa31",
-        "name": "Real Shona market chatter must never write to the ledger",
-        "pack": "sh-ZW",
-        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 31). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
-        "turns": [
-          "haana hakufanira kunodhawo mana"
-        ],
-        "expected": [],
-        "expect_completion": false,
-        "trace": [
-          {
-            "turn": 1,
-            "input": "haana hakufanira kunodhawo mana",
             "reply": "What would you like to record? Tell me the item and amount.",
             "processing_ms": 0.09,
             "before": [],
@@ -15503,21 +15450,21 @@
         "local_processing_ms": 0.09
       },
       {
-        "id": "shona-chatter-ruwa32",
+        "id": "shona-chatter-ruwa31",
         "name": "Real Shona market chatter must never write to the ledger",
         "pack": "sh-ZW",
-        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 32). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty. Draft meaning (unverified): 'at the market it's expensive'.",
+        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 31). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty.",
         "turns": [
-          "aiva kumaketwa twakudhura"
+          "haana hakufanira kunodhawo mana"
         ],
         "expected": [],
         "expect_completion": false,
         "trace": [
           {
             "turn": 1,
-            "input": "aiva kumaketwa twakudhura",
+            "input": "haana hakufanira kunodhawo mana",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.093,
+            "processing_ms": 0.092,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15553,7 +15500,60 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.093
+        "local_processing_ms": 0.092
+      },
+      {
+        "id": "shona-chatter-ruwa32",
+        "name": "Real Shona market chatter must never write to the ledger",
+        "pack": "sh-ZW",
+        "note": "Unscripted market chatter recorded by the native Shona validator (clip Ruwa 32). The turn is Sahara v2.5's verbatim transcript of that audio - what the app actually receives - not a verified reference. No sale is stated, so the ledger must stay empty. Draft meaning (unverified): 'at the market it's expensive'.",
+        "turns": [
+          "aiva kumaketwa twakudhura"
+        ],
+        "expected": [],
+        "expect_completion": false,
+        "trace": [
+          {
+            "turn": 1,
+            "input": "aiva kumaketwa twakudhura",
+            "reply": "What would you like to record? Tell me the item and amount.",
+            "processing_ms": 0.097,
+            "before": [],
+            "after": [],
+            "exact_ledger": true,
+            "completed": false,
+            "clarification_pending": true,
+            "confirmation_pending": false,
+            "wrong_amounts_active": 0,
+            "expected_reply": null,
+            "answer_correct": null,
+            "review": {
+              "status": "not_recorded",
+              "question_about": "missing_transaction_details",
+              "transaction": {
+                "type": null,
+                "item": null,
+                "quantity": null,
+                "unit": null,
+                "amount": null,
+                "amount_each": null,
+                "currency": null,
+                "payment_status": null
+              }
+            }
+          }
+        ],
+        "completed": false,
+        "final_ledger_exact": true,
+        "first_correct_turn": 1,
+        "first_completed_turn": null,
+        "turns_used": 1,
+        "clarification_turns": 1,
+        "ever_committed_wrong_amount": false,
+        "final_wrong_amounts": 0,
+        "answer_checks": 0,
+        "answer_checks_failed": 0,
+        "local_processing_ms": 0.097
       },
       {
         "id": "shona-chatter-ruwa33",
@@ -15570,7 +15570,7 @@
             "turn": 1,
             "input": "Munotarisa matomatisi epazasi apo",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.29,
+            "processing_ms": 0.088,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15606,7 +15606,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.29
+        "local_processing_ms": 0.088
       },
       {
         "id": "shona-chatter-ruwa34",
@@ -15623,7 +15623,7 @@
             "turn": 1,
             "input": "matomatisi enyu haasi furation",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.096,
+            "processing_ms": 0.098,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15659,7 +15659,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.096
+        "local_processing_ms": 0.098
       },
       {
         "id": "shona-chatter-ruwa35",
@@ -15676,7 +15676,7 @@
             "turn": 1,
             "input": "kwamukundipawo mumba",
             "reply": "What would you like to record? Tell me the item and amount.",
-            "processing_ms": 0.091,
+            "processing_ms": 0.072,
             "before": [],
             "after": [],
             "exact_ledger": true,
@@ -15712,7 +15712,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.091
+        "local_processing_ms": 0.072
       },
       {
         "id": "expense-correction-1",
@@ -15778,7 +15778,7 @@
             "turn": 2,
             "input": "no, na five thousand",
             "reply": "Logged expense: fuel, five thousand naira. Correct?",
-            "processing_ms": 0.58,
+            "processing_ms": 0.38,
             "before": [
               {
                 "id": 1,
@@ -15842,7 +15842,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.096,
+            "processing_ms": 0.076,
             "before": [
               {
                 "id": 1,
@@ -15911,7 +15911,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.978
+        "local_processing_ms": 0.758
       },
       {
         "id": "expense-correction-2",
@@ -15936,7 +15936,7 @@
             "turn": 1,
             "input": "I buy fuel ten thousand naira",
             "reply": "Logged expense: fuel, ten thousand naira. Correct?",
-            "processing_ms": 0.311,
+            "processing_ms": 0.345,
             "before": [],
             "after": [
               {
@@ -15977,7 +15977,7 @@
             "turn": 2,
             "input": "no, na fuel five thousand",
             "reply": "Logged expense: fuel, five thousand naira. Correct?",
-            "processing_ms": 0.465,
+            "processing_ms": 0.519,
             "before": [
               {
                 "id": 1,
@@ -16041,7 +16041,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.081,
+            "processing_ms": 0.331,
             "before": [
               {
                 "id": 1,
@@ -16110,7 +16110,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.858
+        "local_processing_ms": 1.195
       },
       {
         "id": "expense-correction-3",
@@ -16135,7 +16135,7 @@
             "turn": 1,
             "input": "I buy fuel ten thousand naira",
             "reply": "Logged expense: fuel, ten thousand naira. Correct?",
-            "processing_ms": 0.292,
+            "processing_ms": 0.311,
             "before": [],
             "after": [
               {
@@ -16240,7 +16240,7 @@
             "turn": 3,
             "input": "yes",
             "reply": "Noted. Ledger correct.",
-            "processing_ms": 0.085,
+            "processing_ms": 0.097,
             "before": [
               {
                 "id": 1,
@@ -16309,7 +16309,7 @@
         "final_wrong_amounts": 0,
         "answer_checks": 0,
         "answer_checks_failed": 0,
-        "local_processing_ms": 0.503
+        "local_processing_ms": 0.534
       }
     ]
   }

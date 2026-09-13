@@ -1,13 +1,13 @@
 {
   "_readme": [
-    "Normaliser test spec — the build hangs off this file.",
+    "Normaliser test spec, the build hangs off this file.",
     "Each case: raw ASR-style text in, structured transaction out.",
     "Amounts are integers in the currency's minor-free unit (NGN, KES).",
     "Rule: deterministic grammar first, LLM fallback only when grammar returns null.",
     "PROVENANCE: tier-a (pcm-yo-NG) utterances were drafted by an AI assistant and",
     "CORRECTED by a native Nigerian Pidgin/Yoruba speaker (David) before recording.",
     "sw-KE and ha-NG cases remain non-native drafts pending venue validation (flagged per-case).",
-    "Even this test corpus required native-speaker repair — the same gap the product exists to close."
+    "Even this test corpus required native-speaker repair, the same gap the product exists to close."
   ],
   "packs": {
     "pcm-yo-NG": "Nigerian Pidgin / Yoruba / English mix, NGN",
@@ -62,7 +62,7 @@
       "id": 4,
       "pack": "pcm-yo-NG",
       "utterance": "customer take two paint rubber of garri two two fifty",
-      "note": "NATIVE CORRECTION: reduplicated money is the distributive — 'two two fifty' = 250 each, unambiguously. An outsider (and the AI that drafted this corpus) hears ambiguity; native grammar encodes the distributive. Formerly expected clarify.",
+      "note": "NATIVE CORRECTION: reduplicated money is the distributive, 'two two fifty' = 250 each, unambiguously. An outsider (and the AI that drafted this corpus) hears ambiguity; native grammar encodes the distributive. Formerly expected clarify.",
       "expect": {
         "intent": "log_transaction",
         "type": "sale",
@@ -151,7 +151,7 @@
       "id": 11,
       "pack": "pcm-yo-NG",
       "utterance": "that one na credit she go pay on Friday",
-      "note": "credit sale flag on last entry — traders sell on credit constantly, judges from this world will notice",
+      "note": "credit sale flag on last entry, traders sell on credit constantly, judges from this world will notice",
       "expect": {
         "intent": "correct_last_entry",
         "field": "payment_status",
@@ -202,7 +202,7 @@
       "id": 15,
       "pack": "sw-KE",
       "utterance": "nimenunua mafuta mia tano",
-      "note": "VALIDATE. Intended: bought cooking oil/fuel 500 — 'mafuta' ambiguity is itself a good test",
+      "note": "VALIDATE. Intended: bought cooking oil/fuel 500, 'mafuta' ambiguity is itself a good test",
       "expect": {
         "intent": "log_transaction",
         "type": "expense",
@@ -287,7 +287,7 @@
   "acceptance_rules": [
     "A case passes only on exact structural match of 'expect' (ignore field order).",
     "Grammar-first: cases 1-5, 7-13, 21 must pass WITHOUT the LLM fallback.",
-    "Cases 6, 20, 21 must return clarify — a confident wrong parse on these is a FAIL worse than a crash.",
+    "Cases 6, 20, 21 must return clarify, a confident wrong parse on these is a FAIL worse than a crash.",
     "Case 4 must parse the reduplication-distributive CONFIDENTLY (native-speaker validated).",
     "Never fabricate an amount. Null + clarify beats a guess, always.",
     "New language pack = new config file + new cases here. No normaliser code changes allowed."

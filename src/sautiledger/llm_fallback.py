@@ -47,7 +47,7 @@ class LlmClient(Protocol):
 
 
 class OllamaLlmClient:
-    """Local model via Ollama. NOTE: this talks to localhost only — it is
+    """Local model via Ollama. NOTE: this talks to localhost only, it is
     not network egress. Any REMOTE llm must route through egress.py
     so the transmission is logged."""
 
@@ -69,7 +69,7 @@ class OllamaLlmClient:
 
 
 class HostedLlmClient:
-    """Same model, hosted (Hugging Face inference router) — for containers
+    """Same model, hosted (Hugging Face inference router), for containers
     where keeping 3 GB of weights resident makes no sense. A remote call IS
     egress, so it goes through EgressRecorder and lands in the egress log
     like every other transmission. Selected only by explicit config
@@ -104,7 +104,7 @@ class HostedLlmClient:
 
 
 def ollama_if_available(timeout: float = 0.5) -> OllamaLlmClient | None:
-    """Local Ollama if running, else None (grammar-only). Localhost only —
+    """Local Ollama if running, else None (grammar-only). Localhost only:
     never egress."""
     try:
         with urllib.request.urlopen("http://127.0.0.1:11434/api/tags", timeout=timeout):
@@ -178,13 +178,13 @@ def llm_parse(utterance: str, pack: Pack, llm: LlmClient) -> ParseResult | None:
     elif result.intent == "daily_summary":
         result.period = result.period or "today"
     elif result.intent == "correct_last_entry":
-        # field must be real and new_value present — never NULL out a ledger column
+        # field must be real and new_value present: never NULL out a ledger column
         if (
             result.field not in {"amount", "amount_each", "item", "quantity", "unit", "payment_status"}
             or result.new_value is None
         ):
             return ParseResult(intent="clarify", question_about="missing_transaction_details")
-        # a correction needs a correction cue in the words — chatter must
+        # a correction needs a correction cue in the words: chatter must
         # never mutate the ledger through the fallback
         cue_words = {"no", "not", "wrong", "na", "change", "correct"}
         if not any(t in cue_words for t in re.findall(r"[a-z']+", utterance.lower())):

@@ -19,7 +19,7 @@ keeps the full written reply and offers retry instead of substituting device TTS
 
 Also reviewed [streaming TTS](https://docs.voice.intron.io/docs/tts/tts-streaming)
 and [queued generation](https://docs.voice.intron.io/docs/tts/tts-queue).
-Streaming is a useful next latency experiment, but its 10–100 character chunks
+Streaming is a useful next latency experiment, but its 10-100 character chunks
 require a sentence-aware adapter, audio ordering, and reconnection tests to avoid
 splitting amounts or dropping “Correct?”. This change uses complete synchronous
 readbacks and cached replay. The remote Question Answering endpoint is not needed

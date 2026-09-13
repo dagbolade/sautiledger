@@ -12,7 +12,7 @@ On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar ca
 **Where the ledger is stored depends on how the app is deployed, and we
 state both rather than claiming the stronger one:**
 
-- **Self-hosted** (`make phone` — the intended production shape): the
+- **Self-hosted** (`make phone`: the intended production shape): the
   SQLite ledger is on the machine running Python. `make phone` serves a phone browser over the LAN; it does not install storage on that phone. Sharing follows the speech and fallback configuration described above.
 - **Hosted demo** (the Railway instance our field testers used): the
   SQLite ledger is on a server volume that we operate, and the utterance
@@ -32,8 +32,8 @@ The following are enforced structurally, in both modes:
 
 - Remote speech and hosted-fallback transmissions go through `egress.py`. A test
   in the suite parses every other module's AST and fails the build on unapproved network imports; local Ollama and development-server helpers have scoped exceptions. The streaming WebSocket library is allowlisted to the egress module.
-- Every transmission — each clip, each TTS request, each streamed chunk
-  with its byte total — is written to a transmission ledger and displayed
+- Every transmission, each clip, each TTS request, each streamed chunk
+  with its byte total, is written to a transmission ledger and displayed
   to the user in plain language, in their own register: *"your voice clip,
   sent for transcription."* The counter is visible on the main screen at
   all times, not buried in settings.
@@ -45,7 +45,7 @@ explicit toggle, worded in Pidgin, that appears both in the privacy sheet
 and in the first-run welcome guide:
 
 > *"Keep my voice clips make dem help test the speech model. Na only if
-> you gree — you fit off am anytime. Clips stay for this app, nowhere
+> you gree: you fit off am anytime. Clips stay for this app, nowhere
 > else."*
 
 That last sentence constrains us, and we treat it as binding. It permits
@@ -57,7 +57,7 @@ as having given fresh, separate permission, with the date and wording
 recorded in the bundle's `CONSENT.md`. Running it without that returns:
 
 > `REFUSED: the in-app consent says clips 'stay for this app, nowhere
-> else' — it does not cover sharing in a benchmark bundle.`
+> else': it does not cover sharing in a benchmark bundle.`
 
 We would rather submit fewer audio samples than samples our users did not
 knowingly agree to share.
@@ -65,7 +65,7 @@ knowingly agree to share.
 ## 3. De-identification
 
 Where clips are shared with consent, the bundle carries **no transcripts
-and no names** — only a four-character session reference, duration,
+and no names**: only a four-character session reference, duration,
 language, domain and device type. Transcripts are withheld by default
 precisely because market speech contains customers' names ("Mr Olaolu…").
 The bank statement export follows the same rule: it prints
@@ -73,19 +73,19 @@ The bank statement export follows the same rule: it prints
 
 ## 4. Safety: a wrong number is the harm
 
-For a bookkeeping agent, the safety failure is not offensive output — it
+For a bookkeeping agent, the safety failure is not offensive output: it
 is a wrong amount silently entering someone's financial record.
 
 - **Never fabricate an amount.** Any figure the grammar cannot justify
   becomes a question, never a value. The LLM fallback's output is
   discarded if it contains a number not present in the utterance.
-- **Ask rather than assume.** Genuinely ambiguous pricing produces a
+- **Ask rather than assume.** Ambiguous pricing produces a
   clarifying question. Our benchmark reports "amount safe" (correct *or*
   asked) as a first-class outcome for this reason.
 - **Refuse incoherence.** A readback that would echo garbled text is
   refused outright rather than offered for a tired "yes".
 - **Amount corrections and rejections preserve the original row.** A rejected entry is marked
-  voided and stays visible — the book records that a mistake was made and
+  voided and stays visible: the book records that a mistake was made and
   removed. Payment-status and due-date updates are metadata edits, not immutable revisions.
 
 This was tested by reality. On 27 August a live user's spoken "5700" was
@@ -112,7 +112,7 @@ incident is documented in the repository rather than hidden.
 - **We predicted our own weak spot in public, in advance.** Shona is a
   supported Sahara language but not one of its documented code-switch
   pairs, so we registered the prediction that our Shona tier would perform
-  worse — in a committed file, before any Shona audio existed — and then
+  worse, in a committed file, before any Shona audio existed, and then
   reported the result either way.
 
 ## 6. Responsible data use
@@ -133,6 +133,6 @@ incident is documented in the repository rather than hidden.
 The app speaks the user's language, including her errors' language. It
 does not correct her grammar, transliterate her speech into standard
 English, or ask her to talk differently so the machine can cope. When it
-does not understand, it says so plainly and asks again — because the
+does not understand, it says so plainly and asks again, because the
 alternative, quietly guessing at someone's money, is the one thing a
 ledger must never do.

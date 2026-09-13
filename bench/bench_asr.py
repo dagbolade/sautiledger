@@ -1,7 +1,7 @@
 """Models under test, behind one BenchAsrClient interface.
 
 Cloud models (Sahara, frontier) route through the app's EgressRecorder
-into a bench-local DB — the egress-logging rule applies to the benchmark too.
+into a bench-local DB: the egress-logging rule applies to the benchmark too.
 Local whisper models are imported lazily from bench/requirements.txt
 installs (NEVER added to the app's dependencies).
 """
@@ -33,7 +33,7 @@ def bench_recorder() -> EgressRecorder:
 
 
 class SaharaBench:
-    # v2.5 confirmed as the live backend 2 Sep — new name = new cache dir,
+    # v2.5 confirmed as the live backend 2 Sep: new name = new cache dir,
     # so v2-era transcripts are never mistaken for v2.5 output
     name = "sahara-v2.5"
 
@@ -118,7 +118,7 @@ class GeminiBench:
 class SaharaRawBench:
     """Sahara with LLM post-corrections DISABLED (use_disable_llm_corrections
     defaults to FALSE on the API, i.e. an LLM rewrites transcripts unless
-    told not to — docs read 3 Sep). This row isolates the acoustic model
+    told not to: docs read 3 Sep). This row isolates the acoustic model
     from the post-processor; 'sahara-v2.5' remains the as-deployed row."""
 
     name = "sahara-v2.5-raw"
@@ -154,7 +154,7 @@ class OmnilingualBench:
     """facebook omnilingual-ASR via a persistent WSL worker (fairseq2 ships
     no Windows wheels; venv ~/omni in Ubuntu-24.04, libsndfile shimmed from
     the soundfile wheel). The model loads ONCE per run; clips stream over
-    stdin/stdout as JSON lines. Fully local — zero egress, zero credits."""
+    stdin/stdout as JSON lines. Fully local: zero egress, zero credits."""
 
     OMNI_LANGS = {
         "pcm-yo-NG": "pcm_Latn",
@@ -201,11 +201,11 @@ def _to_wsl_path(path: Path) -> str:
 
 
 class OpenRouterBench:
-    """Frontier ASR through OpenRouter — one key, several vendors.
+    """Frontier ASR through OpenRouter, one key, several vendors.
 
     Two shapes are supported because OpenRouter serves both:
       * dedicated STT models via POST /api/v1/audio/transcriptions
-        (whisper-class, MAI-Transcribe, Voxtral) — multipart, like any
+        (whisper-class, MAI-Transcribe, Voxtral): multipart, like any
         transcription API;
       * multimodal chat models via /api/v1/chat/completions with an
         `input_audio` content part (Gemini, GPT-audio).
@@ -276,15 +276,15 @@ class OpenRouterBench:
 # cents: MAI $0.10/hr -> ~$0.02, parakeet $0.0015/min -> ~$0.02,
 # chirp-3 $0.016/min -> ~$0.17, voxtral $0.003/min -> ~$0.03.
 OPENROUTER_MODELS = {
-    # Microsoft — #1 on FLEURS multilingual, 60 languages. Replaces
+    # Microsoft: #1 on FLEURS multilingual, 60 languages. Replaces
     # whisper-small, which was only ever a stand-in for a missing key.
     "mai-transcribe-2": (os.environ.get("OR_MAI", "microsoft/mai-transcribe-2"), "transcribe"),
-    # NVIDIA — the parakeet/Nemotron family presented at Intron's own
+    # NVIDIA: the parakeet/Nemotron family presented at Intron's own
     # 28 Aug masterclass; non-autoregressive TDT decoding.
     "parakeet-tdt": (os.environ.get("OR_PARAKEET", "nvidia/parakeet-tdt-0.6b-v3"), "transcribe"),
     # Google's production ASR (distinct from Gemini, which is an LLM).
     "chirp-3": (os.environ.get("OR_CHIRP", "google/chirp-3"), "transcribe"),
-    # OpenAI frontier — on Intron's own multimodal benchmark roster.
+    # OpenAI frontier: on Intron's own multimodal benchmark roster.
     "gpt-4o-transcribe": (os.environ.get("OR_GPT", "openai/gpt-4o-transcribe"), "transcribe"),
     # Optional extras, off unless named with --models.
     "voxtral-mini": (os.environ.get("OR_VOXTRAL", "mistralai/voxtral-mini-transcribe"), "transcribe"),
@@ -299,11 +299,11 @@ OPENROUTER_DEFAULT = ("mai-transcribe-2", "parakeet-tdt", "chirp-3", "gpt-4o-tra
 def build_models(frontier: str, only: list[str] | None = None) -> tuple[list, list[str]]:
     """Returns (models, notes). frontier: gemini | openai | whisper-small.
     If no frontier key materialises, whisper-small substitutes and the
-    report says so honestly.
+    report says so.
 
     `only` names the models to build. Each local model holds its weights in
     RAM for the whole pass, so building all of them at once exhausts memory
-    on a laptop — run them in separate passes and score from cache.
+    on a laptop: run them in separate passes and score from cache.
     """
     notes: list[str] = []
     wanted = set(only) if only else None

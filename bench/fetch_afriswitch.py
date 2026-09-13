@@ -4,11 +4,11 @@ bench/corpus/afriswitch-sample/.
 AfriSwitch (published Aug 2026): 54.41h / 16,602 code-switched utterances,
 14 African languages paired with English, 16kHz audio + ground-truth
 `transcription`, per-language configs, test split only.
-Licence: CC BY-NC-SA 4.0 — non-commercial benchmark use; citation is
+Licence: CC BY-NC-SA 4.0, non-commercial benchmark use; citation is
 recorded in the report. Nothing from the dataset is committed to the
 repo (bench/corpus/ is fetched at run time and gitignored).
 
-GATED DATASET — before running:
+GATED DATASET: before running:
   1. Visit https://huggingface.co/datasets/intronhealth/AfriSwitch and
      accept the terms while logged in.
   2. `huggingface-cli login` (or put HF_TOKEN=... in .env).
@@ -30,7 +30,7 @@ from pathlib import Path
 OUT_DIR = Path(__file__).resolve().parent / "corpus" / "afriswitch-sample"
 DEFAULT_DATASET = "intronhealth/AfriSwitch"
 
-# clips per language config — weighted toward Nigerian Pidgin-English and
+# clips per language config: weighted toward Nigerian Pidgin-English and
 # Swahili-English per the benchmark spec
 WEIGHTS = {"pidgin": 16, "swahili": 12, "yoruba": 6, "hausa": 6}
 LANG_TO_PACK = {"pidgin": "pcm-yo-NG", "yoruba": "pcm-yo-NG", "hausa": "ha-NG", "swahili": "sw-KE"}
@@ -54,7 +54,7 @@ def _resolve_config(dataset: str, lang: str, token: str | None) -> str | None:
 
 
 def _save_raw_audio(audio: dict, dest_stem: Path) -> str | None:
-    """Save the ORIGINAL audio bytes (no decode/re-encode — avoids the
+    """Save the ORIGINAL audio bytes (no decode/re-encode, avoids the
     datasets-4.x torchcodec requirement, and keeps the acoustic signal
     exactly as published). Returns the filename written, or None."""
     blob = audio.get("bytes")
@@ -80,7 +80,7 @@ def fetch_afriswitch(dataset: str, max_clips: int) -> None:
         want = max(1, round(weight * scale))
         config = _resolve_config(dataset, lang, token)
         if config is None:
-            print(f"  ! no config matching '{lang}' — skipping (check config names)")
+            print(f"  ! no config matching '{lang}': skipping (check config names)")
             continue
         print(f"[{config}] sampling {want} clips…")
         rows = load_dataset(dataset, config, split="test", streaming=True, token=token)

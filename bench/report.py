@@ -23,7 +23,7 @@ PROS_CONS = {
     "whisper-small": (
         "Lightweight local substitute (used only when no frontier API key was "
         "available). Fast and offline, but weakest on accented, code-switched "
-        "speech — treat its numbers as a floor, not a fair frontier baseline."
+        "speech: treat its numbers as a floor, not a fair frontier baseline."
     ),
     "gpt-4o-transcribe": (
         "Frontier multimodal ASR; strong on clean accented English. Unknown "
@@ -41,7 +41,7 @@ PROS_CONS = {
 
 def _pct(values: list[bool | float]) -> str:
     if not values:
-        return "–"
+        return "-"
     if isinstance(values[0], bool):
         return f"{100 * sum(values) / len(values):.0f}%"
     return f"{100 * sum(values) / len(values):.1f}%"
@@ -60,11 +60,11 @@ def _amendments_section(add) -> None:
     v2_source = v2_path if v2_path.exists() else (RESULTS_DIR / "metrics.json")
     v2 = json.loads(v2_source.read_text(encoding="utf-8"))["results"]
 
-    add("## Amendments (v2 grammar) — documented post-freeze changes")
+    add("## Amendments (v2 grammar): documented post-freeze changes")
     add("")
     add("Two grammar amendments were applied AFTER the v1 scoring, motivated by")
     add("observed ASR behaviour. The corpus, transcripts, and v1 numbers are frozen")
-    add("(`metrics_v1.json`); v2 re-scores the SAME cached transcripts — no new audio,")
+    add("(`metrics_v1.json`); v2 re-scores the SAME cached transcripts: no new audio,")
     add("no new API calls. Both scorings are reported.")
     add("")
     add("1. **Digit-twin rule** (pcm-yo-NG): `[N]k [M]` → N×1000 + M×100, so \"5k 5\"")
@@ -74,7 +74,7 @@ def _amendments_section(add) -> None:
     add("2. **Flattened-distributive guard**: any parse with quantity ≥ 2 and a single")
     add("   bare numeral amount downgrades to a clarify (\"₦X for each one, or ₦X for")
     add("   everything?\"). ASR numeric normalisation can collapse reduplication")
-    add("   (\"two two fifty\" → \"250\") before the grammar sees it — in v1 this logged")
+    add("   (\"two two fifty\" → \"250\") before the grammar sees it: in v1 this logged")
     add("   half the true bill. Includes quantity recovery: a leading numeral in item")
     add("   position counts as quantity when the unit word was mangled (\"2 pint of…\").")
     add("")
@@ -99,11 +99,11 @@ def _amendments_section(add) -> None:
         add(f"| {model} | {a['exact']} → {b['exact']} | {a['safe']} → {b['safe']} "
             f"| **{a['corr']} → {b['corr']}** | {a['num']} → {b['num']} |")
     add("")
-    add("Every movement is shown above, favourable or not — v1 remains the scoring of")
+    add("Every movement is shown above, favourable or not, v1 remains the scoring of")
     add("record for the frozen grammar; v2 is the scoring of the shipped product.")
     add("")
     add("**The guard did not reach 0% for sahara-v2** (expected 0%, actual above). The")
-    add("two residual corruptions are a DIFFERENT failure class — word deletion, not")
+    add("two residual corruptions are a DIFFERENT failure class: word deletion, not")
     add("flattening: (1) \"ten thousand naira\" → \"Abil thousand naira\", the deleted")
     add("multiplier leaving a bare \"thousand\" that logs ₦1,000 for a ₦10,000 expense;")
     add("(2) the doubled correction trigger \"no no na…\" transcribed with a single")
@@ -124,12 +124,12 @@ def _audio_correction_section(add) -> None:
     v2 = json.loads(v2_path.read_text(encoding="utf-8"))["results"]
     v3 = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))["results"]
 
-    add("## Audio-conversion correction (v3) — tier-a re-measured")
+    add("## Audio-conversion correction (v3): tier-a re-measured")
     add("")
     add("After the v2 scoring, an A/B test against the vendor's own web UI showed")
     add("materially better transcripts for the same clip. Root cause was NOT the")
     add("language configuration (verified correct and API-validated): the corpus")
-    add("conversion step was time-stretching every tier-a clip by ~1.26x — a")
+    add("conversion step was time-stretching every tier-a clip by ~1.26x, a")
     add("resampler bug copying frame padding as samples. ALL tier-a v1/v2 numbers")
     add("for ALL models were measured on that corrupted audio. The corpus was")
     add("re-converted from the preserved originals (15/15 duration-matched) and")
@@ -173,7 +173,7 @@ def render() -> Path:
     add = lines.append
     add("# SautiLedger ASR Benchmark Report")
     add("")
-    add(f"Corpus frozen before first run — manifest sha256: `{data['manifest_sha256']}`.")
+    add(f"Corpus frozen before first run, manifest sha256: `{data['manifest_sha256']}`.")
     add(f"Clips scored: {data['n_clips']} (missing/skipped: {data['n_missing']}).")
     for note in data.get("notes", []):
         add(f"> **Note:** {note}")
@@ -203,7 +203,7 @@ def render() -> Path:
 
     add("The three-level transaction metric is the point: WER alone understates the")
     add("differences for financial use. *Amount corrupted* counts transcripts that made")
-    add("our normaliser log a WRONG amount — the failure a market trader cannot afford.")
+    add("our normaliser log a WRONG amount: the failure a market trader cannot afford.")
     add("*Amount safe* includes clarify outcomes: an agent that asks is safe, an agent")
     add("that guesses is not. Transcription accuracy is necessary but not sufficient for")
     add("financial records; the grammar-first normaliser + clarify design is the safety")
@@ -213,7 +213,7 @@ def render() -> Path:
     add("### A caveat on WER for financial speech")
     add("")
     add("Sahara's tier-a WER is inflated by digit renderings that are semantically")
-    add("correct: it transcribes spoken \"five thousand five\" as \"5k 5\" — every such")
+    add("correct: it transcribes spoken \"five thousand five\" as \"5k 5\", every such")
     add("token counts as a word error against the spoken-form ground truth even though")
     add("the number is right. This is itself evidence that WER is the wrong lens for")
     add("financial speech, and why the numeric and transaction metrics exist.")
@@ -223,21 +223,21 @@ def render() -> Path:
     add("")
     add("**(a) Only one model produced a usable ledger.** On the transaction metric,")
     add("sahara-v2 achieved several times the exact-transaction rate of either whisper")
-    add("model — the whisper transcripts of Pidgin market speech were mostly not")
+    add("model: the whisper transcripts of Pidgin market speech were mostly not")
     add("parseable as transactions at all. For this application there is one viable")
     add("ASR, and it is the one trained on this speech.")
     add("")
     add("**(b) The corruption inversion.** whisper-small posts the LOWEST amount-")
-    add("corrupted rate — not because it is safe, but because its output is noise the")
+    add("corrupted rate, not because it is safe, but because its output is noise the")
     add("grammar refuses to parse, which the agent converts into clarify questions.")
     add("sahara-v2, being far more plausible, is the only model whose errors survive")
-    add("parsing — a plausible-but-flattened transcript is more dangerous than a")
+    add("parsing: a plausible-but-flattened transcript is more dangerous than a")
     add("garbled one. Downstream safety must be engineered, not assumed from accuracy:")
     add("that is what the v2 flattened-distributive guard does.")
     add("")
     add("**(c) The predicted meaning inversion appeared in the wild.** Both whisper")
     add("models transcribed perfective \"I don sell\" as negated \"I don't sell\" on the")
-    add("same clip — flagged automatically by the harness (see examples). An agent")
+    add("same clip, flagged automatically by the harness (see examples). An agent")
     add("acting on the negation would drop a real sale from the record.")
     add("")
 
@@ -256,7 +256,7 @@ def render() -> Path:
     flagged = [kv for kv in by_clip.items() if any(r["flags"] for r in kv[1])]
     examples = (flagged + [kv for kv in scored if kv not in flagged])[:5]
     for clip_id, group in examples:
-        add(f"**{clip_id}** — truth: `{group[0]['truth']}`")
+        add(f"**{clip_id}**: truth `{group[0]['truth']}`")
         add("")
         for row in sorted(group, key=lambda r: r["model"]):
             flags = f"  ⚠ {', '.join(row['flags'])}" if row["flags"] else ""
@@ -267,14 +267,14 @@ def render() -> Path:
     add("## Per-model notes")
     add("")
     for model in sorted({m for _, m in by_tier_model}):
-        add(f"**{model}** — {PROS_CONS.get(model, 'No notes.')}")
+        add(f"**{model}**: {PROS_CONS.get(model, 'No notes.')}")
         add("")
 
     add("### The reduplication finding")
     add("")
     add("Case 4 (\"two two fifty\") was originally specced as an ambiguity requiring")
     add("a clarify question. Native-speaker review corrected this: in Nigerian Pidgin,")
-    add("reduplicated money **is** the distributive — 250 each, unambiguously. An")
+    add("reduplicated money **is** the distributive, 250 each, unambiguously. An")
     add("outsider (and the AI that drafted the corpus) hears ambiguity where native")
     add("grammar encodes meaning. The parse rule now lives in the pcm-yo-NG pack,")
     add("gated off for packs that have not had native validation.")
@@ -284,7 +284,7 @@ def render() -> Path:
     add("- Provenance: tier-a utterances were drafted by an AI assistant and CORRECTED")
     add("  by a native Nigerian Pidgin/Yoruba speaker before recording; sw-KE and ha-NG")
     add("  cases remain non-native drafts pending venue validation (flagged per-case).")
-    add("  Even the test corpus required native-speaker repair — the same gap the")
+    add("  Even the test corpus required native-speaker repair, the same gap the")
     add("  product exists to close.")
     add("- Licence: AfriSwitch (CC BY-NC-SA 4.0) is used for evaluation only, never")
     add("  redistributed, and not used to train or build the product.")
@@ -300,7 +300,7 @@ def render() -> Path:
     add("  expected ParseResult.")
     add("- Caveats: small n; tier `sautiledger-clips` is a single speaker (the")
     add("  developer); sw-KE/ha-NG ground truths drafted non-natively pending venue")
-    add("  validation. Sahara failures, where they occur, are reported unedited —")
+    add("  validation. Sahara failures, where they occur, are reported unedited: ")
     add("  the claim under test is downstream safety, not raw perfection.")
     add("- Citations: **AfriSwitch** (huggingface.co/datasets/intronhealth/AfriSwitch,")
     add("  licence CC BY-NC-SA 4.0; 54.41h / 16,602 code-switched utterances across")

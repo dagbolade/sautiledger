@@ -1,8 +1,8 @@
-# secrets — the API key never gets committed
+# secrets: the API key never gets committed
 .env
 certs/
 
-# local data — the ledger never leaves this device
+# local data: the ledger never leaves this device
 data/
 recordings/
 *.wav
@@ -14,21 +14,19 @@ recordings/
 bench/corpus/*/raw/
 
 # benchmark: fetched datasets + raw outputs are never committed
-# (AfriSwitch is CC BY-NC-SA — fetched at run time, not redistributed;
+# (AfriSwitch is CC BY-NC-SA: fetched at run time, not redistributed;
 #  only REPORT.md is tracked)
 bench/corpus/afriswitch-sample/
 bench/results/*
 !bench/results/REPORT.md
 !bench/results/REPORT-workshop-2026-08.md
 !bench/results/pazabench-wer-2026-08-28.md
-# scored results are the report's evidence — a reader must be able to
+# scored results are the report's evidence: a reader must be able to
 # check the numbers without re-running anything (raw audio stays out)
 !bench/results/metrics.json
 !bench/results/tts_metrics.json
 !bench/results/tts_metrics_punctuated.json
 !bench/results/conversations.json
-!bench/results/conversations-full-results.md
-!bench/results/conversations-after-fix.json
 
 # python
 .venv/
@@ -44,3 +42,8 @@ __pycache__/
 phone.log
 phone.err
 *.log
+
+# production exports (usage/transaction CSVs) contain real user data
+incident-*/
+*-usage.csv
+*-transactions.csv

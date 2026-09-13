@@ -1,7 +1,7 @@
-# Shona / English mix — USD (integer CENTS: "five dollars fifty" = 550)
+# Shona / English mix: USD (integer CENTS: "five dollars fifty" = 550)
 # NATIVE-CORRECTED 2026-09-02: every transaction form below comes from the
 # validator's corrected recording script (packs/sh-ZW-recording-script.md).
-# She chose US dollars and English numbers throughout — the pack encodes
+# She chose US dollars and English numbers throughout: the pack encodes
 # what she actually wrote, nothing invented. Recordings pending; the pack
 # does NOT ship to production until her clips pass the frozen test tier.
 name: sh-ZW
@@ -14,7 +14,7 @@ currency_words: []
 connectives: [dze, dzi, re, ne, ye, e, che, achiita, dzinoita, inoita, yairi]
 fillers: [pasi, asi, usanyore, zvese, chese, ndipe, ini]
 
-# NOT validated for Shona — off until the native speaker confirms
+# NOT validated for Shona: off until the native speaker confirms
 reduplication_distributive: false
 digit_twin_thousands: false
 
@@ -24,7 +24,7 @@ descriptors: [big, small, medium, large]
 multi_word_items: [maplastic bags]
 interrogatives: [marii, chii]
 
-# She used English numbers in every line — the code-switched register is
+# She used English numbers in every line: the code-switched register is
 # the real one. Shona numerals can be added when she validates them.
 numbers:
   one: 1
@@ -49,7 +49,7 @@ numbers:
   thousand: 1000
 
 k_words: [k]
-# "hwani" = the native each-marker ("two fifty hwani" = 250 each) —
+# "hwani" = the native each-marker ("two fifty hwani" = 250 each):
 # from her corrections of cases 3 and 5
 each_words: [hwani, each]
 hard_money_words: []
@@ -58,7 +58,7 @@ hard_money_words: []
 # but harmless: only activates if spoken)
 major_unit_words: [dollars, dollar, madhora]
 # concord prefixes that glue onto numbers: "NEfive", "YEten", "Ethree",
-# "NEone" — all four attested in her corrected text
+# "NEone": all four attested in her corrected text
 number_prefixes: [ne, ye, e, che]
 
 # singular before plural: the FIRST unit hit wins, and "bag re maplastic
@@ -97,10 +97,10 @@ summary_triggers: [tapedza basa, ndipe summary, summary]
 recap_triggers: [ledger]
 
 corrections:
-  # "Aiwa — yairi five dollars kwete five fifty"
+  # "Aiwa: yairi five dollars kwete five fifty"
   - trigger: aiwa
     field: amount
-  # "Iyoyo yanga iri CHIKWERETI — anobhadhara musiwe Friday"
+  # "Iyoyo yanga iri CHIKWERETI: anobhadhara musiwe Friday"
   - trigger: chikwereti
     field: payment_status
     value: credit

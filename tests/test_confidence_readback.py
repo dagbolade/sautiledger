@@ -1,5 +1,5 @@
 """Phase F: confidence-weighted readback. The workshop report's two
-residual deletion-class corruptions, closed — calibrated on the exact
+residual deletion-class corruptions, closed: calibrated on the exact
 transcripts from the benchmark, with zero added friction on legitimate
 amounts (the report's stated design bar)."""
 
@@ -34,7 +34,7 @@ def test_deleted_multiplier_gets_full_echo_before_commit():
     assert "Make I sure" in reply
     assert agent.ledger.entries("today") == [] # nothing written yet
 
-    # the trader corrects it — the true amount replaces the doubted one
+    # the trader corrects it: the true amount replaces the doubted one
     reply = agent.handle("no, na ten thousand")
     rows = agent.ledger.entries("today")
     assert len(rows) == 1
@@ -69,7 +69,7 @@ def test_negation_led_sale_never_logs_silently():
     agent = _agent()
     agent.handle("i don sell 3 crayfish for 2000 naira")
     agent.handle("yes")
-    # the doubled trigger arrives with one "no" deleted — before the fix
+    # the doubled trigger arrives with one "no" deleted: before the fix
     # this logged a spurious sale
     reply = agent.handle("no na 500 for the crayfish")
     assert agent.ledger.entries("today")[-1]["payment_status"] != "voided" or True
@@ -101,6 +101,6 @@ def test_legitimate_amounts_stay_friction_free():
 def test_short_amount_answer_stays_friction_free():
     agent = _agent()
     agent.handle("i don sell 3 crayfish")
-    reply = agent.handle("five hundred")               # full phrase — fine
+    reply = agent.handle("five hundred")               # full phrase, fine
     assert "Logged" in reply
     assert agent.ledger.entries("today")[0]["amount"] == 500

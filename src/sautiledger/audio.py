@@ -1,4 +1,4 @@
-"""Server-side audio normalisation (local only — nothing egresses here).
+"""Server-side audio normalisation (local only: nothing egresses here).
 
 Browsers send whatever MediaRecorder produces: webm/opus on desktop
 Chrome, mp4/AAC on iOS Safari. Sahara 400s on some of these. Every mic
@@ -55,7 +55,7 @@ def to_wav16k(blob: bytes) -> tuple[bytes, float]:
 
 def pcm16_to_wav(pcm: bytes, sample_rate: int = 16000) -> bytes:
     """Wrap raw PCM16 mono in a WAV container (for consented retention of
-    streamed audio — the same bytes the model heard, playable anywhere)."""
+    streamed audio, the same bytes the model heard, playable anywhere)."""
     import io
     import wave
 

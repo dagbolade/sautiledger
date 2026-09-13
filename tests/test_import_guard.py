@@ -9,12 +9,12 @@ from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / "src" / "sautiledger"
 
-# No third-party HTTP client anywhere — egress.py itself uses urllib.
+# No third-party HTTP client anywhere: egress.py itself uses urllib.
 BANNED_EVERYWHERE = {"requests", "httpx", "aiohttp", "urllib3"}
 
 # Stdlib network modules: only in the egress wrapper, the localhost-Ollama
 # module, and phone.py (INBOUND serving + LAN-IP detection via a UDP
-# socket that never transmits — it hosts, it does not egress).
+# socket that never transmits: it hosts, it does not egress).
 # "websockets" is the sanctioned streaming client: egress.py ONLY, where
 # every stream is measured and logged like any other transmission.
 NETWORK_MODULES = {"urllib", "http", "socket", "ftplib", "smtplib", "websockets"}
@@ -37,15 +37,15 @@ def test_no_http_client_outside_egress():
     for path in SRC.glob("*.py"):
         roots = _imported_roots(path)
         banned = roots & BANNED_EVERYWHERE
-        assert not banned, f"{path.name} imports {banned} — all HTTP goes through egress.py"
+        assert not banned, f"{path.name} imports {banned}, all HTTP goes through egress.py"
         if path.name not in NETWORK_ALLOWLIST:
             network = roots & NETWORK_MODULES
             assert not network, (
-                f"{path.name} imports {network} — only egress.py (remote) and "
+                f"{path.name} imports {network}, only egress.py (remote) and "
                 f"llm_fallback.py (localhost Ollama) may touch the network"
             )
         if "websockets" in roots:
             assert path.name in WEBSOCKETS_ALLOWLIST, (
-                f"{path.name} imports websockets — streaming goes through "
+                f"{path.name} imports websockets, streaming goes through "
                 f"egress.py so every stream is logged"
             )

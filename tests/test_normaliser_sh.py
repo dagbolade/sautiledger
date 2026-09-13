@@ -1,4 +1,4 @@
-"""sh-ZW cases from normaliser_tests_sh.json — the native-corrected Shona
+"""sh-ZW cases from normaliser_tests_sh.json: the native-corrected Shona
 tier (2026-09-02). Same bar as the frozen spec: exact structural match,
 grammar-only (the LLM raises if consulted). Never weaken; if a case looks
 wrong, the fix is a conversation with the native speaker, not an edit here.
@@ -58,7 +58,7 @@ def test_usd_readback_renders_cents():
 
 
 def test_glued_prefix_never_splits_real_words(pack):
-    """'enzungu' (e + nzungu) must survive — the split fires only when the
+    """'enzungu' (e + nzungu) must survive, the split fires only when the
     remainder is a known number/currency word."""
     from sautiledger.normaliser import _split_glued
     assert _split_glued(["enzungu", "nefive", "yeten", "ethree", "neone"], pack) == \
@@ -66,14 +66,14 @@ def test_glued_prefix_never_splits_real_words(pack):
 
 
 def test_dollars_alone_is_unparseable(pack):
-    """A bare currency word carries no amount — clarify, never guess."""
+    """A bare currency word carries no amount, clarify, never guess."""
     result = normalise("ndatengesa shuga dollars", pack, llm=RaisingLlm())
     assert result.intent == "clarify"
     assert result.amount is None
 
 
 def test_major_word_rules_are_pack_gated():
-    """pcm-yo-NG has no major_unit_words — 'dollars' must not become money."""
+    """pcm-yo-NG has no major_unit_words, 'dollars' must not become money."""
     pcm = load_pack("pcm-yo-NG")
     result = normalise("I don sell garri five dollars fifty", pcm, llm=RaisingLlm())
     assert result.amount != 550  # the cents rule must not leak across packs

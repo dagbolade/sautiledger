@@ -1,6 +1,6 @@
 """Audio transcode: duration must be preserved. A resampler that copies
 plane padding stretches clips (~1.26x observed) into garbage for every
-ASR model — this regression test pins the fix."""
+ASR model: this regression test pins the fix."""
 
 from __future__ import annotations
 

@@ -5,7 +5,7 @@ naturally in code-switched African speech (Pidgin/Yoruba/English,
 Swahili/English, Hausa/English), the agent logs transactions to a
 local ledger, answers questions about it, and reads confirmations back.
 
-## Hard constraints — never violate these
+## Hard constraints: never violate these
 1. PRIVACY IS THE PRODUCT. On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
 2. Every network transmission MUST be logged to the egress ledger
    (timestamp, destination, purpose, bytes, disposition). The UI
@@ -24,12 +24,12 @@ local ledger, answers questions about it, and reads confirmations back.
 ## Stack
 - Python 3.11, FastAPI backend, single-page vanilla JS frontend
   (browser mic capture via MediaRecorder)
-- SQLite via sqlite3 stdlib — no ORM
+- SQLite via sqlite3 stdlib: no ORM
 - Agent LLM: local model via Ollama (assume `ollama run llama3.2:3b`
   is available; wrap it behind an LlmClient interface)
 - ASR: AsrClient interface. Implementations: SaharaCloudAsr (HTTP),
   SaharaOfflineAsr (stub until confirmed), FakeAsr (returns text from
-  test fixtures — used for all development)
+  test fixtures, used for all development)
 - TTS: TtsClient interface. Implementations: PiperLocalTts,
   SaharaTts (stub), NullTts
 - Tests: pytest. normaliser_tests.json is the source of truth.

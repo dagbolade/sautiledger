@@ -1,6 +1,6 @@
 {
   "_readme": [
-    "sh-ZW normaliser test spec — SEPARATE from the frozen normaliser_tests.json.",
+    "sh-ZW normaliser test spec, SEPARATE from the frozen normaliser_tests.json.",
     "Amounts are integer CENTS (USD): 'five dollars fifty' = 550.",
     "PROVENANCE: utterances drafted by an AI assistant from the pcm-yo-NG case",
     "pattern and CORRECTED by a native Shona speaker on 2026-09-02 (see",
@@ -86,7 +86,7 @@
         "amount": 2000,
         "currency": "USD"
       },
-      "note": "no verb trigger — unit anchors it, like pcm case 7"
+      "note": "no verb trigger, unit anchors it, like pcm case 7"
     },
     {
       "id": 6,
@@ -101,7 +101,7 @@
         "amount": 150,
         "currency": "USD"
       },
-      "note": "'one fifty dollars' is cents-complete (150) — dollars is currency, not x100"
+      "note": "'one fifty dollars' is cents-complete (150), dollars is currency, not x100"
     },
     {
       "id": 7,
@@ -114,7 +114,7 @@
         "amount": 1000,
         "currency": "USD"
       },
-      "note": "ndatenga (bought) vs ndatengesa (sold) — distinct tokens; glued YEten"
+      "note": "ndatenga (bought) vs ndatengesa (sold), distinct tokens; glued YEten"
     },
     {
       "id": 8,
@@ -150,7 +150,7 @@
         "query": "top_item",
         "period": "this_week"
       },
-      "note": "chandatengesa is a different token from ndatengesa — no false sale"
+      "note": "chandatengesa is a different token from ndatengesa, no false sale"
     },
     {
       "id": 11,
@@ -194,7 +194,7 @@
         "intent": "clarify",
         "question_about": "missing_transaction_details"
       },
-      "note": "write-it-down with no details — ask, never guess (her typed spelling kept)"
+      "note": "write-it-down with no details, ask, never guess (her typed spelling kept)"
     },
     {
       "id": 15,
@@ -204,7 +204,7 @@
         "intent": "clarify",
         "question_about": "amount"
       },
-      "note": "sold-out-the-maize, no amount spoken — mirror of frozen pcm case 21"
+      "note": "sold-out-the-maize, no amount spoken, mirror of frozen pcm case 21"
     }
   ]
 }

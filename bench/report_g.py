@@ -4,7 +4,7 @@ Distinct from report.py, which renders the frozen August workshop report
 (preserved as REPORT-workshop-2026-08.md and cited here as prior work).
 
 Structure follows the organisers' stated priorities:
-  (a) the DOWNSTREAM TASK-COMPLETION metric leads — Tobi Olatunji, Intron,
+  (a) the DOWNSTREAM TASK-COMPLETION metric leads, Tobi Olatunji, Intron,
       at the 28 Aug masterclass: teams should measure "how many
       transactions were actually correctly recorded";
   (b) standard WER/CER (normalised AND raw) follows, matching Intron's own
@@ -25,12 +25,12 @@ PROS_CONS = {
     "sahara-v2.5": (
         "**Pros:** the best WER on every tier; **tied first on Shona** with "
         "Meta's omnilingual-ASR (both 27% transactions exact, both zero "
-        "corruption — double the best frontier system), and one of only two that "
+        "corruption, double the best frontier system), and one of only two that "
         "render Nigerian Pidgin's "
         "perfective `I don sell` without inverting it into `I don't sell`. Ships "
         "TTS in the same voice register, so the readback speaks the user's "
         "language. **Cons:** it is *not* the strongest on its own flagship "
-        "Pidgin/Yoruba pair — MAI-Transcribe-2 and GPT-4o-transcribe both record "
+        "Pidgin/Yoruba pair, MAI-Transcribe-2 and GPT-4o-transcribe both record "
         "more transactions exactly. Cloud-only (offline deployment is "
         "enterprise-tier), no model/version field in responses, and the documented "
         "`use_disable_llm_corrections` control has no observable effect."
@@ -38,8 +38,8 @@ PROS_CONS = {
     "mai-transcribe-2": (
         "Microsoft AI's multilingual STT (#1 on FLEURS across 60 languages), via "
         "OpenRouter at $0.10/hour. **Pros:** the strongest system on our "
-        "Pidgin/Yoruba market tier — 60% of transactions exactly right with **zero "
-        "corrupted amounts**, the best combination in the benchmark — and the best "
+        "Pidgin/Yoruba market tier, 60% of transactions exactly right with **zero "
+        "corrupted amounts**, the best combination in the benchmark, and the best "
         "CER on broadcast speech. **Cons:** it collapses on Shona (13% exact, 13% "
         "corrupted), and it inverts the Pidgin perfective, turning a sale into its "
         "denial. Cloud-only."
@@ -54,18 +54,18 @@ PROS_CONS = {
         "expensive option here."
     ),
     "parakeet-tdt": (
-        "NVIDIA's Parakeet TDT 0.6B — the model family presented at Intron's own "
+        "NVIDIA's Parakeet TDT 0.6B, the model family presented at Intron's own "
         "28 August masterclass. **Pros:** never corrupted an amount on the "
         "Pidgin/Yoruba tier, good broadcast WER (0.642), and extremely cheap "
         "($0.0015/min) thanks to non-autoregressive TDT decoding. **Cons:** 33% "
-        "exact on Pidgin/Yoruba and 7% on Shona, where it also corrupts 13% — the "
+        "exact on Pidgin/Yoruba and 7% on Shona, where it also corrupts 13%, the "
         "speed advantage does not carry to code-switched market speech."
     ),
     "chirp-3": (
         "Google's production ASR (distinct from Gemini). **Pros:** the second-best "
         "broadcast WER in the benchmark (0.376), close behind Sahara. **Cons:** "
         "29% exact on our Pidgin/Yoruba tier with 7% corrupted, and it mangles "
-        "market units — `three derica of rice` became `3 L of rice`. Two clips "
+        "market units, `three derica of rice` became `3 L of rice`. Two clips "
         "returned no transcript at all."
     ),
     "sahara-v2.5-raw": (
@@ -79,13 +79,13 @@ PROS_CONS = {
         "**Cons:** three failure modes that matter here. It anglicises code-switched "
         "speech; it inverts Pidgin's perfective 'I don sell' into the negated "
         "'I don't sell', reversing the meaning of a sale; and on low-resource "
-        "African audio it **hallucinates its own training data** — two Shona clips "
+        "African audio it **hallucinates its own training data**: two Shona clips "
         "returned \"Thank you for watching my video\" and \"Thank you for watching. "
         "This is Mrs. Jessie.\", fluent English sentences with no relationship to "
         "the audio. Most seriously, it turned a *correction* into a corrupted "
         "amount: the utterance \"Aiwa yairi five dollars kwete five fifty\" (\"no, "
         "it was five dollars, **not** five fifty\") was transcribed as "
-        "\"$5, kwete $5.50\" and parsed to log 550 — the exact figure the trader "
+        "\"$5, kwete $5.50\" and parsed to log 550, the exact figure the trader "
         "was correcting away from."
     ),
     "whisper-small": (
@@ -100,10 +100,10 @@ PROS_CONS = {
         "`sna_Latn`, costs nothing to run, and is the only model in this benchmark "
         "that renders Yoruba numerals with correct diacritics. **Cons:** no Windows "
         "build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes "
-        "phonetically rather than semantically — it hears the words but drops or "
+        "phonetically rather than semantically, it hears the words but drops or "
         "mangles the digits that a ledger depends on. **Operational cost:** "
         "full coverage was reached, but only after two passes were terminated by "
-        "memory pressure on a CPU-only laptop, at roughly 1–2 minutes per clip "
+        "memory pressure on a CPU-only laptop, at roughly 1-2 minutes per clip "
         "against seconds for the hosted APIs. An open model you can self-host is "
         "only free if you have the hardware to run it."
     ),
@@ -128,18 +128,18 @@ def _name(model: str) -> str:
 
 
 TIER_LABEL = {
-    "sautiledger-clips": "tier-a — native-recorded market utterances (Nigerian "
+    "sautiledger-clips": "tier-a, native-recorded market utterances (Nigerian "
                          "Pidgin/Yoruba/English), parse ground truth",
-    "sh-clips": "tier-sh — native-recorded Shona/English market utterances, parse "
+    "sh-clips": "tier-sh, native-recorded Shona/English market utterances, parse "
                 "ground truth (NEW for Phase 2)",
-    "afriswitch-sample": "tier-b — AfriSwitch code-switched broadcast speech, "
+    "afriswitch-sample": "tier-b, AfriSwitch code-switched broadcast speech, "
                          "transcript ground truth only",
 }
 
 
 def _pct(values) -> str:
     if not values:
-        return "–"
+        return "-"
     if isinstance(values[0], bool):
         return f"{100 * sum(values) / len(values):.0f}%"
     return f"{100 * sum(values) / len(values):.1f}%"
@@ -156,7 +156,7 @@ def render() -> Path:
     # §4): keep it out of the model tables so a duplicate cannot pad the
     # comparison, and report the attempted ablation as the null result it is.
     # sahara-v2.5-raw: byte-identical duplicate (§4).
-    # whisper-small: retired for Phase 2 — it was a stand-in for a frontier
+    # whisper-small: retired for Phase 2, it was a stand-in for a frontier
     # model we had no key for, it never ran on the Shona tier, and
     # MAI-Transcribe-2 replaces it. Its workshop-era numbers remain in
     # REPORT-workshop-2026-08.md; keeping it here would both pad the count
@@ -178,9 +178,9 @@ def render() -> Path:
     lines: list[str] = []
     add = lines.append
 
-    add("# SautiLedger — Code-Switch ASR & TTS Benchmark")
+    add("# SautiLedger: Code-Switch ASR & TTS Benchmark")
     add("")
-    add("**Sahara CodeSwitch Africa Challenge (Phase 2) — benchmark report**")
+    add("**Sahara CodeSwitch Africa Challenge (Phase 2): benchmark report**")
     add("")
     n_clips = len({r["clip"] for r in rows})
     live = [m for m in models if m != SNAPSHOT]
@@ -205,7 +205,7 @@ def render() -> Path:
     add("## 1. The primary result: task completion")
     add("")
     add("At Intron's 28 August masterclass the challenge founder was explicit about "
-        "the metric teams should develop for their own vertical — for a financial "
+        "the metric teams should develop for their own vertical, for a financial "
         "application, *\"how many transactions were actually correctly recorded\"*. "
         "That is the metric this section reports, and we lead with it because a "
         "voice ledger is judged by the ledger, not by the transcript.")
@@ -214,10 +214,10 @@ def render() -> Path:
         "normaliser exactly as the live app runs it (LLM fallback disabled), and the "
         "resulting entry is compared to the expected one:")
     add("")
-    add("- **Transaction exact** — every field correct: type, item, quantity, unit, amount.")
-    add("- **Amount safe** — the amount was right, *or* the agent refused to guess and "
+    add("- **Transaction exact**: every field correct: type, item, quantity, unit, amount.")
+    add("- **Amount safe**: the amount was right, *or* the agent refused to guess and "
         "asked a clarifying question. Asking is safe; nothing is written.")
-    add("- **Amount corrupted** — a WRONG amount was produced by the parser for "
+    add("- **Amount corrupted**: a WRONG amount was produced by the parser for "
         "someone's money records. This is the number that matters.")
     add("")
     gt_tiers = [t for t in tiers if any(r.get("has_expected") for r in sel(tier=t))]
@@ -239,10 +239,10 @@ def render() -> Path:
     add("### Reading the primary result")
     add("")
     add("**(a) No single model wins, and which one leads flips with the "
-        "language.** On Pidgin/Yoruba — a *documented Sahara code-switch pair* — "
+        "language.** On Pidgin/Yoruba, a *documented Sahara code-switch pair*, "
         "Microsoft's MAI-Transcribe-2 records the most transactions exactly (60%) "
         "and corrupts none, ahead of GPT-4o-transcribe (53%) and Sahara (47%). On "
-        "Shona — a supported Sahara *language* but **not** a code-switch pair — "
+        "Shona, a supported Sahara *language* but **not** a code-switch pair, "
         "that ordering inverts: Sahara is tied first at 27% with zero corruption "
         "(level with Meta's open omnilingual-ASR), double the best frontier "
         "system, while MAI drops to 13% and corrupts 13%.")
@@ -253,8 +253,8 @@ def render() -> Path:
         "(`python -m bench.significance`: exact McNemar or sign test, plus a "
         "bootstrap 95% interval). **None of the transaction-accuracy differences "
         "is statistically significant.** On Pidgin/Yoruba, MAI-Transcribe-2 and "
-        "Sahara disagree on only 4 clips (3–1, p = 0.63). On Shona, Sahara and MAI "
-        "disagree on 2 (2–0, p = 0.50). The reversal is therefore an observed "
+        "Sahara disagree on only 4 clips (3-1, p = 0.63). On Shona, Sahara and MAI "
+        "disagree on 2 (2-0, p = 0.50). The reversal is therefore an observed "
         "direction that a larger corpus would have to confirm, not an established "
         "ranking. What does hold up is on transcription: on Shona, Sahara's WER is "
         "significantly lower than GPT-4o-transcribe (p = 0.04), Parakeet (p = 0.01), "
@@ -265,20 +265,20 @@ def render() -> Path:
         "distinguishable from the frontier systems, and all of them beat "
         "Whisper-large-v3 decisively.")
     add("")
-    add("**Our best explanation is linguistic distance from English — a "
+    add("**Our best explanation is linguistic distance from English: a "
         "hypothesis, discussed in §5, not a demonstrated cause.** Nigerian Pidgin is lexically English-adjacent, so a strong "
         "general-purpose recogniser can largely cope with it; Shona is not, and "
         "the frontier systems collapse there while the Africa-trained model holds. "
-        "An earlier draft of this report — written when the comparison set was "
-        "only two Whisper models and an open 300M baseline — concluded that "
-        "\"there is currently one viable ASR\". Running a genuinely strong field "
+        "An earlier draft of this report: written when the comparison set was "
+        "only two Whisper models and an open 300M baseline: concluded that "
+        "\"there is currently one viable ASR\". Running a strong field "
         "falsified that, and we would rather publish the correction than the "
         "flattering version. The practical advice for an integrator is not \"use "
         "Sahara\" or \"use a frontier API\" but **benchmark on your own language "
         "and your own task**, because the ranking does not transfer between them.")
     add("")
     add("**(b) The corruption inversion.** A weaker model can post a *lower* "
-        "amount-corrupted rate than a stronger one — not because it is safer, but "
+        "amount-corrupted rate than a stronger one, not because it is safer, but "
         "because its output is noise the grammar refuses to parse, which the agent "
         "turns into a clarifying question. A plausible-but-wrong transcript is more "
         "dangerous than an obviously garbled one, because only the plausible one "
@@ -288,7 +288,7 @@ def render() -> Path:
     add("**(c) An honest caveat on our own metric.** Where the expected outcome is "
         "*clarify*, a garbled transcript also produces *clarify*, and scores as an "
         "exact match. One Whisper row earns 'exact' on a Shona clip by hallucinating "
-        "\"Thank you for watching. This is Mrs. Jessie.\" — which our grammar "
+        "\"Thank you for watching. This is Mrs. Jessie.\", which our grammar "
         "correctly refuses to log. The credit is real (nothing wrong was written) "
         "but it is not comprehension, and we flag it rather than bank it.")
     add("")
@@ -338,7 +338,7 @@ def render() -> Path:
     add("We hold cached Sahara transcripts for the same frozen audio from "
         "**5 August** and from **9 September**. The API exposes no model or "
         "version field, so this cache is the only evidence available that "
-        "anything changed — and something did:")
+        "anything changed, and something did:")
     add("")
     snap_tiers = [t for t in tiers
                   if sel(model=SNAPSHOT, tier=t) and sel(model="sahara-v2.5", tier=t)]
@@ -351,7 +351,7 @@ def render() -> Path:
             bg = sel(model=SNAPSHOT, tier=tier, gt_only=True)
             ag = sel(model="sahara-v2.5", tier=tier, gt_only=True)
             num = (f"{_pct([r['numeric_accuracy'] for r in bg])} → "
-                   f"{_pct([r['numeric_accuracy'] for r in ag])}") if bg else "–"
+                   f"{_pct([r['numeric_accuracy'] for r in ag])}") if bg else "-"
             add(f"| {tier} | {_mean([r['wer'] for r in b]):.3f} → "
                 f"{_mean([r['wer'] for r in a]):.3f} "
                 f"| {_mean([r.get('cer', 0) for r in b]):.3f} → "
@@ -359,7 +359,7 @@ def render() -> Path:
         add("")
     add("Broadcast speech improved clearly. Our native market tier is more "
         "mixed: aggregate WER improved slightly while **numeric accuracy went "
-        "down**, and individual clips regressed — `\"I don sell 3 derica of rice "
+        "down**, and individual clips regressed, `\"I don sell 3 derica of rice "
         "5,500.\"` in August became `\"I don sell 3 of rice 500\"` in September, "
         "losing both the unit and a factor of ten. We report this without "
         "complaint: models are retrained, and improving the average while "
@@ -369,7 +369,7 @@ def render() -> Path:
         "attributable. That is why §9 asks for one.")
     add("")
     add("**A caveat on WER for financial speech.** Sahara transcribes spoken "
-        "\"five thousand five\" as \"5,500\" — semantically exact, but every such "
+        "\"five thousand five\" as \"5,500\": semantically exact, but every such "
         "token counts as a word error against a spoken-form reference. WER "
         "penalises the model for being *more* useful downstream. This is precisely "
         "why the task-completion metric in §1 leads this report.")
@@ -382,10 +382,10 @@ def render() -> Path:
         "Benchmarking Equity Across Speech Recognition Systems*, Interspeech 2025), "
         "which argues that a single aggregate WER hides systematic disparities "
         "between speaker groups, and combines fairness with accuracy into a "
-        "Fairness-Adjusted ASR Score. We cannot compute FAAS itself — it requires "
+        "Fairness-Adjusted ASR Score. We cannot compute FAAS itself: it requires "
         "the Fair-Speech corpus with per-speaker demographic labels and a "
         "mixed-effects Poisson regression over hundreds of speakers, and our "
-        "corpus has four speaker groups — but the underlying point applies "
+        "corpus has four speaker groups, but the underlying point applies "
         "directly, so we report the disparity rather than hiding behind an "
         "average.")
     add("")
@@ -405,12 +405,12 @@ def render() -> Path:
                 cells.append(f"{m:.3f}")
                 vals.append(m)
             else:
-                cells.append("–")
+                cells.append("-")
         ratio = (max(vals) / min(vals)) if vals and min(vals) > 0 else 0
         add(f"| {_name(model)} | " + " | ".join(cells) + f" | **{ratio:.2f}×** |")
     add("")
     add("A model with a low average but a high disparity ratio is not a model that "
-        "works for everyone — it is a model that works for whoever resembles its "
+        "works for everyone, it is a model that works for whoever resembles its "
         "training data. For a product whose users are, by definition, the speakers "
         "least represented in mainstream speech corpora, that ratio is a product "
         "risk, not a footnote.")
@@ -422,7 +422,7 @@ def render() -> Path:
     add("Sahara's documentation states that the sync endpoint applies LLM "
         "corrections to transcripts **by default** (`use_disable_llm_corrections`, "
         "default FALSE). If true, every integrator benchmarks a recogniser *plus a "
-        "rewriter* without necessarily knowing it — a confound worth isolating. We "
+        "rewriter* without necessarily knowing it: a confound worth isolating. We "
         "therefore ran the entire corpus twice, identical audio, with the flag "
         "unset and set to `TRUE`.")
     add("")
@@ -433,7 +433,7 @@ def render() -> Path:
         "against the API: same audio, same output. A third request supplying an "
         "invalid value (`use_disable_llm_corrections=BANANA`) was also accepted "
         "with HTTP 200 and the same transcript, which suggests the field is not "
-        "being read on this path — consistent with the silently-ignored-field "
+        "being read on this path: consistent with the silently-ignored-field "
         "behaviour reported in §9.")
     add("")
     add("Two readings are consistent with the evidence and we cannot distinguish "
@@ -443,7 +443,7 @@ def render() -> Path:
         "conclusion for integrators is the same: **the documented control does not "
         "currently change what you get.** The `sahara-v2.5` rows above are "
         "therefore the as-deployed configuration, and no separate 'raw' row is "
-        "presented — including one would inflate our model count with a duplicate.")
+        "presented, including one would inflate our model count with a duplicate.")
     add("")
 
     # ---------------------------------------------------------------- 5
@@ -472,7 +472,7 @@ def render() -> Path:
                 f"| {_pct([r['exact_match'] for r in sg])} "
                 f"| **{_pct([r['amount_corrupted'] for r in sg])}** |")
         add("")
-    add("**Outcome: half right — and the half we got wrong is the informative "
+    add("**Outcome: half right, and the half we got wrong is the informative "
         "half.** We predicted degradation, unqualified. On **WER we were wrong**: "
         "Shona WER (0.566) is marginally *better* than our Pidgin tier (0.574), and "
         "Shona CER is better still. A transcription-only benchmark would have "
@@ -483,7 +483,7 @@ def render() -> Path:
         "argument of this report.")
     add("")
     add("**The mechanism is visible in the transcripts.** Sahara transcribes the "
-        "Shona *lexicon* well — `ndatengesa`, "
+        "Shona *lexicon* well: `ndatengesa`, "
         "`matomatisi`, `chikwereti`, `rechibage`, `enzungu`, `dzemazai` all come "
         "back intact or near-intact. What collapses is precisely the "
         "**code-switched English money phrase**:")
@@ -502,22 +502,22 @@ def render() -> Path:
         "prediction in advance rather than after seeing the data.")
     add("")
     add("**Two things follow.** First, WER hid the failure and the "
-        "task-completion metric exposed it — which is why the ordering of this "
+        "task-completion metric exposed it, which is why the ordering of this "
         "report is not cosmetic. Second, the safety "
-        "layer converts the gap into a question rather than a wrong number — on "
+        "layer converts the gap into a question rather than a wrong number: on "
         "these 15 Shona clips Sahara produced **no corrupted amounts and 15/15 "
         "amount-safe outcomes**, because when the price phrase collapses the "
         "grammar refuses to guess and asks. Fifteen clips from one speaker "
         "cannot establish that the design *is* safe for Shona commerce; what "
         "they show is that on every failure we observed, the failure mode was a "
-        "question rather than a wrong number — which is the behaviour the design "
+        "question rather than a wrong number, which is the behaviour the design "
         "intends, tested where the ASR is weakest.")
     add("")
     add("**The comparison across the two native tiers is where this benchmark "
         "earns its keep.** Sahara ranks *third* on Pidgin/Yoruba (47% exact, "
         "behind MAI-Transcribe-2 at 60% and GPT-4o-transcribe at 53%) and *tied "
         "first* on Shona with Meta's open omnilingual-ASR (both 27%, double the "
-        "best frontier system, both with zero corrupted amounts). The frontier models do not degrade gently on Shona — they "
+        "best frontier system, both with zero corrupted amounts). The frontier models do not degrade gently on Shona: they "
         "collapse, and three of them start corrupting amounts as they do.")
     add("")
     add("**A hypothesis, not a demonstrated cause.** The most economical "
@@ -527,7 +527,7 @@ def render() -> Path:
         "code-switch-specific training would be worth most exactly where general "
         "models are worst. **This benchmark cannot establish it.** Our two "
         "native tiers differ not only in language but in speaker, gender, "
-        "microphone, room and recording session — one Nigerian man and one "
+        "microphone, room and recording session: one Nigerian man and one "
         "Zimbabwean woman, fifteen clips each. Any of those could produce the "
         "same reversal. What is measured here is that **the ranking changed**; "
         "why it changed would need matched speakers across languages, or the "
@@ -538,7 +538,7 @@ def render() -> Path:
         "two systems split the sentence between them. Sahara recovers the Shona "
         "words and loses the English price (`Ndatengesa three cups dze rice "
         "nefive dollars fifty` → `ndatengesa 3 ne50`), while the frontier systems "
-        "do the opposite — chirp-3 returns `Ndatengeza three cups of rice ne "
+        "do the opposite: chirp-3 returns `Ndatengeza three cups of rice ne "
         "$5.50`, with the amount intact but the verb and concord degraded. "
         "Sahara still wins the transaction metric because our grammar can refuse "
         "a missing amount safely but cannot recover a missing item; a system that "
@@ -555,7 +555,7 @@ def render() -> Path:
     add("")
     add("**What is not finished.** Packs drive parsing, not phrasing: run the "
         "Shona pack and the agent parses `Ndatengesa matomatisi ethree dollars` "
-        "correctly and does the arithmetic in dollars and cents — then answers in "
+        "correctly and does the arithmetic in dollars and cents, then answers in "
         "Pidgin, because the reply templates are not yet pack-driven. We report "
         "this rather than demo around it.")
     add("")
@@ -589,7 +589,7 @@ def render() -> Path:
         if len(picked) >= 6:
             break
     for clip_id, group in picked:
-        add(f"**{clip_id}** — truth: `{group[0]['truth']}`")
+        add(f"**{clip_id}**: truth `{group[0]['truth']}`")
         add("")
         for row in sorted(group, key=lambda r: r["model"]):
             flags = f"  ⚠ {', '.join(row['flags'])}" if row["flags"] else ""
@@ -601,7 +601,7 @@ def render() -> Path:
     add("## 7. Per-model assessment")
     add("")
     for model in models:
-        add(f"**{_name(model)}** — {PROS_CONS.get(model, 'No notes.')}")
+        add(f"**{_name(model)}**: {PROS_CONS.get(model, 'No notes.')}")
         add("")
 
     # ---------------------------------------------------------------- 8 TTS
@@ -625,9 +625,9 @@ def render() -> Path:
         add("|---|---|")
         add("| WER | (S+D+I)/N over the round trip |")
         add("| Accuracy | utterance-level exact match after normalisation |")
-        add("| Transcript loss | D/N — input words that vanished in the audio |")
-        add("| Hallucination | I/N — words that appeared from nowhere |")
-        add("| Segment loss | longest contiguous deletion ÷ N — a dropped *phrase*, which D/N alone hides |")
+        add("| Transcript loss | D/N, input words that vanished in the audio |")
+        add("| Hallucination | I/N, words that appeared from nowhere |")
+        add("| Segment loss | longest contiguous deletion ÷ N, a dropped *phrase*, which D/N alone hides |")
         add("| **Amount survival** | did the money figure survive the round trip? |")
         add("")
         systems = sorted({r["system"] for r in tts["results"]})
@@ -657,7 +657,7 @@ def render() -> Path:
                 "aloud to the trader**, and the spoken artefact was corrupting the "
                 "amount in the round trip. This is a defect no WER table would "
                 "have surfaced as anything but noise, and no unit test would have "
-                "caught, because the string was correct — it was only wrong when "
+                "caught, because the string was correct: it was only wrong when "
                 "spoken. We fixed it (`speakable()` in `tts.py`: colons and "
                 "brackets become pauses, commas and full stops stay as prosody), "
                 "added tests, and re-ran the identical benchmark:")
@@ -686,12 +686,12 @@ def render() -> Path:
             add("")
         add("*Accuracy reads 0.00 for both systems: utterance-level exact match "
             "over a fifteen-word sentence is close to unattainable when the judge "
-            "is a small ASR model — one substituted word anywhere loses the point. "
+            "is a small ASR model, one substituted word anywhere loses the point. "
             "It is reported because Intron asked for it, but transcript loss, "
             "hallucination and amount survival carry the signal here.*")
         add("")
         add("**What the round trip can and cannot tell you.** The judge is an ASR "
-            "system, so these numbers measure a *chain* — voice plus recogniser — "
+            "system, so these numbers measure a *chain*: voice plus recogniser, "
             "not the voice alone. We assume a weaker judge inflates both systems' "
             "error similarly, but that assumption is untested and need not hold: a "
             "recogniser can be differentially better on one accent than another, "
@@ -704,7 +704,9 @@ def render() -> Path:
             "figures are conservative by construction.")
         add("")
         for note in tts.get("notes", []):
-            add(f"> **Note:** {note}")
+            # notes are stored with the raw results; render them in the
+            # report's plain punctuation without editing the evidence file
+            add("> **Note:** " + note.replace(" " + chr(0x2014) + " ", ": "))
         add("")
 
     # --------------------------------------------------- conversation replay
@@ -714,11 +716,11 @@ def render() -> Path:
         s = conv["summary"]
         add("## 8b. Conversation benchmark (scripted replay)")
         add("")
-        add("Sections 1–7 score a **transcript** through the parser. That is not "
+        add("Sections 1-7 score a **transcript** through the parser. That is not "
             "the same as a trader finishing a task: a real session has "
             "clarifying questions, confirmations, rejections and repairs, and an "
             "entry can be written wrongly and then corrected. This section "
-            "measures the loop end to end — scripted transcripts replayed "
+            "measures the loop end to end: scripted transcripts replayed "
             "through **the real agent and a real SQLite ledger**.")
         add("")
         add("**What this is not.** No audio recognition, no synthesis, no network, "
@@ -739,7 +741,7 @@ def render() -> Path:
         add(f"| **Scenarios ending with a wrong amount** | **{s['scenarios_with_wrong_final_amount']}** |")
         add("")
         add("Two rows deserve emphasis. **A control scenario asserts the agent "
-            "must NOT complete** — a sale with no price spoken has to end in a "
+            "must NOT complete**: a sale with no price spoken has to end in a "
             "question, and counting that refusal as a failed task would reward "
             "guessing. It is scored separately rather than diluting the "
             "denominator. And the last two rows are deliberately different "
@@ -760,13 +762,13 @@ def render() -> Path:
             add("")
             add(f"{len(chatter)} controls come from **unscripted audio**: the native "
                 "Shona validator recorded 19 short clips of ordinary market talk "
-                "(Ruwa 17–35) — greetings, *it's hot, business is tough*, *the "
+                "(Ruwa 17-35): greetings, *it's hot, business is tough*, *the "
                 "market is expensive*, *your tomatoes aren't fresh*, *won't you "
                 "give me a little extra?* No sale is stated in any of them. Each "
                 "turn is **Sahara v2.5's verbatim transcript of that audio**, i.e. "
                 "exactly what the app receives, errors included. Two clips (Ruwa 23 "
-                "and 24) transcribed as empty; those never reach the agent — the API "
-                "answers *please try again* — so they are not replayed.")
+                "and 24) transcribed as empty; those never reach the agent: the API "
+                "answers *please try again*, so they are not replayed.")
             add("")
             add(f"**Result: {held}/{len(chatter)} held, {rows_written} ledger rows "
                 "written.** Every clip ended in a request for the item and amount, "
@@ -837,7 +839,7 @@ def render() -> Path:
     # ---------------------------------------------------------------- 9
     add("## 9. Product feedback to Intron")
     add("")
-    add("Offered in the spirit the challenge asked for — everything below was "
+    add("Offered in the spirit the challenge asked for: everything below was "
         "observed while building on the API, with traces retained.")
     add("")
     add("1. **Streaming STT never returns `COMMITTED_TRANSCRIPT`.** Sending "
@@ -849,7 +851,7 @@ def render() -> Path:
         "utterances; we ship with streaming disabled and a one-variable switch to "
         "re-enable it.")
     add("2. **Unknown form fields are silently ignored.** Posting `language=pcm` "
-        "instead of `use_language_asr_input=pcm` does not error — the request "
+        "instead of `use_language_asr_input=pcm` does not error: the request "
         "quietly falls back to English ASR and returns a confident, wrong-language "
         "transcript. This cost us a day of chasing a phantom model regression. "
         "Rejecting unknown `use_*` fields, or echoing the effective configuration "
@@ -859,8 +861,8 @@ def render() -> Path:
         "2 September. Benchmarks are not reproducible against a moving, unlabelled "
         "backend; a `model_version` field would fix this.")
     add("4. **Shona is a supported language but not a supported code-switch pair.** "
-        "AfriSwitch itself ships 3.86 h of Shona at CMI 24.55 — among the most "
-        "balanced code-mixing in the dataset — so the data to close this gap "
+        "AfriSwitch itself ships 3.86 h of Shona at CMI 24.55: among the most "
+        "balanced code-mixing in the dataset, so the data to close this gap "
         "already exists in-house.")
     add("5. **`use_disable_llm_corrections` appears to do nothing.** Documented "
         "with a default of FALSE, implying an LLM rewrites transcripts unless "
@@ -871,38 +873,38 @@ def render() -> Path:
         "integrators do not have.")
     add("6. **TTS accent values are language-named and undocumented in tutorials.** "
         "Finding `voice_language=\"pcm\"` + `voice_accent=\"pidgin\"` required "
-        "probing; the combination is correct and produces a genuinely Nigerian "
+        "probing; the combination is correct and produces a Nigerian "
         "voice, which materially improved how our testers received the app.")
     add("")
 
     # ---------------------------------------------------------------- 10
     add("## 10. Related work and how this benchmark differs")
     add("")
-    add("- **PazaBench** (Microsoft Research Africa; `aka.ms/pazabench`) — the ASR "
+    add("- **PazaBench** (Microsoft Research Africa; `aka.ms/pazabench`): the ASR "
         "leaderboard for low-resource languages, 61 African languages × 53 models. "
         "Snapshot taken 28 August (`results/pazabench-wer-2026-08-28.md`). Two "
         "verified gaps motivate this work: **Nigerian Pidgin does not appear among "
         "its 61 languages**, and **no Intron/Sahara model appears among its 53 "
         "models**. Note the precision: omnilingual-ASR *claims* `pcm_Latn` support, "
-        "so the gap is in public *evaluation*, not claimed coverage — and to our "
+        "so the gap is in public *evaluation*, not claimed coverage, and to our "
         "knowledge this report contains the first published Pidgin numbers for it.")
-    add("- **ASR-FairBench** (Rai et al., Interspeech 2025) — motivates §3. Their "
+    add("- **ASR-FairBench** (Rai et al., Interspeech 2025), motivates §3. Their "
         "core argument, that aggregate accuracy conceals group disparity, is the "
         "reason we report per-group WER and a disparity ratio.")
-    add("- **AfriSwitch** (`intronhealth/AfriSwitch`, CC BY-NC-SA 4.0) — 54.41 h / "
+    add("- **AfriSwitch** (`intronhealth/AfriSwitch`, CC BY-NC-SA 4.0): 54.41 h / "
         "16,602 code-switched utterances across 14 African languages, used for "
         "evaluation only, never redistributed, never used to train the product. "
         "**Version matters here and we were caught by it.** Our tier-b sample was "
         "drawn from the release as it stood before **7 September 2026, 21:25 "
         "UTC**, when the dataset was re-published. The headline totals are "
-        "identical across that boundary — same 14 languages, same 54.41 hours, "
-        "same 16,602 utterances — so a check of the summary figures (which is "
+        "identical across that boundary: same 14 languages, same 54.41 hours, "
+        "same 16,602 utterances, so a check of the summary figures (which is "
         "what we ran on the morning of the 7th) shows no change at all. The "
         "per-utterance data did change: utterances outside each language's "
-        "5th–95th percentile of characters-per-second were filtered out, "
+        "5th-95th percentile of characters-per-second were filtered out, "
         "code-mixing metrics were recomputed, and a `transcription_tagged` field "
         "marking English spans was added. The recomputation moved some figures "
-        "sharply — **Pidgin's Code-Mixing Index went from 4.19 to 30.15**, from "
+        "sharply: **Pidgin's Code-Mixing Index went from 4.19 to 30.15**, from "
         "the lowest in the corpus to among the highest. Our cached Pidgin clips "
         "average CMI 4.63, consistent with the earlier release, which confirms "
         "which side of the boundary our sample sits on.")
@@ -910,7 +912,7 @@ def render() -> Path:
     add("  We did not re-draw the corpus after this. Re-drawing would have "
         "invalidated every cached transcript and every number in this report "
         "four days before the deadline, and a frozen corpus is supposed to be "
-        "pinned to a version — that is the point of publishing a manifest hash. "
+        "pinned to a version: that is the point of publishing a manifest hash. "
         "So the tier-b results here describe the pre-7-September release, and we "
         "say so rather than citing the current statistics table as though our "
         "sample came from it. **The lesson generalises**: we asked Intron in §9 "
@@ -918,7 +920,7 @@ def render() -> Path:
         "benchmarks irreproducible, and the same argument applies to an "
         "unversioned dataset. A dated snapshot and a published hash are what let "
         "us notice this at all.")
-    add("- **LyngualLabs Yoruba-English code-switching** — listed in Intron's "
+    add("- **LyngualLabs Yoruba-English code-switching**: listed in Intron's "
         "code-switching collection and worth an honourable mention, but it is a "
         "**TTS model** (a VoxCPM2 fine-tune), not a corpus: it has no human audio "
         "paired with ground-truth transcripts, and benchmarking ASR on synthesised "
@@ -926,7 +928,7 @@ def render() -> Path:
     add("")
     add("**Mercy Muchai** (Microsoft Research Africa), at the same masterclass, "
         "made the point this corpus is built around: code-switching evaluation "
-        "requires datasets that are themselves code-mixed — a single-language "
+        "requires datasets that are themselves code-mixed, a single-language "
         "corpus cannot measure it. Our tier-a and tier-sh corpora are natively "
         "recorded code-mixed market speech, and tier-b is AfriSwitch.")
     add("")
@@ -942,7 +944,7 @@ def render() -> Path:
         "then CORRECTED by a native Nigerian Pidgin/Yoruba speaker before "
         "recording; tier-sh identically, by a native Shona speaker (7 September). "
         "The sw-KE and ha-NG cases remain non-native drafts and are flagged as "
-        "such — they are excluded from the recorded tiers rather than presented as "
+        "such: they are excluded from the recorded tiers rather than presented as "
         "validated. Even our test corpus needed native repair: that is the same "
         "gap the product exists to close.")
     add("- **Transaction accuracy** feeds each raw transcript through the shipped "
@@ -954,8 +956,8 @@ def render() -> Path:
         "would be a bias in *our* instrument. The fold is a no-op on ASCII output, "
         "so it does not advantage any model.")
     add("- **What the transaction metric does and does not measure.** Each "
-        "transcript is passed through the shipped *normaliser* — the "
-        "deterministic grammar — and the resulting ParseResult is compared to "
+        "transcript is passed through the shipped *normaliser*: the "
+        "deterministic grammar, and the resulting ParseResult is compared to "
         "the expected one. It is **not** a simulation of the full conversation: "
         "the agent's commit gate, its unknown-item and suspicious-amount "
         "confirmations, the user's \"yes\"/\"no\" turn, and the actual database "
@@ -980,9 +982,9 @@ def render() -> Path:
     add("- **Caveats on generalisation.** Small n per tier (15 clips each on the "
         "native tiers). Tier-a is one Nigerian male speaker and tier-sh is one "
         "Zimbabwean female speaker, each recorded on their own device in their "
-        "own room — so **language is confounded with speaker, microphone and "
+        "own room, so **language is confounded with speaker, microphone and "
         "acoustic environment**, and no cross-tier comparison here isolates the "
-        "language. Sahara failures are reported unedited — the claim under test "
+        "language. Sahara failures are reported unedited: the claim under test "
         "is downstream safety, not vendor perfection.")
     add("- **Retired model.** `whisper-small` appeared in our August workshop "
         "benchmark as a placeholder for a frontier model we had no key for. With "

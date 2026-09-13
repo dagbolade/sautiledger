@@ -9,7 +9,7 @@ from sautiledger.normaliser import grammar_parse, normalise
 from sautiledger.packs import load_pack
 
 PACK = load_pack("pcm-yo-NG")
-GIBBERISH = "how you dey my friend"  # no triggers, no numbers — no grammar reading
+GIBBERISH = "how you dey my friend"  # no triggers, no numbers: no grammar reading
 
 
 class CannedLlm:
@@ -53,7 +53,7 @@ def test_no_llm_means_clarify_not_crash():
 
 
 def test_placeholder_question_about_is_sanitised():
-    # small models echo the prompt's placeholder — never let junk downstream
+    # small models echo the prompt's placeholder: never let junk downstream
     llm = CannedLlm({"intent": "clarify", "question_about": "what is unclear"})
     result = llm_parse(GIBBERISH, PACK, llm)
     assert result.question_about == "missing_transaction_details"
@@ -120,7 +120,7 @@ def test_hosted_client_routes_through_egress_and_is_logged():
 
 
 def test_hosted_needs_explicit_opt_in_and_token():
-    """"auto" never selects the hosted model — utterance text leaving the
+    """"auto" never selects the hosted model, utterance text leaving the
     device must be an explicit choice; and "hosted" without a token
     degrades to grammar-only rather than crashing."""
     from sautiledger.api import _make_llm

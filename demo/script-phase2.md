@@ -1,4 +1,4 @@
-# SautiLedger — Phase 2 demo video script (~3:00)
+# SautiLedger: Phase 2 demo video script (~3:00)
 
 **Form rules:** max 5 minutes · public or **unlisted** YouTube · must show
 code-switching. This script runs about 3 minutes.
@@ -20,7 +20,7 @@ so no browser bar). Volume up: the spoken read-back is part of the demo.
 
 ---
 
-## 0:00–0:15 · The problem
+## 0:00-0:15 · The problem
 
 *On camera or voiceover, over a shot of a stall or stock:*
 
@@ -31,7 +31,7 @@ so no browser bar). Volume up: the spoken read-back is part of the demo.
 
 ---
 
-## 0:15–0:50 · The core loop, in her language
+## 0:15-0:50 · The core loop, in her language
 
 Hold the mic and say:
 
@@ -57,11 +57,11 @@ five hundred naira total. Correct?"* → **"yes"**
 
 ---
 
-## 0:50–1:20 · It's an agent, not a dictaphone
+## 0:50-1:20 · It's an agent, not a dictaphone
 
 > **"wetin remain"**
 
-App: *"You sell six thousand naira, you spend zero naira — wetin remain na
+App: *"You sell six thousand naira, you spend zero naira, wetin remain na
 six thousand naira."*
 
 > **"I buy fuel ten thousand naira"** → App: *"Logged expense: fuel, ten
@@ -80,7 +80,7 @@ Use the full sentence for a clear demo, and rehearse the shorter correction form
 
 ---
 
-## 1:20–1:50 · It refuses to guess
+## 1:20-1:50 · It refuses to guess
 
 > **"I don sell garri finish"**, a sale with no price.
 
@@ -99,7 +99,7 @@ Correct?"* → **"yes"**
 
 ---
 
-## 1:50–2:15 · Shona, same app
+## 1:50-2:15 · Shona, same app
 
 Open a separate empty book in a private browser session (prepare it before filming), then select **Shona / English → English · USD**. Keep the naira book in the original session; switching currency in a populated book is intentionally blocked.
 
@@ -123,7 +123,7 @@ device into the mic.)*
 
 ---
 
-## 2:15–2:35 · Privacy you can see
+## 2:15-2:35 · Privacy you can see
 
 Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
@@ -131,7 +131,7 @@ Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
 ---
 
-## 2:35–2:50 · Why a bank cares
+## 2:35-2:50 · Why a bank cares
 
 Tap **Trading statement**.
 
@@ -141,7 +141,7 @@ Tap **Trading statement**.
 
 ---
 
-## 2:50–3:00 · Close
+## 2:50-3:00 · Close
 
 > "Pidgin, Yoruba, English and Shona. Built on Sahara, benchmarked against
 > six other speech systems on whether the money survives, not just the

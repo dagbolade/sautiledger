@@ -17,7 +17,6 @@ recordings
 *.webm
 *.mp4
 *.m4a
-benchmark_report.pdf
 normaliser_tests.json
 .idea
 .vscode

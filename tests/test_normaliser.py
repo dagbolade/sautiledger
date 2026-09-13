@@ -1,4 +1,4 @@
-"""Runs every case in normaliser_tests.json — the source of truth.
+"""Runs every case in normaliser_tests.json: the source of truth.
 
 acceptance_rules enforcement:
 - Exact structural match on every key the case's expect block declares.
@@ -68,7 +68,7 @@ def test_reduplication_leading_token(packs):
 
 
 def test_reduplication_is_pack_gated(packs):
-    """sw-KE has NOT validated this rule — same shape must not distribute."""
+    """sw-KE has NOT validated this rule, same shape must not distribute."""
     result = normalise("nimeuza mahindi gunia mbili mia tano mia tano", packs["sw-KE"], llm=RaisingLlm())
     assert result.amount_each is None  # no distributive without the pack flag
 
@@ -86,7 +86,7 @@ def test_digit_twin_is_pack_gated(packs):
 
 
 def test_flattened_distributive_guard(packs):
-    """Flattened-distributive guard: qty>=2 + a bare numeral is unknowable — ask.
+    """Flattened-distributive guard: qty>=2 + a bare numeral is unknowable, ask.
     'pint' is an ASR-mangled unit: quantity recovered from the leading digit."""
     result = normalise("customer take 2 pint of garri 250", packs["pcm-yo-NG"], llm=RaisingLlm())
     assert result.intent == "clarify"
@@ -97,13 +97,13 @@ def test_flattened_distributive_guard(packs):
 
 
 def test_multiword_money_not_guarded(packs):
-    """'elfu tatu' is a spoken phrase, not a flattened numeral — logs confidently."""
+    """'elfu tatu' is a spoken phrase, not a flattened numeral, logs confidently."""
     result = normalise("nimeuza mahindi gunia mbili elfu tatu", packs["sw-KE"], llm=RaisingLlm())
     assert result.intent == "log_transaction" and result.amount == 3000
 
 
 def test_item_then_quantity_order(packs):
-    """'groundnut 3 for 500' — qty follows item; 'for' marks the total."""
+    """'groundnut 3 for 500', qty follows item; 'for' marks the total."""
     result = normalise("I sell groundnut 3 for 500", packs["pcm-yo-NG"], llm=RaisingLlm())
     assert result.intent == "log_transaction"
     assert result.item == "groundnut" and result.quantity == 3 and result.amount == 500
@@ -150,7 +150,7 @@ def test_first_person_buy_stays_expense(packs):
 
 
 def test_narrated_sale_without_amount_asks_amount_not_generic(packs):
-    """ASR often eats the money tail — the question must be the amount
+    """ASR often eats the money tail, the question must be the amount
     clarify, never 'wetin you want make I log?'."""
     result = normalise(
         "Blessing come my shop come buy biscuits", packs["pcm-yo-NG"], llm=RaisingLlm()
@@ -167,7 +167,7 @@ def test_carry_narration(packs):
 
 
 def test_clarify_cases_never_carry_an_amount(packs):
-    """Cases 4, 6, 20 must clarify — and must not smuggle a guessed amount."""
+    """Cases 4, 6, 20 must clarify, and must not smuggle a guessed amount."""
     for case in SPEC["cases"]:
         if case["expect"]["intent"] != "clarify":
             continue

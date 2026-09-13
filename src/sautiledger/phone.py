@@ -1,6 +1,6 @@
 """Phone testing mode: serve the UI over HTTPS on the local network.
 
-Why HTTPS: browsers block getUserMedia (the mic) on insecure origins —
+Why HTTPS: browsers block getUserMedia (the mic) on insecure origins,
 plain http://192.168.x.x will never show the mic prompt. A self-signed
 cert fixes it: the phone shows one scary warning, you tap
 Advanced -> Proceed, and the mic works from then on.

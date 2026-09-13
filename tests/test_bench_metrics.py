@@ -1,4 +1,4 @@
-"""Unit tests for the benchmark metric functions — synthetic cases only,
+"""Unit tests for the benchmark metric functions: synthetic cases only,
 no audio, no models."""
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def test_derivable_numbers_handles_all_formats():
 
 def test_the_inversion_case():
     """Canonical synthetic case: 'I dont sell 3 bags 5.5k' vs truth
-    'I don sell three bags five thousand five' — numeric-accurate, but flagged."""
+    'I don sell three bags five thousand five', numeric-accurate, but flagged."""
     hyp = "I dont sell 3 bags of rice 5.5k"
     assert numeric_accuracy(EXPECTED, hyp, PACK) is True
     assert "perfective_negation_inversion" in transcription_flags(TRUTH, hyp)
@@ -57,7 +57,7 @@ def test_transaction_metrics_correct_transcript():
 
 def test_transaction_metrics_corrupted_amount():
     # transcription mangled "five thousand five" (5500) into "five k" (5000):
-    # the normaliser confidently logs the WRONG amount — the failure that matters
+    # the normaliser confidently logs the WRONG amount: the failure that matters
     result = transaction_metrics(EXPECTED, "I don sell three bags of rice five k", PACK)
     assert result["amount_corrupted"] and not result["amount_safe"]
 

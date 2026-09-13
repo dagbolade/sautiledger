@@ -1,5 +1,5 @@
 """Bank-readiness statement: a trader's ledger as an artefact a lender
-doing MANUAL review can read — real computed figures only. Deliberately
+doing MANUAL review can read, real computed figures only. Deliberately
 unglamorous: no score, no rating, no model. The page prints cleanly, so
 "Save as PDF" in any browser produces the document.
 """
@@ -22,7 +22,7 @@ def _fmt(amount: int, sign: str) -> str:
 
 
 def statement_stats(rows) -> dict:
-    """Real arithmetic over non-voided rows — nothing inferred."""
+    """Real arithmetic over non-voided rows, nothing inferred."""
     sales = [r for r in rows if r["type"] == "sale"]
     expenses = [r for r in rows if r["type"] == "expense"]
     sales_total = sum(r["amount"] or 0 for r in sales)

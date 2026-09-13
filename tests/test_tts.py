@@ -106,7 +106,7 @@ def test_speakable_strips_spoken_punctuation():
     from sautiledger.tts import speakable
 
     assert ":" not in speakable("Logged expense: fuel, ten thousand naira.")
-    # commas and full stops are prosody — they must survive
+    # commas and full stops are prosody: they must survive
     out = speakable("Logged: 3 derica of rice, five thousand five hundred naira.")
     assert "," in out and out.endswith("naira.")
     assert "  " not in out

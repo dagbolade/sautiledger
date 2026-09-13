@@ -25,7 +25,7 @@ UNPARSEABLE = "unparseable"
 
 
 def tokenize(text: str) -> list[str]:
-    # written-shorthand register: "@5700" is the typed price marker —
+    # written-shorthand register: "@5700" is the typed price marker,
     # same tier as the spoken connectives (for/at/worth)
     text = text.lower().replace("@", " at ")
     text = _QTY_GLUE_RE.sub(" ", text)
@@ -152,7 +152,7 @@ def _money_value(toks: list[str], pack: Pack) -> int | None:
     if n == 1 and ks == ["KNUM"]:
         return vs[0]  # "5k", "5.5k"
     if n == 2 and ks == ["KNUM", "NUM"] and _cls(vs[1]) == "SMALL" and pack.digit_twin_thousands:
-        # Digit-twin of the native "N thousand M" form —
+        # Digit-twin of the native "N thousand M" form:
         # Sahara's numeric normalisation emits "5k 5" for spoken
         # "five thousand five"; refusing it was the grammar not speaking
         # Sahara's output dialect, not safety.
@@ -210,7 +210,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
     """Resolve a money token run against pack rules only.
 
     Returns {"amount": n} / {"amount_each": n, "amount": n} on success,
-    {"ambiguous": [candidates]} for genuinely ambiguous forms, or the
+    {"ambiguous": [candidates]} for ambiguous forms, or the
     NO_MONEY / UNPARSEABLE sentinels. Never guesses.
     """
     if not tokens:
@@ -222,7 +222,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
     toks = [t for t in tokens if t not in pack.each_words]
     if not toks:
         return UNPARSEABLE
-    # Wholesale register (field round two): "200 PER ONE" — the trailing
+    # Wholesale register (field round two): "200 PER ONE", the trailing
     # 'one' names the unit being priced, not part of the amount
     if each and len(toks) >= 2 and _num_value(toks[-1], pack) == 1:
         toks = toks[:-1]
@@ -256,7 +256,7 @@ def parse_money(tokens: list[str], quantity: int | None, pack: Pack, total_marke
         amount = _small_single_value(toks, pack)
     # Deletion-class risk (workshop residual #1): a run that is ONE bare
     # scale WORD ("thousand", "hundred", "egberun") is the signature of a
-    # deleted multiplier — "[ten] thousand" logging ₦1,000 for ₦10,000.
+    # deleted multiplier: "[ten] thousand" logging ₦1,000 for ₦10,000.
     # Digits ("1000") and full phrases ("ten thousand") are never flagged.
     suspect = (
         len(toks) == 1
@@ -396,7 +396,7 @@ def _try_interrogative(tokens: list[str], pack: Pack) -> ParseResult | None:
 def _try_recap(tokens: list[str], pack: Pack) -> ParseResult | None:
     """Full row-by-row readback. Runs BEFORE the interrogative pass so
     'wetin dey my ledger' reads the book instead of querying an item, and
-    matches loosely — 'read ALL my ledger for today' must not miss because
+    matches loosely: 'read ALL my ledger for today' must not miss because
     of an interposed word."""
     for trigger in pack.recap_triggers:
         if _find(tokens, trigger) >= 0:
@@ -420,7 +420,7 @@ def _try_summary(tokens: list[str], pack: Pack) -> ParseResult | None:
 def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     # Deletion-class risk (workshop residual #2): a doubled correction
     # trigger ("no no na…") transcribed with a single "no" falls through to
-    # a spurious sale. Traders do not open a sale with "no" — a
+    # a spurious sale. Traders do not open a sale with "no": a
     # negation-led log gets the explicit confirm instead of a silent write.
     negation_lead = bool(tokens) and tokens[0] == "no"
 
@@ -429,7 +429,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             i = _find(toks, phrase)
             if i >= 0:
                 # everything BEFORE the trigger is narration ("Blessing come
-                # my shop come buy…") — names get ASR-mangled, so the prefix
+                # my shop come buy…"): names get ASR-mangled, so the prefix
                 # is discarded rather than parsed
                 return toks[i + len(phrase.split()):], True
         return toks, False
@@ -444,7 +444,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             ttype = "sale"
         else:
             tokens, triggered = consume_trigger(tokens, pack.log_triggers)
-            # generic "log" — default type is sale
+            # generic "log": default type is sale
 
     for phrase in pack.transaction_context_phrases:
         tokens = _remove_phrase(tokens, phrase)
@@ -498,7 +498,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     # leaving it in the item made the damaged-price guard below refuse a
     # perfectly good sale, telling the trader to remove a buyer's name she
     # had never said (production, 2026-09-10T23:06). Trailing connectives
-    # keep their existing meaning — only the leading position changes.
+    # keep their existing meaning: only the leading position changes.
     while len(item_toks) > 1 and item_toks[0] in pack.copula_openers:
         item_toks.pop(0)
 
@@ -523,7 +523,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             item_toks = item_toks[:-1]
 
     if total_marked and quantity is None:
-        # typed-shorthand register: "Mr olaolu 1 big egg at 5700" — with an
+        # typed-shorthand register: "Mr olaolu 1 big egg at 5700", with an
         # explicit price marker present, the first count-sized numeral is
         # the quantity, and whatever precedes it is a buyer/narration
         # prefix (names arrive ASR-mangled, never required to parse)
@@ -535,7 +535,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
                 break
 
     if total_marked and quantity is None and len(money_toks) == 1 and item_toks:
-        # amount-for-quantity order: "biscuits 350 for 2" = ₦350 for 2 —
+        # amount-for-quantity order: "biscuits 350 for 2" = ₦350 for 2,
         # a count-sized figure after the connective with a money-sized
         # figure before it means the sides are swapped
         small = _num_value(money_toks[0], pack)
@@ -546,7 +546,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
     item = " ".join(item_toks) or None
 
     if not triggered and unit is None and not money_toks:
-        return None  # no transaction signal at all — grammar has no reading
+        return None  # no transaction signal at all, grammar has no reading
 
     base = dict(
         type=ttype or "sale",
@@ -585,7 +585,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
             intent="clarify", question_about="amount", candidates=m["ambiguous"], **base
         )
     if item is None:
-        # An amount with nothing it belongs to is not loggable — but there IS
+        # An amount with nothing it belongs to is not loggable, but there IS
         # a transaction signal, so ask about the item, not the generic prompt.
         return ParseResult(
             intent="clarify", question_about="item",
@@ -606,7 +606,7 @@ def _try_transaction(tokens: list[str], pack: Pack) -> ParseResult | None:
 def _split_glued(tokens: list[str], pack: Pack) -> list[str]:
     """Bantu concord prefixes glue onto code-switched numbers ("NEfive
     dollars", "YEten"). Split ONLY when the remainder is a known number or
-    currency word — 'enzungu' (e + groundnuts) is never touched."""
+    currency word: 'enzungu' (e + groundnuts) is never touched."""
     if not pack.number_prefixes:
         return tokens
     out = []
@@ -636,7 +636,7 @@ def grammar_parse(utterance: str, pack: Pack) -> ParseResult | None:
 
 
 def normalise(utterance: str, pack: Pack, llm=None) -> ParseResult:
-    """Grammar first; LLM fallback only when the grammar returns None —
+    """Grammar first; LLM fallback only when the grammar returns None,
     or, for LONG utterances with a transaction signal the grammar could
     not complete, as a second reading (the sanitiser in
     llm_fallback.py still forbids any amount not literally present).
@@ -645,7 +645,7 @@ def normalise(utterance: str, pack: Pack, llm=None) -> ParseResult:
     if result is not None:
         if (llm is not None and result.intent == "clarify"
                 and result.question_about == "amount" and result.candidates is None):
-            # candidates mean a DELIBERATE safety question (each or total?) —
+            # candidates mean a DELIBERATE safety question (each or total?):
             # the fallback must never resolve that ambiguity on its own
             tokens = tokenize(utterance)
             # Widened fallback for narrated speech: >6 words, no deliberate

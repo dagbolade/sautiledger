@@ -15,7 +15,7 @@ transaction ground truth, so transaction metrics are unavailable for that tier.
 scenarios in `conversation_scenarios.json` (37 scenarios: 19 completion tasks and 18 controls; see the generated summary for results) through the real agent and an isolated SQLite ledger, with the app's
 English reply renderer. It reports exact final ledger completion, turns to a
 correct entry, turns to confirmation, local processing time, and wrong amounts
-committed at any turn—even if corrected later. A safe unanswered clarification
+committed at any turn: even if corrected later. A safe unanswered clarification
 does not count as a completed transaction. Every turn includes before/after
 ledger evidence. Source and implementation hashes make results traceable.
 

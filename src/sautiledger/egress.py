@@ -2,7 +2,7 @@
 
 This is the ONLY module in sautiledger allowed to perform remote HTTP.
 Every transmission is measured and written to egress_log BEFORE control
-returns — success or failure — so the app can always prove what it
+returns, success or failure, so the app can always prove what it
 shared. tests/test_import_guard.py walks the AST of every module to
 enforce this boundary.
 
@@ -25,7 +25,7 @@ from datetime import date
 
 from .ledger import Ledger
 
-# Outbound TLS uses certifi's CA bundle explicitly — NEVER the process
+# Outbound TLS uses certifi's CA bundle explicitly: NEVER the process
 # default, which the inbound self-signed dev cert (phone mode) or stray
 # SSL_* env vars can contaminate (observed: CERTIFICATE_VERIFY_FAILED on
 # infer.voice.intron.io while serving https on the LAN).
@@ -58,10 +58,10 @@ class EgressRecorder:
         disposition = "unknown"
         try:
             status, body = self._open(url, data, headers, timeout)
-            disposition = f"delivered (HTTP {status}); deleted after response — nothing kept"
+            disposition = f"delivered (HTTP {status}); deleted after response, nothing kept"
             return status, body
         except Exception as exc:
-            disposition = f"send failed ({type(exc).__name__}) — nothing was delivered"
+            disposition = f"send failed ({type(exc).__name__}), nothing was delivered"
             raise EgressError(f"transmission to {destination} failed: {exc}") from exc
         finally:
             self.ledger.conn.execute(
@@ -82,7 +82,7 @@ class EgressRecorder:
     def get(self, url: str, *, purpose: str, headers: dict, timeout: float = 30
             ) -> tuple[int, bytes]:
         """Logged GET (result polling). No payload leaves the device, but a
-        request is a transmission — it appears in the egress ledger with
+        request is a transmission: it appears in the egress ledger with
         zero bytes sent."""
         destination = urlsplit(url).netloc
         disposition = "unknown"
@@ -109,7 +109,7 @@ class EgressRecorder:
                     connect=None) -> "LoggedStream":
         """A measured, ledger-visible WebSocket. The row is written the
         moment the stream opens (disposition 'stream in progress') and
-        finalised with byte totals when it closes — a crash mid-stream
+        finalised with byte totals when it closes: a crash mid-stream
         still leaves the honest 'in progress' record behind."""
         return LoggedStream(self, url, purpose, headers, connect)
 
@@ -117,7 +117,7 @@ class EgressRecorder:
 
     def sends_today(self, purpose: str) -> int:
         """How many payload-carrying transmissions this session made today
-        for one purpose — feeds the per-session daily ASR cap that stops a
+        for one purpose, feeds the per-session daily ASR cap that stops a
         shared link from draining the API credits."""
         row = self.ledger.conn.execute(
             "SELECT COUNT(*) AS n FROM egress_log WHERE session_id = ? "
@@ -207,7 +207,7 @@ class LoggedStream:
                 pass
         if exc_type is None:
             self._finalise(
-                f"stream closed; {self.bytes_received} bytes received back — "
+                f"stream closed; {self.bytes_received} bytes received back, "
                 f"audio deleted after transcription, nothing kept"
             )
         else:

@@ -63,7 +63,7 @@ def _spec_fixtures() -> dict[str, str]:
 
 class SaharaCloudAsr:
     """Cloud ASR. The ONLY data that ever leaves the device is the audio
-    clip sent here, and it goes through the egress recorder — sending
+    clip sent here, and it goes through the egress recorder: sending
     audio without logging it breaks the app's core guarantee."""
 
     def __init__(self, recorder: EgressRecorder, api_key: str | None, url: str = SAHARA_SYNC_URL):
@@ -99,7 +99,7 @@ class SaharaCloudAsr:
 
 class SaharaAsyncAsr:
     """Alternate cloud path: async upload then poll for the result.
-    Same egress rules — the upload is logged with its byte count, and
+    Same egress rules: the upload is logged with its byte count, and
     every result-check GET is logged at zero bytes. Selected with
     SAUTI_ASR=async (used while the sync endpoint is degraded)."""
 
@@ -159,12 +159,12 @@ class SaharaAsyncAsr:
 
 class SaharaOfflineAsr:
     """Swap point for Sahara's on-device deployment: drop the local
-    engine in here — transcribe() keeps the same signature, call sites
+    engine in here, transcribe() keeps the same signature, call sites
     never change, and the egress meter reads zero."""
 
     def transcribe(self, audio_bytes: bytes, language_hint: str | None = None) -> Transcript:
         raise NotImplementedError(
-            "Sahara offline engine not yet available — this class is the swap point"
+            "Sahara offline engine not yet available, this class is the swap point"
         )
 
 
@@ -172,7 +172,7 @@ class SaharaStreamingAsr:
     """Live transcription over Sahara's streaming WebSocket
     (docs.voice.intron.io/docs/stt/streaming). This class only speaks the
     message protocol; the connection itself is an egress-logged stream
-    from EgressRecorder.open_stream — asr.py never touches the network.
+    from EgressRecorder.open_stream: asr.py never touches the network.
 
     Contract: base64 PCM16 mono 16 kHz chunks (1-32 KB) as
     INPUT_AUDIO_CHUNK; COMMIT ends the utterance; PARTIAL_TRANSCRIPT

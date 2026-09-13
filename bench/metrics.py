@@ -1,4 +1,4 @@
-"""Benchmark metrics. Pure functions, no ASR dependencies — unit-testable
+"""Benchmark metrics. Pure functions, no ASR dependencies: unit-testable
 without any model installed.
 
 WER normalisation: the Intron-Multimodal-Benchmarking repo reports
@@ -9,9 +9,9 @@ by reporting both raw and normalised WER.
 
 The centrepiece is TRANSACTION ACCURACY: each model's raw transcript is
 fed through OUR normaliser and the resulting ParseResult compared to the
-expected parse at three levels — exact_match, amount_safe (correct OR
+expected parse at three levels, exact_match, amount_safe (correct OR
 clarify: asking is safe), amount_corrupted (a WRONG amount would have
-been written to someone's money records — the failure that matters).
+been written to someone's money records, the failure that matters).
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ def wer(truth: str, hyp: str, normalized: bool = True) -> float:
 
 def cer(truth: str, hyp: str, normalized: bool = True) -> float:
     """Character error rate. Intron's own multimodal benchmark and
-    Microsoft's PazaBench both lead with CER — it is the fairer metric for
+    Microsoft's PazaBench both lead with CER: it is the fairer metric for
     morphologically rich languages, where one wrong affix costs a whole
     word under WER. Normalised = the WER normalisation, spaces dropped."""
     if normalized:
@@ -161,7 +161,7 @@ def transaction_metrics(expected_parse: dict, hyp_text: str, pack: Pack) -> dict
     exp_each = expected_parse.get("amount_each")
 
     if got["intent"] == "clarify":
-        # Asking is always safe — nothing gets written.
+        # Asking is always safe: nothing gets written.
         amount_safe, amount_corrupted = True, False
     elif expected_intent == "clarify":
         # Truth demanded a question; the mangled transcript let an entry

@@ -2,15 +2,15 @@
 
 Two-step flow, deliberately human-gated:
 
-  1. stage    — match clips from an /admin/audio export against the session's
+  1. stage: match clips from an /admin/audio export against the session's
                 usage CSV, copy them into a staging folder under de-identified
                 sample ids, and write REVIEW.md (transcripts, staging only)
                 so every clip can be eyeballed for personal names.
-  2. finalize — zip the staged clips + metadata.csv + CONSENT.md.
+  2. finalize: zip the staged clips + metadata.csv + CONSENT.md.
 
 finalize REFUSES to run unless every staged session is explicitly named in
 --consent-confirmed. The in-app retention consent reads "Clips stay for this
-app, nowhere else" — it covers retention for testing, NOT redistribution
+app, nowhere else": it covers retention for testing, NOT redistribution
 into a community benchmark. Fresh, explicit permission from each contributor
 is required before a bundle may leave this machine.
 
@@ -39,7 +39,7 @@ from pathlib import Path
 DOMAIN = "informal-commerce/fintech"
 IN_APP_CONSENT = (
     'In-app retention consent (verbatim): "Keep my voice clips make dem help '
-    'test the speech model." / "Na only if you gree — you fit off am '
+    'test the speech model." / "Na only if you gree, you fit off am '
     'anytime. Clips stay for this app, nowhere else."'
 )
 
@@ -127,12 +127,12 @@ def stage(args: argparse.Namespace) -> int:
     manifest_path.write_text(json.dumps(manifest, indent=2))
 
     review = staging / "REVIEW.md"
-    header = ("# Staged clips — review before finalize\n\n"
+    header = ("# Staged clips: review before finalize\n\n"
               "Read every transcript below and DELETE the .wav of any clip that "
               "names a person or anything else the contributor would not want "
               "shared. This file stays in staging; it is never bundled.\n")
     body = (review.read_text() if review.exists() else header)
-    body += f"\n## Session {ref} ({args.session}) — staged {date.today().isoformat()}\n\n"
+    body += f"\n## Session {ref} ({args.session}): staged {date.today().isoformat()}\n\n"
     body += "\n".join(review_lines) + "\n"
     review.write_text(body)
 
@@ -151,14 +151,14 @@ def finalize(args: argparse.Namespace) -> int:
     missing = staged_sessions - confirmed
     if missing:
         print("REFUSED: the in-app consent says clips 'stay for this app, "
-              "nowhere else' — it does not cover sharing in a benchmark bundle.")
+              "nowhere else', it does not cover sharing in a benchmark bundle.")
         print("Get explicit fresh permission from each contributor, then pass "
               "their session ids via --consent-confirmed:")
         for s in sorted(missing):
             print(f"  missing: {s} (ref {_session_ref(s)})")
         return 1
     if not args.consent_note:
-        print("REFUSED: --consent-note is required — record when and how the "
+        print("REFUSED: --consent-note is required, record when and how the "
               "contributors gave fresh permission.")
         return 1
 
@@ -166,7 +166,7 @@ def finalize(args: argparse.Namespace) -> int:
     for s in manifest["samples"]:
         wav = staging / f"{s['sample_id']}.wav"
         if not wav.exists():
-            continue  # deleted during review — respected
+            continue  # deleted during review, respected
         wavs.append(wav)
         rows.append({k: s[k] for k in ("sample_id", "session_ref", "duration_s",
                                        "language", "domain", "device_type",
@@ -197,7 +197,7 @@ def finalize(args: argparse.Namespace) -> int:
             z.write(wav, f"audio/{wav.name}")
         z.writestr("metadata.csv", meta.getvalue())
         z.writestr("CONSENT.md", consent_md)
-    print(f"wrote {out} — {len(wavs)} sample(s), metadata.csv, CONSENT.md")
+    print(f"wrote {out}, {len(wavs)} sample(s), metadata.csv, CONSENT.md")
     return 0
 
 

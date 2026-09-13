@@ -1,4 +1,4 @@
-"""FastAPI endpoint tests — offline mode, FakeAsr, in-memory DB."""
+"""FastAPI endpoint tests: offline mode, FakeAsr, in-memory DB."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def test_first_response_sets_a_stable_device_cookie():
 def test_two_devices_interleaved_stay_isolated():
     """The one that matters: two visitors mid-conversation at once. Pending
     clarifies, confirmations, and rejections must each land in the right
-    book — including a rejection that voids ONLY that visitor's row."""
+    book: including a rejection that voids ONLY that visitor's row."""
     app = _shared_app()
     ama, bola = TestClient(app), TestClient(app)
 
@@ -93,12 +93,12 @@ def test_two_devices_interleaved_stay_isolated():
     r = bola.post("/utterance", data={"text": "sell garri egberun meta"})
     assert "three thousand naira" in r.json()["reply_text"]
 
-    # Ama answers HER pending question — it must not touch Bola's turn state
+    # Ama answers HER pending question: it must not touch Bola's turn state
     r = ama.post("/utterance", data={"text": "egberun meji"})
     assert "crayfish" in r.json()["reply_text"]
     assert "two thousand naira" in r.json()["reply_text"]
 
-    # Bola rejects HER readback — voids the garri, never the crayfish
+    # Bola rejects HER readback: voids the garri, never the crayfish
     r = bola.post("/utterance", data={"text": "no"})
     assert "remove" in r.json()["reply_text"]
 
@@ -241,7 +241,7 @@ def test_admin_dashboard_gated_and_shows_fleet(tmp_path):
     bola.post("/utterance", data={"text": "i don sell 3 derica of rice five thousand five"})
 
     assert ama.get("/admin/dashboard").status_code == 401
-    # token in the query string works too — the dashboard is a browser page
+    # token in the query string works too: the dashboard is a browser page
     page = ama.get("/admin/dashboard?token=test-admin-token")
     assert page.status_code == 200
     body = page.text
