@@ -188,8 +188,10 @@ with the manifest hash frozen before the first run. Sahara's failures are
 reported unedited — the claim under test is downstream safety, not raw
 perfection.
 
-**Headline result: no model wins everywhere, and the leader flips with the
-language.** On Pidgin/Yoruba, Microsoft's MAI-Transcribe-2 records the
+**Headline result: no model wins everywhere, and in our sample the leader
+flips with the language** (with 15 clips per language these transaction
+gaps are not statistically significant: see the report's significance
+tests; Sahara's lower WER on Shona is). On Pidgin/Yoruba, Microsoft's MAI-Transcribe-2 records the
 most transactions exactly (60%, zero corrupted) ahead of GPT-4o-transcribe
 (53%) and Sahara (47%), all three with zero corrupted amounts. On Shona
 the ordering inverts — Sahara is tied first with Meta's open

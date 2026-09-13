@@ -138,7 +138,12 @@ and it is the same code path.
 ### What the benchmark told us, including the inconvenient part
 
 Measured on transactions actually recorded correctly, **no single model
-wins, and the leader flips with the language**:
+wins, and in our sample the leader flips with the language**. With 15
+clips per language these transaction gaps are *not* statistically
+significant (MAI and Sahara differ on only 4 Pidgin clips, p = 0.63), so we
+report them as a direction, not a ranking. What is significant is
+transcription quality on Shona: Sahara's WER is lower than GPT-4o, Parakeet,
+Chirp-3 and Whisper at p < 0.05.
 
 | | Pidgin/Yoruba | Shona |
 |---|---|---|

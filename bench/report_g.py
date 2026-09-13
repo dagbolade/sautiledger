@@ -247,6 +247,24 @@ def render() -> Path:
         "(level with Meta's open omnilingual-ASR), double the best frontier "
         "system, while MAI drops to 13% and corrupts 13%.")
     add("")
+    add("**How sure are we? Less than those percentages suggest.** Each native "
+        "tier has 15 clips, and every comparison here is paired (the same clips "
+        "heard by both systems), so we tested the headline gaps directly "
+        "(`python -m bench.significance`: exact McNemar or sign test, plus a "
+        "bootstrap 95% interval). **None of the transaction-accuracy differences "
+        "is statistically significant.** On Pidgin/Yoruba, MAI-Transcribe-2 and "
+        "Sahara disagree on only 4 clips (3–1, p = 0.63). On Shona, Sahara and MAI "
+        "disagree on 2 (2–0, p = 0.50). The reversal is therefore an observed "
+        "direction that a larger corpus would have to confirm, not an established "
+        "ranking. What does hold up is on transcription: on Shona, Sahara's WER is "
+        "significantly lower than GPT-4o-transcribe (p = 0.04), Parakeet (p = 0.01), "
+        "Chirp-3 (p = 0.02) and Whisper-large-v3 (p < 0.001), and lower than MAI and "
+        "omnilingual on the interval, though not on the sign test. On broadcast "
+        "speech Sahara's WER is significantly lower than MAI's (p = 0.04) and level "
+        "with Chirp-3's. On our Pidgin/Yoruba market tier, Sahara is not "
+        "distinguishable from the frontier systems, and all of them beat "
+        "Whisper-large-v3 decisively.")
+    add("")
     add("**Our best explanation is linguistic distance from English — a "
         "hypothesis, discussed in §5, not a demonstrated cause.** Nigerian Pidgin is lexically English-adjacent, so a strong "
         "general-purpose recogniser can largely cope with it; Shona is not, and "
