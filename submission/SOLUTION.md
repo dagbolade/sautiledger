@@ -145,7 +145,7 @@ recognisers cope with it, while Shona is not and they collapse there. If
 that holds, code-switch-specific training is worth most exactly where
 general models are worst.
 
-**Why the product still runs on Sahara.** It has the best WER on every
+**Why the product still runs on Sahara.** It has the best WER on every frozen
 tier; it is tied first on Shona with zero corrupted amounts, while the
 open model it ties with records far fewer Pidgin transactions exactly
 (13% against Sahara's 47%); it renders

@@ -266,7 +266,7 @@ The Shona corpus was built the same way the Pidgin/Yoruba one was: a native spea
 
 **sahara *(5 Aug snapshot)***: No notes.
 
-**`sahara-v2.5`**: **Pros:** the best WER on every tier; **tied first on Shona** with Meta's omnilingual-ASR (both 27% transactions exact, both zero corruption, double the best frontier system), and one of only two that render Nigerian Pidgin's perfective `I don sell` without inverting it into `I don't sell`. Ships TTS in the same voice register, so the readback speaks the user's language. **Cons:** it is *not* the strongest on its own flagship Pidgin/Yoruba pair, MAI-Transcribe-2 and GPT-4o-transcribe both record more transactions exactly. Cloud-only (offline deployment is enterprise-tier), no model/version field in responses, and the documented `use_disable_llm_corrections` control has no observable effect.
+**`sahara-v2.5`**: **Pros:** the best WER on all three frozen tiers (not on the supplementary Yoruba-English farm tier, §8c); **tied first on Shona** with Meta's omnilingual-ASR (both 27% transactions exact, both zero corruption, double the best frontier system), and one of only two that render Nigerian Pidgin's perfective `I don sell` without inverting it into `I don't sell`. Ships TTS in the same voice register, so the readback speaks the user's language. **Cons:** it is *not* the strongest on its own flagship Pidgin/Yoruba pair, MAI-Transcribe-2 and GPT-4o-transcribe both record more transactions exactly. Cloud-only (offline deployment is enterprise-tier), no model/version field in responses, and the documented `use_disable_llm_corrections` control has no observable effect.
 
 **`whisper-large-v3`**: **Pros:** strong general-purpose local model, fully offline, no per-call cost. **Cons:** three failure modes that matter here. It anglicises code-switched speech; it inverts Pidgin's perfective 'I don sell' into the negated 'I don't sell', reversing the meaning of a sale; and on low-resource African audio it **hallucinates its own training data**: two Shona clips returned "Thank you for watching my video" and "Thank you for watching. This is Mrs. Jessie.", fluent English sentences with no relationship to the audio. Most seriously, it turned a *correction* into a corrupted amount: the utterance "Aiwa yairi five dollars kwete five fifty" ("no, it was five dollars, **not** five fifty") was transcribed as "$5, kwete $5.50" and parsed to log 550, the exact figure the trader was correcting away from.
 
@@ -354,6 +354,26 @@ Two rows deserve emphasis. **A control scenario asserts the agent must NOT compl
 | `voice-leading-copula` | yes | a sentence-initial `Na` was read as a price marker and the sale refused; fixed 11 September |
 
 None of the remaining failures writes a wrong amount. Two end in a question the trader cannot get past; the third (`Add garri`) records the right amount under the wrong item name, *add garri*, and asks the trader to confirm it. They are *task-completion* failures, the class this section exists to surface and a transcript benchmark cannot see.
+
+## 8c. Supplementary tier: Yoruba-English farm speech, a second Nigerian speaker
+
+Added on 14 September, after every number above was fixed, to test the obvious weakness of the native tiers: one speaker each. A second Nigerian speaker (adult female) recorded 15 Yoruba-English lines about farm trade (yams, maize, fertilizer, chicken feed, transport), with expected ledger entries written **before** she recorded. It lives in `bench/corpus-supplementary/`, outside the frozen corpus, so the frozen hash above is unchanged; this tier has its own (`e2ea2ae603fe9f53…`). Scored with `python -m bench.supplementary`, identical metrics and parser.
+
+**Two caveats up front.** The speaker was invited to adapt the wording and did, so WER is measured against the reading-list script, not a verbatim transcript. On two lines all five cloud systems heard a different price from the script (4,000 each instead of 4,500; *egberun mefa* each instead of 8,000 total), so transaction scores are shown over all 15 clips and over the 13 whose label matches the audio.
+
+| Model | WER | CER | Numeric accuracy | Amount safe (15 / 13) | **Amount corrupted (15 / 13)** | Transaction exact (15 / 13) |
+|---|---|---|---|---|---|---|
+| `parakeet-tdt` | 0.660 | 0.346 | 67% | 87% / 92% | **13% / 8%** | 7% / 8% |
+| `gpt-4o-transcribe` | 0.696 | 0.446 | 67% | 87% / 92% | **13% / 8%** | 0% / 0% |
+| `mai-transcribe-2` | 0.742 | 0.456 | 67% | 93% / 100% | **7% / 0%** | 7% / 8% |
+| `sahara-v2.5` | 0.747 | 0.525 | 53% | 80% / 85% | **7% / 8%** | 7% / 8% |
+| `chirp-3` | 0.763 | 0.485 | 67% | 93% / 100% | **7% / 0%** | 0% / 0% |
+| `omnilingual-ctc-300m` | 0.807 | 0.339 | 47% | 93% / 92% | **0% / 0%** | 0% / 0% |
+| `whisper-large-v3` | 0.847 | 0.507 | 60% | 80% / 92% | **20% / 8%** | 7% / 8% |
+
+**What it shows.** Sahara's lead does not carry over to this speaker and domain. Its WER sits mid-field and no WER difference against any system is significant; its CER is the highest, and omnilingual-ASR's CER is significantly lower (paired sign test p = 0.035). Transaction accuracy is near zero for every system, and the transcripts show why: the Yoruba verb *mo ta* (I sold) comes back fused as *Mota* or *Motor*, so the parser misses the trigger, and item names are anglicised (*isu* as *issue*, *agbado* as *abado* or *avocado*). Yoruba numerals such as *egberun marun* are often lost; the grammar then asks rather than guesses, which is why amount-safe stays high. On label-verified clips, three of the four corruptions (Sahara, GPT-4o, Parakeet) come from one line and are a code-switching gap rather than an ASR error: *chicken feed ikan je twelve thousand*, where *ikan je* means *each*, is logged as 12,000 instead of 24,000 because the pack does not know the phrase. The fourth is Whisper hearing *2,000* as *2009*.
+
+**Limits.** Fifteen clips, one speaker, script references, and two labels known to disagree with the audio. This tier supports one conclusion: rankings measured on one speaker and one domain do not transfer, which is the same lesson as the Pidgin/Shona reversal in §1. It does not rank the systems.
 
 ## 9. Product feedback to Intron
 

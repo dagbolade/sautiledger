@@ -23,7 +23,7 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 PROS_CONS = {
     "sahara-v2.5": (
-        "**Pros:** the best WER on every tier; **tied first on Shona** with "
+        "**Pros:** the best WER on all three frozen tiers (not on the supplementary Yoruba-English farm tier, §8c); **tied first on Shona** with "
         "Meta's omnilingual-ASR (both 27% transactions exact, both zero "
         "corruption, double the best frontier system), and one of only two that "
         "render Nigerian Pidgin's "
@@ -835,6 +835,68 @@ def render() -> Path:
                 "failures, the class this section exists to surface and a "
                 "transcript benchmark cannot see.")
             add("")
+
+    # ------------------------------------------------- 8c supplementary tier
+    supp_path = RESULTS_DIR / "metrics_supplementary.json"
+    supp_manifest = RESULTS_DIR.parent / "corpus-supplementary" / "yo-farm" / "manifest.jsonl"
+    if supp_path.exists() and supp_manifest.exists():
+        supp = json.loads(supp_path.read_text(encoding="utf-8"))
+        uncertain = {json.loads(l)["id"] for l in supp_manifest.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and json.loads(l).get("label_uncertain")}
+        srows = supp["results"]
+        add("## 8c. Supplementary tier: Yoruba-English farm speech, a second Nigerian speaker")
+        add("")
+        add("Added on 14 September, after every number above was fixed, to test the "
+            "obvious weakness of the native tiers: one speaker each. A second Nigerian "
+            "speaker (adult female) recorded 15 Yoruba-English lines about farm trade "
+            "(yams, maize, fertilizer, chicken feed, transport), with expected ledger "
+            "entries written **before** she recorded. It lives in "
+            "`bench/corpus-supplementary/`, outside the frozen corpus, so the frozen "
+            f"hash above is unchanged; this tier has its own (`{supp['manifest_sha256'][:16]}…`). "
+            "Scored with `python -m bench.supplementary`, identical metrics and parser.")
+        add("")
+        add("**Two caveats up front.** The speaker was invited to adapt the wording and "
+            "did, so WER is measured against the reading-list script, not a verbatim "
+            "transcript. On two lines all five cloud systems heard a different price "
+            "from the script (4,000 each instead of 4,500; *egberun mefa* each instead "
+            "of 8,000 total), so transaction scores are shown over all 15 clips and over "
+            "the 13 whose label matches the audio.")
+        add("")
+        add("| Model | WER | CER | Numeric accuracy | Amount safe (15 / 13) | **Amount corrupted (15 / 13)** | Transaction exact (15 / 13) |")
+        add("|---|---|---|---|---|---|---|")
+        by_model = {}
+        for r in srows:
+            by_model.setdefault(r["model"], []).append(r)
+        pct = lambda rows, k: f"{_mean([float(bool(r[k])) for r in rows]):.0%}"
+        for model in sorted(by_model, key=lambda m: _mean([r["wer"] for r in by_model[m]])):
+            g = by_model[model]
+            lab = [r for r in g if r["has_expected"]]
+            ver = [r for r in lab if r["clip"] not in uncertain]
+            add(f"| {_name(model)} | {_mean([r['wer'] for r in g]):.3f} | {_mean([r.get('cer', 0) for r in g]):.3f} "
+                f"| {pct(lab, 'numeric_accuracy')} | {pct(lab, 'amount_safe')} / {pct(ver, 'amount_safe')} "
+                f"| **{pct(lab, 'amount_corrupted')} / {pct(ver, 'amount_corrupted')}** "
+                f"| {pct(lab, 'exact_match')} / {pct(ver, 'exact_match')} |")
+        add("")
+        add("**What it shows.** Sahara's lead does not carry over to this speaker and "
+            "domain. Its WER sits mid-field and no WER difference against any system is "
+            "significant; its CER is the highest, and omnilingual-ASR's CER is "
+            "significantly lower (paired sign test p = 0.035). Transaction accuracy is "
+            "near zero for every system, and the transcripts show why: the Yoruba verb "
+            "*mo ta* (I sold) comes back fused as *Mota* or *Motor*, so the parser misses "
+            "the trigger, and item names are anglicised (*isu* as *issue*, *agbado* as "
+            "*abado* or *avocado*). Yoruba numerals such as *egberun marun* are often "
+            "lost; the grammar then asks rather than guesses, which is why amount-safe "
+            "stays high. On label-verified clips, three of the four corruptions (Sahara, "
+            "GPT-4o, Parakeet) come from one line and are a code-switching gap rather "
+            "than an ASR error: *chicken feed ikan je twelve thousand*, where *ikan je* "
+            "means *each*, is logged as 12,000 instead of 24,000 because the pack does "
+            "not know the phrase. The fourth is Whisper hearing *2,000* as *2009*.")
+        add("")
+        add("**Limits.** Fifteen clips, one speaker, script references, and two labels "
+            "known to disagree with the audio. This tier supports one conclusion: rankings "
+            "measured on one speaker and one domain do not transfer, which is the same "
+            "lesson as the Pidgin/Shona reversal in §1. It does not rank the systems.")
+        add("")
 
     # ---------------------------------------------------------------- 9
     add("## 9. Product feedback to Intron")

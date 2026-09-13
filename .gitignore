@@ -27,6 +27,7 @@ bench/results/*
 !bench/results/tts_metrics.json
 !bench/results/tts_metrics_punctuated.json
 !bench/results/conversations.json
+!bench/results/metrics_supplementary.json
 
 # python
 .venv/
@@ -47,3 +48,4 @@ phone.err
 incident-*/
 *-usage.csv
 *-transactions.csv
+bench/corpus-supplementary/*/raw/

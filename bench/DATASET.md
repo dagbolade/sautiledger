@@ -16,6 +16,7 @@ Results on this dataset: [`results/REPORT.md`](results/REPORT.md).
 | **tier-a** | `corpus/sautiledger-clips/` | 15 | 1.1 min | Nigerian Pidgin + Yoruba + English | 1 (Nigerian, male) | transcript **+ transaction label** |
 | **tier-sh** | `corpus/sh-clips/` | 15 | 1.2 min | Shona + English, prices in USD | 1 (Zimbabwean, female) | transcript **+ transaction label** |
 | **tier-b** | `corpus/afriswitch-sample/` | 40 | 8.2 min | Pidgin 16 · Swahili 12 · Yoruba 6 · Hausa 6 (each with English) | many (broadcast) | transcript only |
+| **yo-farm** (supplementary) | `corpus-supplementary/yo-farm/` | 15 | 1.3 min | Yoruba + English, farm trading | 1 (Nigerian, female) | script + transaction label (2 labels flagged) |
 | **conversations** | `conversation_scenarios.json` | 37 scenarios | text | Pidgin/Yoruba/English, Shona/English | - | final ledger state, expected replies |
 
 **Frozen corpus hash (manifests):**
@@ -36,6 +37,13 @@ Each manifest's own sha256, so a single tier can be checked alone:
 | `afriswitch-sample/manifest.jsonl` | `b0684132931992cf8923b4e665163d4bee5382629056bfdbcac85d8817fd40e3` | no (AfriSwitch text, see below) |
 | `sautiledger-clips/manifest.jsonl` | `93cde7ee0afa5dd6f7b45c845e9d04897719490a99c9b235a1c5a2c01ce568d0` | yes |
 | `sh-clips/manifest.jsonl` | `b7625f28a85f5d3b352dab5d9e9cf069cf47a32a3a90ea0b3ede31ddbafc415b` | yes |
+
+**Supplementary tier (14 September).** `yo-farm` was recorded after all
+frozen results were fixed and sits outside `bench/corpus/`, so it does not
+change the frozen hash; it has its own manifest sha256, printed by
+`python -m bench.supplementary --score-only`. The speaker was invited to adapt
+the wording, so references are the script; two clips (`yo04`, `yo10`) carry a
+different spoken price and are marked `label_uncertain` in the manifest.
 
 ## What makes it different
 
