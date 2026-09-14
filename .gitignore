@@ -50,3 +50,7 @@ incident-*/
 *-usage.csv
 *-transactions.csv
 bench/corpus-supplementary/*/raw/
+
+# private submission paperwork: kept locally, never pushed
+submission/FORM-ANSWERS.md
+submission/CHECKLIST.md
