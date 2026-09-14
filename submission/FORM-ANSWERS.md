@@ -58,6 +58,6 @@ Every transmission is logged and shown in plain language: audio and read-back te
 
 **Benchmark report link:** _(Google Drive link to `submission/SautiLedger-Benchmark-Report.pdf`, "anyone with the link can view")_
 
-**Benchmark audios link:** _(Hugging Face dataset URL, once uploaded)_
+**Benchmark audios link:** https://huggingface.co/datasets/dagbolade/sautiledger-market-speech
 
 Sources for question 2: [SMEDAN/NBS MSME survey (2021)](https://www.nigerianstat.gov.ng/download/290); [FinScope MSME Survey Zimbabwe 2022](https://finmark.org.za/Publications/FinScope_MSME_Survey_Zimbabwe2022_findings.pdf).

@@ -16,7 +16,7 @@ email (never stored in this repo).
 | Website, title, questions 1-8 | ready to paste | [`submission/FORM-ANSWERS.md`](FORM-ANSWERS.md) |
 | Demo video URL (unlisted YouTube, max 5 min) | **needs filming** | script: [`demo/script-phase2.md`](../demo/script-phase2.md) |
 | Benchmark report link (PDF, max 3 pages) | PDF ready; **needs the Hugging Face link, then upload to Google Drive** | [`submission/SautiLedger-Benchmark-Report.pdf`](SautiLedger-Benchmark-Report.pdf) |
-| Benchmark audios link (optional) | folder built (45 clips, 3 consenting speakers); **needs uploading to Hugging Face** | `Downloads/sautiledger-market-speech` |
+| Benchmark audios link (optional) | published and verified 14 Sep (45 clips, 3 consenting speakers) | https://huggingface.co/datasets/dagbolade/sautiledger-market-speech |
 
 ## Links to paste into the form
 
@@ -86,6 +86,6 @@ inconvenient result.
 
 ## Final link verification
 
-Demo video URL: **awaiting David**. Native-audio Hugging Face dataset URL: **awaiting David**. Verify both in a private browser before submitting; do not treat publication as verified until those links work.
+Demo video URL: **awaiting David**. Native-audio Hugging Face dataset URL: https://huggingface.co/datasets/dagbolade/sautiledger-market-speech (verified: 45 rows, audio playable in the viewer). Verify both in a private browser before submitting; do not treat publication as verified until those links work.
 
 Production keeps `SAUTI_AGENT=hosted`. Unparsed utterance text may go to `router.huggingface.co`, labelled `agent fallback (hosted model)` in the transmission list. Audio and reply text go to Sahara. Self-hosted `none` or `auto` disables remote fallback. No Railway configuration change is needed.

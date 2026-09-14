@@ -130,7 +130,7 @@ different spoken price and are marked `label_uncertain` in the manifest.
   tier from the source after you accept its terms.
 - **Native-tier audio is not in the repository**, but all three native
   tiers (45 clips: tier-a, tier-sh and the supplementary yo-farm tier) are
-  published on Hugging Face, each with its speaker's explicit consent to
+  published on Hugging Face (https://huggingface.co/datasets/dagbolade/sautiledger-market-speech), each with its speaker's explicit consent to
   public release (13 and 14 September 2026), as 16 kHz WAV with
   transcripts, durations and ledger labels. Voices from
   other app testers are not included: the in-app consent covers testing
