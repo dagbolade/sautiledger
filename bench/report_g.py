@@ -99,12 +99,15 @@ PROS_CONS = {
         "Microsoft's PazaBench, claims 1,672 languages including `pcm_Latn` and "
         "`sna_Latn`, costs nothing to run, and is the only model in this benchmark "
         "that renders Yoruba numerals with correct diacritics. **Cons:** no Windows "
-        "build (needs WSL/Linux), ~20s per clip on CPU, and it transcribes "
+        "build (needs WSL/Linux), about 20-25 s per clip on CPU with the model "
+        "kept loaded, and it transcribes "
         "phonetically rather than semantically, it hears the words but drops or "
         "mangles the digits that a ledger depends on. **Operational cost:** "
         "full coverage was reached, but only after two passes were terminated by "
-        "memory pressure on a CPU-only laptop, at roughly 1-2 minutes per clip "
-        "against seconds for the hosted APIs. An open model you can self-host is "
+        "memory pressure on a CPU-only laptop, where it slowed to 1-2 minutes per "
+        "clip; loading it once in a persistent worker brought it back to about "
+        "20-25 s (15 clips in 6 minutes on 14 September), against seconds for the "
+        "hosted APIs. An open model you can self-host is "
         "only free if you have the hardware to run it."
     ),
     "gemini-3-flash": (
