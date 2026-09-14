@@ -128,12 +128,13 @@ different spoken price and are marked `label_uncertain` in the manifest.
   (CC BY-NC-SA 4.0, gated). We redistribute neither its audio nor its
   transcripts. `python -m bench.fetch_afriswitch --confirm` rebuilds the
   tier from the source after you accept its terms.
-- **Native-tier audio is not in the repository**, but both native tiers
-  (30 clips) are published on Hugging Face, each with its speaker's
-  explicit consent to public release given on 13 September 2026, as
-  16 kHz WAV with transcripts, durations and ledger labels. Voices from
+- **Native-tier audio is not in the repository**, but all three native
+  tiers (45 clips: tier-a, tier-sh and the supplementary yo-farm tier) are
+  published on Hugging Face, each with its speaker's explicit consent to
+  public release (13 and 14 September 2026), as 16 kHz WAV with
+  transcripts, durations and ledger labels. Voices from
   other app testers are not included: the in-app consent covers testing
-  inside the app, not publication (see `submission/ETHICS.md` §2).
+  inside the app, not publication (see `submission/ETHICS.md` section 2).
 - **Scores can be checked without any audio.** `results/metrics.json`
   holds every model's per-clip transcript and score for tier-a and
   tier-sh. For tier-b, where the transcripts are AfriSwitch's text, it

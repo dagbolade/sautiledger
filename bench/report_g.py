@@ -23,7 +23,7 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 
 PROS_CONS = {
     "sahara-v2.5": (
-        "**Pros:** the best WER on all three frozen tiers (not on the supplementary Yoruba-English farm tier, §8c); **tied first on Shona** with "
+        "**Pros:** the best WER on all three frozen tiers (not on the supplementary Yoruba-English farm tier, section 8c); **tied first on Shona** with "
         "Meta's omnilingual-ASR (both 27% transactions exact, both zero "
         "corruption, double the best frontier system), and one of only two that "
         "render Nigerian Pidgin's "
@@ -153,9 +153,9 @@ def render() -> Path:
     data = json.loads((RESULTS_DIR / "metrics.json").read_text(encoding="utf-8"))
     rows = data["results"]
     # sahara-v2.5-raw produced byte-identical transcripts to sahara-v2.5 (see
-    # §4): keep it out of the model tables so a duplicate cannot pad the
+    # section 4): keep it out of the model tables so a duplicate cannot pad the
     # comparison, and report the attempted ablation as the null result it is.
-    # sahara-v2.5-raw: byte-identical duplicate (§4).
+    # sahara-v2.5-raw: byte-identical duplicate (section 4).
     # whisper-small: retired for Phase 2, it was a stand-in for a frontier
     # model we had no key for, it never ran on the Shona tier, and
     # MAI-Transcribe-2 replaces it. Its workshop-era numbers remain in
@@ -266,7 +266,7 @@ def render() -> Path:
         "Whisper-large-v3 decisively.")
     add("")
     add("**Our best explanation is linguistic distance from English: a "
-        "hypothesis, discussed in §5, not a demonstrated cause.** Nigerian Pidgin is lexically English-adjacent, so a strong "
+        "hypothesis, discussed in section 5, not a demonstrated cause.** Nigerian Pidgin is lexically English-adjacent, so a strong "
         "general-purpose recogniser can largely cope with it; Shona is not, and "
         "the frontier systems collapse there while the Africa-trained model holds. "
         "An earlier draft of this report: written when the comparison set was "
@@ -366,7 +366,7 @@ def render() -> Path:
         "regressing a subset is normal. The problem is that **an integrator "
         "cannot tell**. Without a version identifier in the response, no "
         "benchmark against this API is reproducible, and no regression is "
-        "attributable. That is why §9 asks for one.")
+        "attributable. That is why section 9 asks for one.")
     add("")
     rerun_files = sorted(RESULTS_DIR.glob("rerun-*.json"))
     if rerun_files:
@@ -399,14 +399,14 @@ def render() -> Path:
             "derica of rice five thousand five\"* came back as *\"A don sell three "
             "derica of rice 5,500\"*), taking it from 53% to 47% exact, level with "
             "Sahara. A single run of a non-deterministic system is a sample, not a "
-            "measurement, which strengthens the §1 caution that these transaction "
+            "measurement, which strengthens the section 1 caution that these transaction "
             "gaps are not significant.")
     add("")
     add("**A caveat on WER for financial speech.** Sahara transcribes spoken "
         "\"five thousand five\" as \"5,500\": semantically exact, but every such "
         "token counts as a word error against a spoken-form reference. WER "
         "penalises the model for being *more* useful downstream. This is precisely "
-        "why the task-completion metric in §1 leads this report.")
+        "why the task-completion metric in section 1 leads this report.")
     add("")
 
     # ---------------------------------------------------------------- 3
@@ -468,7 +468,7 @@ def render() -> Path:
         "invalid value (`use_disable_llm_corrections=BANANA`) was also accepted "
         "with HTTP 200 and the same transcript, which suggests the field is not "
         "being read on this path: consistent with the silently-ignored-field "
-        "behaviour reported in §9.")
+        "behaviour reported in section 9.")
     add("")
     add("Two readings are consistent with the evidence and we cannot distinguish "
         "them from outside: either the flag is not wired on this endpoint, or LLM "
@@ -929,7 +929,7 @@ def render() -> Path:
         add("**Limits.** Fifteen clips, one speaker, script references, and two labels "
             "known to disagree with the audio. This tier supports one conclusion: rankings "
             "measured on one speaker and one domain do not transfer, which is the same "
-            "lesson as the Pidgin/Shona reversal in §1. It does not rank the systems.")
+            "lesson as the Pidgin/Shona reversal in section 1. It does not rank the systems.")
         add("")
 
     # ---------------------------------------------------------------- 9
@@ -963,7 +963,7 @@ def render() -> Path:
     add("5. **`use_disable_llm_corrections` appears to do nothing.** Documented "
         "with a default of FALSE, implying an LLM rewrites transcripts unless "
         "told otherwise. Setting it to `TRUE` returned byte-identical output on "
-        "all 70 clips (§4), and an invalid value (`=BANANA`) was accepted with "
+        "all 70 clips (section 4), and an invalid value (`=BANANA`) was accepted with "
         "HTTP 200. Either the flag is unwired or corrections are not applied for "
         "this configuration; either way the documentation implies a control that "
         "integrators do not have.")
@@ -984,7 +984,7 @@ def render() -> Path:
         "models**. Note the precision: omnilingual-ASR *claims* `pcm_Latn` support, "
         "so the gap is in public *evaluation*, not claimed coverage, and to our "
         "knowledge this report contains the first published Pidgin numbers for it.")
-    add("- **ASR-FairBench** (Rai et al., Interspeech 2025), motivates §3. Their "
+    add("- **ASR-FairBench** (Rai et al., Interspeech 2025), motivates section 3. Their "
         "core argument, that aggregate accuracy conceals group disparity, is the "
         "reason we report per-group WER and a disparity ratio.")
     add("- **AfriSwitch** (`intronhealth/AfriSwitch`, CC BY-NC-SA 4.0): 54.41 h / "
@@ -1011,7 +1011,7 @@ def render() -> Path:
         "pinned to a version: that is the point of publishing a manifest hash. "
         "So the tier-b results here describe the pre-7-September release, and we "
         "say so rather than citing the current statistics table as though our "
-        "sample came from it. **The lesson generalises**: we asked Intron in §9 "
+        "sample came from it. **The lesson generalises**: we asked Intron in section 9 "
         "to expose a model version because an unlabelled moving backend makes "
         "benchmarks irreproducible, and the same argument applies to an "
         "unversioned dataset. A dated snapshot and a published hash are what let "
@@ -1073,7 +1073,7 @@ def render() -> Path:
         "0.397, second; MAI-Transcribe-2 and GPT-4o-transcribe swap third and "
         "fourth (0.447 and 0.450); Whisper and omnilingual swap sixth and "
         "seventh. The transaction labels are unaffected (the item, amount and "
-        "intent are the same), so §1 does not change. The frozen references are "
+        "intent are the same), so section 1 does not change. The frozen references are "
         "left as they are and the finding is reported here.")
     add("- **Caveats on generalisation.** Small n per tier (15 clips each on the "
         "native tiers). Tier-a is one Nigerian male speaker and tier-sh is one "

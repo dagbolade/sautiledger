@@ -35,7 +35,7 @@ enter the corpus.
 
 Questions: FACT-CHECKED 2 Sep evening, every premise re-verified live:
 1. ~~Sahara v2.5 access~~ ANSWERED: current API access is v2.5 (verified
-   three ways, see §1).
+   three ways, see section 1).
 2. **Streaming STT (re-verified TONIGHT on v2.5, real-time-paced probe):**
    COMMIT is still answered with INPUT_ERROR "Error processing data"
    instead of COMMITTED_TRANSCRIPT, and first partial arrived +10.3s
