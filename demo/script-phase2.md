@@ -126,8 +126,8 @@ App: *"Sales today: fourteen thousand naira from 2 sales."*
 While the menu is open, let the camera see the **Shona / English · USD**
 option too (don't select it; a book with entries can't change currency).
 
-> "Replies in Pidgin or English, and the same app runs Shona and English in
-> US dollars. A native Shona speaker recorded our Shona test set."
+> "Replies in Pidgin, English or Yoruba, and the same app runs Shona and
+> English in US dollars. A native Shona speaker recorded our Shona test set."
 
 ---
 
