@@ -17,7 +17,7 @@
 <body>
   <header id="topbar">
     <div id="brand"><img src="/static/icon.png" alt="" width="36" height="36"><span>SautiLedger<small>Your everyday money book</small></span></div>
-    <div class="header-right"><label class="language-label" for="language-choice">Speech &amp; replies<select id="language-choice"><option value="pcm-yo-NG:en">English / Pidgin / Yoruba → English</option><option value="pcm-yo-NG:pcm">English / Pidgin / Yoruba → Pidgin</option><option value="sh-ZW:en">Shona / English → English · USD</option></select></label><button id="welcome-help" type="button">Welcome guide</button><span id="today-date"></span><div id="mode" class="offline">Connecting…</div></div>
+    <div class="header-right"><label class="language-label" for="language-choice">Reply language<select id="language-choice"><option value="pcm-yo-NG:en">English · NGN</option><option value="pcm-yo-NG:pcm">Pidgin · NGN</option><option value="sh-ZW:en">Shona / English · USD</option></select></label><button id="welcome-help" type="button">Welcome guide</button><span id="today-date"></span><div id="mode" class="offline">Connecting…</div></div>
   </header>
 
   <div id="egress" role="button" tabindex="0" aria-haspopup="dialog" title="Tap for privacy: every transmission, and your choices">
@@ -26,19 +26,19 @@
       <path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/>
     </svg>
     <div class="body">
-      <div class="label">Sent to external services</div>
+      <div class="label">Data shared</div>
       <div class="value" id="egress-total">0.00 KB</div>
     </div>
     <span class="chev">Privacy &#8599;</span>
   </div>
 
-  <p class="privacy-note">Hosted demo: audio and readback text go to Sahara. Unparsed utterance text may go to Hugging Face (router.huggingface.co), listed as “agent fallback (hosted model)”. Your book is stored on our server. Self-hosted: use SAUTI_AGENT=none or auto to disable remote fallback.</p>
+
   <div id="privacy-control" aria-label="Voice clip privacy">
       <label id="consent">
-        <span class="consent-text"><strong class="privacy-heading">Voice privacy</strong>
+        <span class="consent-text"><strong class="privacy-heading">Save voice clips</strong>
         <span id="retention-state">Not saving new clips</span>
-        <small>Save clips to help test speech recognition. Optional; turn off anytime. Clips stay within this app.</small></span>
-        <span class="retention-control"><span class="switch"><input type="checkbox" id="retain" role="switch" aria-label="Save my voice clips to help test speech recognition"><span class="switch-word" id="retention-position" aria-hidden="true">OFF</span><span class="knob"></span></span><span class="toggle-hint">Tap to change</span></span>
+        <small>Optional · help improve speech recognition</small></span>
+        <span class="retention-control"><span class="switch"><input type="checkbox" id="retain" role="switch" aria-label="Save my voice clips to help test speech recognition"><span class="switch-word" id="retention-position" aria-hidden="true">OFF</span><span class="knob"></span></span></span>
       </label>
   </div>
 
@@ -48,19 +48,19 @@
   </nav>
   <main id="scroll" data-view="book">
     <section id="book-panel" aria-label="Today's book">
-      <div class="section-heading"><div><p class="eyebrow">A little order. Every day.</p><h1>Today's book</h1></div><span class="day-tag">TODAY</span></div>
+      <div class="section-heading"><div><p class="eyebrow">YOUR BUSINESS, AT A GLANCE</p><h1>Your day, in view.</h1></div><span class="day-tag">TODAY</span></div>
       <div id="ledger">
         <div class="summary-top"><h2>Sales today <span id="total">₦0</span></h2><span class="book-mark" aria-hidden="true">↗</span></div>
         <p class="summary-note" id="sales-caption">Your day starts here.</p>
         <div class="summary-details"><div><span>Expenses today</span><strong id="expenses-total">₦0</strong></div><div><span>Credit sales today</span><strong id="credit-total">₦0</strong></div></div>
       </div>
       <div class="entries-heading"><h2>Today's entries <span id="entry-count">0</span></h2><a id="statement" href="/statement" target="_blank" rel="noopener">Trading statement ↗</a></div>
-      <div id="book-empty"><span class="empty-mark" aria-hidden="true">≡</span><h3>Every sale counts.</h3><p>Hold the mic and talk your first sale.<br>We'll help you keep track.</p><span class="example-label">TRY SAYING</span><p class="example" id="speech-example">“I sell 3 cup of garri for 600 naira”</p></div>
+      <div id="book-empty"><span class="empty-mark" aria-hidden="true">≡</span><h3>Every sale counts.</h3><p>Hold the mic to record your first sale.</p><span class="example-label">TRY SAYING</span><p class="example" id="speech-example">“I sell 3 cup of garri for 600 naira”</p></div>
       <ul id="entries" aria-label="Today's transactions"></ul>
       <section id="statements-card" aria-label="Trading statements">
         <p class="eyebrow">A RECORD YOU CAN TAKE WITH YOU</p>
         <h3>Trading statements</h3>
-        <p>Review sales, expenses and credit. Print your records or save them as a PDF.</p>
+        <p>Your sales, expenses and credit. Ready to print or save.</p>
         <div><a href="/statement?period=week" target="_blank" rel="noopener">Last 7 days ↗</a><a href="/statement?period=month" target="_blank" rel="noopener">Last 30 days ↗</a></div>
       </section>
     </section>
@@ -111,8 +111,17 @@
     <div class="sheet">
       <div class="grab"></div>
       <h2>Privacy</h2>
-      <p class="sub">Every byte that ever left this device is listed below. Your money records are not on this list.</p>
+      <p class="sub">See the external-service requests recorded for this book. Audio and reply text can include transaction details.</p>
 <p class="sub">Change voice-clip retention using the visible switch above your book.</p>
+      <div class="privacy-explainer">
+        <h3>What is shared</h3>
+        <p><strong>Voice &amp; readback.</strong> Sahara receives your audio for transcription and reply text for spoken responses.</p>
+        <p><strong>When the grammar cannot understand.</strong> Your utterance text may go to the Hugging Face inference router (router.huggingface.co). These requests appear below as “agent fallback (hosted model)”.</p>
+        <p><strong>Your book.</strong> This online service stores your ledger on our server. The ledger database itself is not uploaded to these providers.</p>
+        <p><strong>Saving clips is optional.</strong> Clips stay within this app. Turn saving off anytime; this stops future retention, not speech processing.</p>
+        <details><summary>For self-hosted setups</summary><p>Storage stays on the backend host. Set SAUTI_AGENT=none to disable model fallback or auto to use only local Ollama. The online service uses hosted fallback.</p></details>
+      </div>
+      <h3 class="transmission-heading">Transmission history</h3>
       <div id="egress-rows"></div>
       <button id="close">Close</button>
       <button id="guide">See the welcome guide again</button>
@@ -130,7 +139,7 @@
         <li><b>Keep the details together.</b> Record sales, expenses and credit without stopping to fill out a form.</li>
         <li><b>See the bigger picture.</b> Check your daily totals and create a trading statement.</li>
       </ul>
-      <p class="ob-note">Choose speech and reply languages at the top of your book. English replies are the default; Pidgin replies are available for the Nigerian pack. Shona / English uses USD and English replies. Finish any pending question before switching.</p>
+      <p class="ob-note">Choose speech and reply languages at the top of your book. The Nigerian pack supports English, Pidgin and Yoruba speech, with English or Pidgin replies. Shona / English uses USD and English replies. Finish any pending question before switching.</p>
     </div>
     <div class="ob-panel" data-step="1">
       <p class="ob-try">ONE ENTRY AT A TIME</p>
@@ -152,7 +161,7 @@
       <h1>Know what you share.</h1>
       <ul class="ob-points">
         <li><b>See every recorded transmission.</b> The byte counter stays visible above your book. Open Privacy to see its details.</li>
-        <li><b>Understand voice processing.</b> Online speech recognition sends your audio to the speech service. Online readback also sends the reply text. On this hosted demo, text the grammar cannot parse may go to router.huggingface.co; the transmission list calls this “agent fallback (hosted model)”.</li>
+        <li><b>Understand voice processing.</b> Online speech recognition sends your audio to the speech service. Online readback also sends the reply text. When the grammar cannot understand, text the grammar cannot parse may go to router.huggingface.co; the transmission list calls this “agent fallback (hosted model)”.</li>
         <li><b>Choose whether this app keeps clips.</b> Retention is off by default. You can use your book without enabling it; turning it off stops future retention.</li>
       </ul>
       <label class="ob-consent" id="ob-consent">

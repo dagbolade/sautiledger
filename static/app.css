@@ -1286,3 +1286,54 @@ svg {
 #voice-playback-status { font-size:12px; color:var(--muted); }
 
 .privacy-note { margin: 8px 0 12px; font-size: 0.8rem; line-height: 1.45; color: var(--muted, #555); }
+
+/* A quiet workspace: useful totals first, details in Privacy. */
+#topbar { padding-top:24px; padding-bottom:18px; }
+#welcome-help { border-radius:20px; padding:8px 13px; }
+#egress { background:transparent; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:11px 2px; }
+#egress .label { font-weight:500; color:var(--muted); }
+#privacy-control { margin-top:10px; }
+#privacy-control #consent { border:1px solid var(--line); background:var(--card); border-radius:14px; padding:12px 16px; gap:12px; }
+#privacy-control .privacy-heading { font-size:14px; font-weight:650; }
+#privacy-control #retention-state { display:inline; font-size:11px; font-weight:500; color:var(--muted); }
+#privacy-control #consent small { font-size:11px; margin:0; }
+#privacy-control .retention-control { justify-content:center; min-height:44px; }
+.section-heading { margin-bottom:22px; }
+.section-heading h1 { font-size:36px; letter-spacing:-1.2px; }
+.section-heading .eyebrow { font-size:9px; letter-spacing:.14em; margin-bottom:8px; }
+#ledger { border-radius:22px; box-shadow:0 8px 24px #104b380b; }
+#book-empty { border:1px dashed #cdd7cd; border-radius:18px; margin:20px 0; padding:24px 18px; }
+#book-empty .empty-mark { display:none; }
+#book-empty .example-label { margin-top:18px; }
+.privacy-explainer { margin:20px 0; padding:18px; background:var(--green-tint); border-radius:14px; }
+.privacy-explainer h3,.transmission-heading { font-size:14px; margin-bottom:12px; }
+.privacy-explainer p { font-size:13px; line-height:1.65; margin:10px 0; }
+.privacy-explainer summary { cursor:pointer; font-size:12px; margin-top:16px; }
+@media(max-width:760px) {
+  body { padding-left:20px; padding-right:20px; }
+  #topbar { padding:20px 0 12px; gap:12px; }
+  #brand { font-size:20px; }
+  #brand small { font-size:10px; }
+  #welcome-help { font-size:11px; }
+  .language-label { flex-direction:row; align-items:center; gap:8px; font-size:10px; }
+  #language-choice { width:auto; flex:1; font-size:12px; padding:8px; }
+  #mode { font-size:10px; border:0; background:var(--green-tint); border-radius:20px; padding:7px 10px; }
+  #privacy-control #consent { padding:10px 14px; }
+  #privacy-control #consent small { display:none; }
+  #view-tabs { margin-top:16px; }
+  #view-tabs button { padding:10px 0; font-size:13px; }
+  #scroll { padding:24px 0; }
+  .section-heading h1 { font-size:32px; }
+  .section-heading { margin-bottom:18px; }
+  #ledger { padding:24px; }
+  #book-empty h3 { font-size:21px; }
+}
+@media(max-height:600px) and (max-width:760px) {
+  #topbar { padding:6px 0; gap:5px; }
+  #privacy-control #consent { padding:4px 12px; }
+  #view-tabs { margin-top:4px; }
+  #view-tabs button { padding:5px 0; }
+  #scroll { padding:12px 0; }
+}
+
+#modal .sheet { display:block; overflow-y:auto; overscroll-behavior:contain; }
