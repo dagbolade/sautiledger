@@ -86,6 +86,6 @@ inconvenient result.
 
 ## Final link verification
 
-Demo video URL: **awaiting David**. Native-audio Hugging Face dataset URL: https://huggingface.co/datasets/dagbolade/sautiledger-market-speech (verified: 45 rows, audio playable in the viewer). Verify both in a private browser before submitting; do not treat publication as verified until those links work.
+Demo video URL: https://youtu.be/CRl9zb8b0nE (unlisted, plays signed out, 5:00). Benchmark PDF: https://drive.google.com/file/d/11e88feRn7XoOE_M5ffOxk66UVLVOJZDm/view (public, identical to the committed PDF). Native-audio Hugging Face dataset URL: https://huggingface.co/datasets/dagbolade/sautiledger-market-speech (verified: 45 rows, audio playable in the viewer). Verify both in a private browser before submitting; do not treat publication as verified until those links work.
 
 Production keeps `SAUTI_AGENT=hosted`. Unparsed utterance text may go to `router.huggingface.co`, labelled `agent fallback (hosted model)` in the transmission list. Audio and reply text go to Sahara. Self-hosted `none` or `auto` disables remote fallback. No Railway configuration change is needed.

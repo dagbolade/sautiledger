@@ -54,9 +54,9 @@ Every transmission is logged and shown in plain language: audio and read-back te
 
 ---
 
-**Demo video URL:** _(unlisted YouTube link, once filmed)_
+**Demo video URL:** https://youtu.be/CRl9zb8b0nE
 
-**Benchmark report link:** _(Google Drive link to `submission/SautiLedger-Benchmark-Report.pdf`, "anyone with the link can view")_
+**Benchmark report link:** https://drive.google.com/file/d/11e88feRn7XoOE_M5ffOxk66UVLVOJZDm/view?usp=drive_link
 
 **Benchmark audios link:** https://huggingface.co/datasets/dagbolade/sautiledger-market-speech
 
