@@ -8,6 +8,31 @@ let restoredReview = false;
 let replyLanguage = "en";
 let languageBusy = false;
 let voiceBusy = false;
+// Intron TTS accepts one accent per voice language: Pidgin replies only
+// with the Pidgin accent, Yoruba replies only with the Yoruba accent
+// (checked 14 Sep; every other pairing returns 400). Only English
+// replies offer a choice, so the menu is rebuilt for the reply language.
+const ENGLISH_ACCENTS = ["yoruba", "hausa", "igbo", "afrikaans", "luganda", "sepedi", "swahili", "setswana", "xhosa", "zulu"];
+const FIXED_ACCENT = { pcm: "Pidgin", yo: "Yoruba" };
+let englishAccent = "yoruba"; // the saved English-reply accent, sent with every voice save
+const titleCase = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+function renderAccentMenu() {
+  const select = $("voice-accent");
+  const fixed = FIXED_ACCENT[replyLanguage];
+  const wanted = fixed ? ["fixed"] : ENGLISH_ACCENTS;
+  if (select.dataset.mode !== (fixed ? replyLanguage : "en")) {
+    select.replaceChildren(...wanted.map((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = fixed ? fixed : titleCase(value);
+      return option;
+    }));
+    select.dataset.mode = fixed ? replyLanguage : "en";
+  }
+  select.value = fixed ? "fixed" : englishAccent;
+  select.disabled = !!fixed;
+  select.title = fixed ? `${fixed} replies use Intron's ${fixed} voice. Choose English replies to pick an accent.` : "";
+}
 let currencyCode = "NGN";
 let currency = "₦"; // naira sign; swapped from /state
 const CURRENCY_SIGNS = { NGN: "₦", KES: "KSh " };
@@ -21,18 +46,18 @@ async function refreshState() {
     currency = CURRENCY_SIGNS[state.currency] || state.currency + " ";
     replyLanguage = state.reply_language || "en";
     $("voice-choice-note").textContent = replyLanguage === "yo"
-      ? "Yoruba voice · beta replies. Some messages and money phrases use English."
-      : replyLanguage === "pcm" ? "Pidgin replies use Intron’s Pidgin accent." : "Choose an accent for English replies.";
+      ? "Yoruba replies (beta) use Intron's Yoruba voice, so the accent is fixed. Some messages and money phrases use English. Choose English replies to pick an accent."
+      : replyLanguage === "pcm" ? "Pidgin replies use Intron's Pidgin voice, so the accent is fixed. Choose English replies to pick an accent." : "Choose an accent for English replies.";
     if (!languageBusy) $("language-choice").value = `${state.pack || "pcm-yo-NG"}:${replyLanguage}`;
     renderLanguageExamples(state.pack);
     renderMode(state.mode);
     ttsMode = state.tts || "browser";
     if (!voiceBusy && state.voice) {
-      $("voice-accent").value = state.preferred_accent || state.voice.accent;
+      englishAccent = ENGLISH_ACCENTS.includes(state.preferred_accent) ? state.preferred_accent : englishAccent;
+      renderAccentMenu();
       $("voice-gender").value = state.voice.gender;
-      $("voice-accent").disabled = replyLanguage !== "en";
       $("voice-summary").textContent = ttsMode === "sahara"
-        ? `Intron voice · ${state.voice.accent} · ${state.voice.gender}` : "Device voice · offline playback";
+        ? `Intron voice · ${titleCase(state.voice.accent)} accent · ${titleCase(state.voice.gender)}` : "Device voice · offline playback";
     }
     streamMode = !!state.stream;
     renderEgress(state.egress_total, state.egress_log);
@@ -792,7 +817,8 @@ async function saveVoiceChoice() {
   voiceBusy = true;
   $("voice-preview").disabled = true;
   const form = new FormData();
-  form.append("accent", $("voice-accent").value); form.append("gender", $("voice-gender").value);
+  if (replyLanguage === "en") englishAccent = $("voice-accent").value;
+  form.append("accent", englishAccent); form.append("gender", $("voice-gender").value);
   try {
     const response = await fetch("/voice", {method:"POST", body:form});
     if (!response.ok) throw new Error("Could not save voice choice.");
