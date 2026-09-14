@@ -5,26 +5,24 @@
 with the registered email and the access token from Intron's confirmation
 email (never stored in this repo).
 
-**Category to select:** Fintech, Telco & Customer Experience.
+**Category:** the form has no category field; SOLUTION.md names Fintech, Telco & Call Center.
 
 ---
 
-## The six required items
+## The submission form, field by field
 
-| # | Item | Status | Where |
-|---|---|---|---|
-| 1 | Solution description | ready | [`submission/SOLUTION.md`](SOLUTION.md) |
-| 2 | Demo video (unlisted YouTube) | **needs filming** | script: [`demo/script-phase2.md`](../demo/script-phase2.md) |
-| 3 | Code / technical documentation | ready | repo root [`README.md`](../README.md) + [`CONSTRAINTS.md`](../CONSTRAINTS.md) |
-| 4 | Benchmark report (3+ models incl. Sahara) | ready | [`bench/results/REPORT.md`](../bench/results/REPORT.md) |
-| 5 | Ethics / inclusion note | ready | [`submission/ETHICS.md`](ETHICS.md) |
-| 6 | Benchmark audios (optional, bonus points) | **release link needs verification** | see below |
+| Form field | Status | Where |
+|---|---|---|
+| Website, title, questions 1-8 | ready to paste | [`submission/FORM-ANSWERS.md`](FORM-ANSWERS.md) |
+| Demo video URL (unlisted YouTube, max 5 min) | **needs filming** | script: [`demo/script-phase2.md`](../demo/script-phase2.md) |
+| Benchmark report link (PDF, max 3 pages) | PDF ready; **needs the Hugging Face link, then upload to Google Drive** | [`submission/SautiLedger-Benchmark-Report.pdf`](SautiLedger-Benchmark-Report.pdf) |
+| Benchmark audios link (optional) | folder built (45 clips, 3 consenting speakers); **needs uploading to Hugging Face** | `Downloads/sautiledger-market-speech` |
 
 ## Links to paste into the form
 
 - **Repository:** https://github.com/dagbolade/sautiledger
 - **Live app:** https://sautiledger-production.up.railway.app
-- **Benchmark report:** https://github.com/dagbolade/sautiledger/blob/main/bench/results/REPORT.md
+- **Benchmark report:** Google Drive link to the PDF (the full report is at https://github.com/dagbolade/sautiledger/blob/main/bench/results/REPORT.md)
 - **Demo video:** _(paste the unlisted YouTube link once filmed)_
 
 ## What the benchmark satisfies
@@ -79,7 +77,7 @@ inconvenient result.
 
 ## Final pre-flight
 
-- [ ] `python -m pytest` green (244 unit tests in the latest local run; rerun after further code changes)
+- [ ] `python -m pytest` green (272 tests on 14 September; rerun after any further code change)
 - [ ] `python -m bench.run --score-only` regenerates the report cleanly
 - [ ] Live app answers on a phone, mic works, readback audible
 - [ ] Demo video uploaded **unlisted** and the link opens in a private window

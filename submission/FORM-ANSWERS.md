@@ -1,7 +1,7 @@
 # Submission form answers
 
 Paste-ready answers for the Sahara CodeSwitch Africa Challenge form. Every
-claim here matches the repository and the deployed app as of 13 September
+claim here matches the repository and the deployed app as of 14 September
 2026. Word counts are in brackets; the form's targets are approximate.
 
 **Website:** https://sautiledger-production.up.railway.app

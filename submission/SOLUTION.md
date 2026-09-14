@@ -156,6 +156,16 @@ engineering conclusion is that a production deployment should **route by
 language**, and the benchmark is what tells us that, which is the point
 of running one properly rather than as a formality.
 
+**Two checks after the benchmark was frozen.** A second Nigerian speaker
+recorded 15 Yoruba-English farm-trade lines as a supplementary tier: there
+Sahara is mid-field on WER and omnilingual-ASR has a significantly lower CER,
+and every system struggles to produce exact transactions because Yoruba
+verbs and item names come back anglicised. That is the same lesson again:
+rankings do not transfer across speakers and domains. And on 14 September,
+after Intron made the language parameter mandatory, we re-sent the 70 frozen
+clips to the cloud systems: Sahara's transcripts were byte-identical, so the
+frozen results still describe it.
+
 ## Prior work
 
 This is the continuation of our winning entry in the Indaba 2026 workshop

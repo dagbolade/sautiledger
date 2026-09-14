@@ -192,6 +192,15 @@ confounded with voice, microphone and room. An earlier draft of this benchmark,
 run against a weaker field, concluded there was "one viable ASR"; a
 stronger field falsified that, and the report says so.
 
+Two later checks, both in the report. **A second speaker:** a supplementary
+Yoruba-English farm tier (15 clips from a second Nigerian speaker, kept
+outside the frozen corpus) puts Sahara mid-field on WER, with omnilingual-ASR's
+CER significantly lower; exact transactions are near zero for every system
+because models fuse the Yoruba verb *mo ta* into *Mota*. **A re-run on
+14 September**, after Intron made the language parameter mandatory, returned
+byte-identical transcripts from Sahara, Chirp-3 and Parakeet, while
+GPT-4o-transcribe changed 60 of 70 on the same audio.
+
 The TTS round trip earned its keep immediately: it caught the app
 **speaking its own punctuation** to the trader ("Logged expense**:** fuel"
 came back as "Log the expense *call on*"), which was corrupting the amount.

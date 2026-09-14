@@ -62,6 +62,14 @@ recorded in the bundle's `CONSENT.md`. Running it without that returns:
 We would rather submit fewer audio samples than samples our users did not
 knowingly agree to share.
 
+**Published benchmark audio is a separate case.** The 45 clips on Hugging
+Face come only from three benchmark speakers (the author, the Shona
+validator and a Yoruba-English speaker), each of whom agreed to public
+release for research on 13 or 14 September. Each speaker's record is in the
+dataset's `CONSENT.md`, speakers are identified only by codes such as
+`spk-ng-01`, and any of them can withdraw. No recording from an app user or
+tester is included.
+
 ## 3. De-identification
 
 Where clips are shared with consent, the bundle carries **no transcripts
