@@ -76,8 +76,8 @@ ENGLISH_ACCENTS = ("yoruba", "hausa", "igbo", "afrikaans", "luganda", "sepedi",
 def voice_profile(reply_language: str, accent: str = "yoruba", gender: str = "female") -> dict:
     if gender not in {"male", "female"} or accent not in ENGLISH_ACCENTS:
         raise ValueError("Unsupported voice preference")
-    return {"language": "pcm" if reply_language == "pcm" else "en",
-            "accent": "pidgin" if reply_language == "pcm" else accent,
+    return {"language": reply_language if reply_language in {"pcm", "yo"} else "en",
+            "accent": "pidgin" if reply_language == "pcm" else "yoruba" if reply_language == "yo" else accent,
             "gender": gender}
 
 

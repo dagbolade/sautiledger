@@ -14,7 +14,7 @@ function setup() {
       this.textContent = ''; this.tagName = 'DIV';
       const classes = new Set();
       this.classList = {
-        add: x => classes.add(x), remove: x => classes.delete(x),
+        add: x => classes.add(x), remove: x => classes.delete(x), contains: x => classes.has(x),
         toggle: (x, on) => on ? classes.add(x) : classes.delete(x),
       };
     }
@@ -194,4 +194,18 @@ test('releasing during the first permission prompt invites a retry rather than f
   ui.run('stopRecording()');
   await started;
   assert.match(ui.chat(), /Hold the green button again/i);
+});
+
+test('welcome auto slides stop at privacy and never opt in', () => {
+  const ui=setup();
+  ui.run('let scheduledSlide = null; setTimeout = fn => { scheduledSlide = fn; return 1; }; clearTimeout = () => { scheduledSlide = null; }; showOnboard(); obPaused = false; scheduleObSlide();');
+  ui.run('scheduledSlide()');
+  assert.equal(ui.run('obStep'),1);
+  ui.run('scheduledSlide()');
+  assert.equal(ui.run('obStep'),2);
+  assert.equal(ui.run('scheduledSlide'),null);
+  assert.equal(ui.elements.get('retain-ob').checked,false);
+  assert.equal(ui.calls.filter(c=>c.url==='/consent').length,0);
+  ui.run('setObStep(0); pauseObSlides()');
+  assert.equal(ui.run('scheduledSlide'),null);
 });

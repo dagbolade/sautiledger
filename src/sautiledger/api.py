@@ -38,7 +38,7 @@ from .ledger import DEFAULT_SESSION, Ledger
 from .llm_fallback import HostedLlmClient, ollama_if_available
 from .packs import load_pack
 from .review import transaction_review
-from .replies import english_reply
+from .replies import english_reply, render_reply
 from .statement import build_statement_html
 from .tts import SaharaTts, ENGLISH_ACCENTS, voice_profile
 
@@ -167,8 +167,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         def friendly(reply: str, error: str, outcome: str) -> dict:
             # spoken-style bubble instead of a raw error (the UI reads this
             # aloud); every turn, failures included, lands in usage_log
-            if sess.reply_language == "en":
-                reply = english_reply(reply)
+            reply = render_reply(reply, sess.reply_language)
             ledger.record_usage(input_mode, transcript_text or None, reply,
                                 outcome, saved_clip)
             return {
@@ -222,8 +221,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         txn_before = ledger.max_txn_id()
         voided_before = ledger.voided_count()
         reply = agent.handle(transcript_text)
-        if sess.reply_language == "en":
-            reply = english_reply(reply)
+        reply = render_reply(reply, sess.reply_language)
         sess.last_reply = reply
         if ledger.max_txn_id() > txn_before:
             outcome = "logged"
@@ -390,8 +388,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         txn_before = ledger.max_txn_id()
         voided_before = ledger.voided_count()
         reply = await run_in_threadpool(sess.agent.handle, transcript)
-        if sess.reply_language == "en":
-            reply = english_reply(reply)
+        reply = render_reply(reply, sess.reply_language)
         sess.last_reply = reply
         if ledger.max_txn_id() > txn_before:
             outcome = "logged"
@@ -470,7 +467,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/language")
     def language(request: Request, response: Response, speech_pack: str = Form(...), reply_language: str = Form(...)):
         sess = session_for(resolve_device(request, response))
-        if (speech_pack, reply_language) not in {("pcm-yo-NG", "en"), ("pcm-yo-NG", "pcm"), ("sh-ZW", "en")}:
+        if (speech_pack, reply_language) not in {("pcm-yo-NG", "en"), ("pcm-yo-NG", "pcm"), ("pcm-yo-NG", "yo"), ("sh-ZW", "en")}:
             return JSONResponse(status_code=400, content={"error": "Unsupported speech and reply combination."})
         if sess.agent.pending is not None or sess.agent.awaiting_confirm:
             return JSONResponse(status_code=409, content={"error": "Answer the current question before changing language."})

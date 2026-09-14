@@ -7,6 +7,7 @@ the ledger is ever persisted.
 from __future__ import annotations
 
 from dataclasses import replace
+import unicodedata
 
 from . import tools
 from .ledger import Ledger
@@ -59,6 +60,11 @@ class Agent:
         self._odd_amount_offered: int | None = None
 
     def handle(self, text: str) -> str:
+        if self.pack.name == "pcm-yo-NG":
+            plain = "".join(c for c in unicodedata.normalize("NFD", text.lower()) if not unicodedata.combining(c))
+            answer = " ".join(tokenize(plain))
+            if answer in {"rara", "bee ni", "beeni"}:
+                text = "no" if answer == "rara" else "yes"
         if self.pending is not None:
             # A complete restatement starts over; do not mine its numbers as
             # an answer to an older question about a different transaction.

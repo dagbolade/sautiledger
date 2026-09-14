@@ -47,3 +47,37 @@ def english_reply(reply: str) -> str:
                 .replace("wetin remain na ", "sales less expenses: ")
                 .replace(", you don spend pass sales o", ", expenses exceed sales"))
     return reply
+
+
+# Yoruba/English code-switched replies. Preserve quoted item and money text:
+# these templates are a beta awaiting a native-speaker listening review.
+_YORUBA_TEMPLATES = [
+    (r"Logged sale: (.+)\. Correct\?", r"Mo ti kọ títà sílẹ̀: \1. Ṣé ó tọ́?"),
+    (r"Logged expense: (.+)\. Correct\?", r"Mo ti kọ ìnáwó sílẹ̀: \1. Ṣé ó tọ́?"),
+    (r"Corrected: (.+) now (.+)\. Correct\?", r"Mo ti ṣàtúnṣe \1 sí \2. Ṣé ó tọ́?"),
+    (r"Noted\. Ledger correct\.", "Ó dáa. Àkọsílẹ̀ náà tọ́."),
+    (r"Entry removed\. What should it say\? Please repeat it\.", "Mo ti yọ àkọsílẹ̀ náà kúrò. Jọ̀wọ́ sọ ohun tó tọ́ lẹ́ẹ̀kan sí i."),
+    (r"What is the item\? Please say its name\.", "Kí ni orúkọ ọjà náà?"),
+    (r"What was the total amount\?", "Eélòó ni iye owó lápapọ̀?"),
+    (r"How much did you sell (.+)\?", r"Eélòó ni o ta \1?"),
+    (r"How much did you pay for (.+)\?", r"Eélòó ni o san fún \1?"),
+    (r"Did you say (.+)\?", r"Ṣé \1 ni o sọ?"),
+    (r"What would you like to record\? Tell me the item and amount\.", "Kí ni o fẹ́ kọ sílẹ̀? Sọ orúkọ ọjà àti iye owó."),
+    (r"Please repeat the item and amount\.", "Jọ̀wọ́ tún sọ orúkọ ọjà àti iye owó."),
+    (r"I could not hear you clearly\. Please try again\.", "Mi ò gbọ́ ọ dáadáa. Jọ̀wọ́ tún sọ ọ."),
+    (r"Sales today: (.+) from (.+)\.", r"Àpapọ̀ títà lónìí: \1. Iye àkọsílẹ̀: \2."),
+    (r"Sales: (.+) from (.+)\.", r"Àpapọ̀ títà: \1. Iye àkọsílẹ̀: \2."),
+    (r"Your book is empty today\. No entries yet\.", "Kò sí àkọsílẹ̀ kankan nínú ìwé rẹ lónìí."),
+    (r"No outstanding credit\.", "Kò sí gbèsè tó kù."),
+]
+
+
+def render_reply(reply: str, language: str) -> str:
+    if language == "pcm":
+        return reply
+    english = english_reply(reply)
+    if language == "yo":
+        for pattern, replacement in _YORUBA_TEMPLATES:
+            if re.fullmatch(pattern, english):
+                return re.sub(pattern, replacement, english)
+    return english

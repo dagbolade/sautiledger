@@ -17,7 +17,7 @@
 <body>
   <header id="topbar">
     <div id="brand"><img src="/static/icon.png" alt="" width="36" height="36"><span>SautiLedger<small>Your everyday money book</small></span></div>
-    <div class="header-right"><label class="language-label" for="language-choice">Reply language<select id="language-choice"><option value="pcm-yo-NG:en">English · NGN</option><option value="pcm-yo-NG:pcm">Pidgin · NGN</option><option value="sh-ZW:en">Shona / English · USD</option></select></label><button id="welcome-help" type="button">Welcome guide</button><span id="today-date"></span><div id="mode" class="offline">Connecting…</div></div>
+    <div class="header-right"><label class="language-label" for="language-choice">Reply language<select id="language-choice"><option value="pcm-yo-NG:en">English · NGN</option><option value="pcm-yo-NG:pcm">Pidgin · NGN</option><option value="pcm-yo-NG:yo">Yoruba / English · NGN (beta)</option><option value="sh-ZW:en">Shona / English · USD</option></select></label><button id="welcome-help" type="button">Welcome guide</button><span id="today-date"></span><div id="mode" class="offline">Connecting…</div></div>
   </header>
 
   <div id="egress" role="button" tabindex="0" aria-haspopup="dialog" title="Tap for privacy: every transmission, and your choices">
@@ -139,7 +139,7 @@
         <li><b>Keep the details together.</b> Record sales, expenses and credit without stopping to fill out a form.</li>
         <li><b>See the bigger picture.</b> Check your daily totals and create a trading statement.</li>
       </ul>
-      <p class="ob-note">Choose speech and reply languages at the top of your book. The Nigerian pack supports English, Pidgin and Yoruba speech, with English or Pidgin replies. Shona / English uses USD and English replies. Finish any pending question before switching.</p>
+      <p class="ob-note">Choose speech and reply languages at the top of your book. The Nigerian pack supports English, Pidgin and Yoruba speech, with English, Pidgin or Yoruba/English replies. Yoruba replies are in beta; some messages and money readbacks use English. Shona / English uses USD and English replies. Finish any pending question before switching.</p>
     </div>
     <div class="ob-panel" data-step="1">
       <p class="ob-try">ONE ENTRY AT A TIME</p>
@@ -171,7 +171,7 @@
       </label>
     </div>
     <div id="ob-footer">
-      <div class="dots"><span class="on"></span><span></span><span></span></div>
+      <button id="ob-back" type="button">Back</button><button id="ob-pause" type="button">Pause slides</button><div class="dots"><span class="on"></span><span></span><span></span></div>
       <button id="ob-next">Next</button><button id="ob-skip">Skip guide: start my book</button>
     </div>
   </div>

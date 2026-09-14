@@ -20,6 +20,9 @@ async function refreshState() {
     currencyCode = state.currency;
     currency = CURRENCY_SIGNS[state.currency] || state.currency + " ";
     replyLanguage = state.reply_language || "en";
+    $("voice-choice-note").textContent = replyLanguage === "yo"
+      ? "Yoruba voice · beta replies. Some messages and money phrases use English."
+      : replyLanguage === "pcm" ? "Pidgin replies use Intron’s Pidgin accent." : "Choose an accent for English replies.";
     if (!languageBusy) $("language-choice").value = `${state.pack || "pcm-yo-NG"}:${replyLanguage}`;
     renderLanguageExamples(state.pack);
     renderMode(state.mode);
@@ -27,7 +30,7 @@ async function refreshState() {
     if (!voiceBusy && state.voice) {
       $("voice-accent").value = state.preferred_accent || state.voice.accent;
       $("voice-gender").value = state.voice.gender;
-      $("voice-accent").disabled = replyLanguage === "pcm";
+      $("voice-accent").disabled = replyLanguage !== "en";
       $("voice-summary").textContent = ttsMode === "sahara"
         ? `Intron voice · ${state.voice.accent} · ${state.voice.gender}` : "Device voice · offline playback";
     }
@@ -607,6 +610,24 @@ $("modal").addEventListener("click", (e) => {
 
 const OB_KEY = "sauti_onboarded";
 let obStep = 0;
+let obTimer = null;
+let obPaused = !!reduceMotion;
+function scheduleObSlide() {
+  clearTimeout(obTimer);
+  if (!obPaused && obStep < 2 && $("onboard").classList.contains("open") && !document.hidden) {
+    obTimer = setTimeout(() => setObStep(obStep + 1), 12000);
+  }
+}
+function pauseObSlides() { obPaused = true; clearTimeout(obTimer); $("ob-pause").textContent = "Play slides"; }
+$("ob-pause").addEventListener("click", () => {
+  obPaused = !obPaused;
+  $("ob-pause").textContent = obPaused ? "Play slides" : "Pause slides";
+  scheduleObSlide();
+});
+$("ob-back").addEventListener("click", () => { pauseObSlides(); setObStep(Math.max(0, obStep - 1)); });
+$("onboard").addEventListener("pointerdown", (event) => { if (event.target !== $("ob-pause")) pauseObSlides(); });
+$("onboard").addEventListener("keydown", pauseObSlides);
+document.addEventListener("visibilitychange", () => { if (document.hidden) pauseObSlides(); });
 
 function obSeen() {
   try { return !!localStorage.getItem(OB_KEY); } catch (err) { return false; }
@@ -622,11 +643,15 @@ function setObStep(n) {
   document.querySelectorAll(".dots span").forEach((d, i) =>
     d.classList.toggle("on", i === n));
   $("ob-next").textContent = n === 2 ? "Open my book" : "Continue";
+  $("ob-back").disabled = n === 0;
+  $("ob-pause").hidden = n === 2;
+  scheduleObSlide();
 }
 
-function showOnboard() { $("retain-ob").checked = false; $("ob-consent").classList.remove("on"); setObStep(0); $("onboard").classList.add("open"); }
+function showOnboard() { $("retain-ob").checked = false; $("ob-consent").classList.remove("on"); setObStep(0); $("onboard").classList.add("open"); obPaused = !!reduceMotion; $("ob-pause").textContent = obPaused ? "Play slides" : "Pause slides"; scheduleObSlide(); }
 
 async function finishOnboard(skip = false) {
+  clearTimeout(obTimer);
   obMarkSeen();
   $("onboard").classList.remove("open");
   if (!skip && $("retain-ob").checked) {
@@ -746,7 +771,7 @@ $("language-choice").addEventListener("change", async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Could not save language choice.");
     lastTotal = null;
-    bubble(reply === "pcm" ? "You fit talk Pidgin, English or Yoruba. I go reply for Pidgin." : (pack === "sh-ZW" ? "You can speak Shona and English. Replies use English; this book uses US dollars." : "You can speak English, Pidgin or Yoruba. Replies will use English."), "sauti");
+    bubble(reply === "yo" ? "Èdè Yorùbá ni màá fi dá ọ lóhùn. Yoruba replies are in beta; some messages and amounts use English." : reply === "pcm" ? "You fit talk Pidgin, English or Yoruba. I go reply for Pidgin." : (pack === "sh-ZW" ? "You can speak Shona and English. Replies use English; this book uses US dollars." : "You can speak English, Pidgin or Yoruba. Replies will use English."), "sauti");
   } catch (error) { bubble(error.message, "sauti"); }
   finally { languageBusy = false; $("language-choice").disabled = false; await refreshState(); }
 });
@@ -777,6 +802,6 @@ async function saveVoiceChoice() {
 }
 $("voice-accent").addEventListener("change", saveVoiceChoice);
 $("voice-gender").addEventListener("change", saveVoiceChoice);
-$("voice-preview").addEventListener("click", () => speak(replyLanguage === "pcm"
+$("voice-preview").addEventListener("click", () => speak(replyLanguage === "yo" ? "Èyí ni SautiLedger. Màá ka àkọsílẹ̀ rẹ kí o lè yẹ̀ ẹ́ wò." : replyLanguage === "pcm"
   ? "This na SautiLedger. I go read your entry make you check am."
   : "This is SautiLedger. I will read your entry so you can check it."));

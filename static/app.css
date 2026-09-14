@@ -1337,3 +1337,11 @@ svg {
 }
 
 #modal .sheet { display:block; overflow-y:auto; overscroll-behavior:contain; }
+
+#ob-back,#ob-pause { background:transparent; border:1px solid var(--line); border-radius:20px; padding:8px 12px; font-size:12px; }
+#ob-footer { flex-wrap:wrap; gap:10px; }
+@media(prefers-reduced-motion:no-preference) { .ob-panel.on { animation:arrive .35s ease-out; } }
+
+#ob-footer { display:grid; grid-template-columns:1fr 1fr; }
+#ob-footer .dots,#ob-next,#ob-skip { grid-column:1 / -1; justify-self:center; }
+#ob-back,#ob-pause { min-height:44px; }

@@ -46,3 +46,5 @@ Git history and any already deployed artifacts are not rewritten by this change.
 ## Hosted-demo privacy
 
 On the hosted demo, SAUTI_AGENT=hosted is enabled: utterance text the grammar cannot parse may be sent to the Hugging Face inference router (router.huggingface.co). Each call is listed as "agent fallback (hosted model)" in the in-app transmission list. Self-hosted setups can disable remote fallback with SAUTI_AGENT=none or use auto for local Ollama only. Audio is sent to Sahara for transcription; reply text is sent for online TTS. These texts and audio can contain transaction details. The ledger database itself is not uploaded to these services.
+
+Yoruba/English replies are available as a beta for the Nigerian pack, with Intron language `yo` and accent `yoruba`. Core sale/expense confirmations and common questions use Yoruba; monetary phrases, item names and unmatched messages retain English/original text. Native-speaker listening validation is still required. The welcome guide advances every 12 seconds, pauses on interaction or reduced-motion preference, and never advances past the privacy/consent slide automatically.
