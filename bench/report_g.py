@@ -192,7 +192,9 @@ def render() -> Path:
     add("")
     add(f"**{n_clips} clips** across three tiers · **{len(live)} speech systems "
         f"compared** (`{'`, `'.join(live)}`), plus a frozen 5 August Sahara "
-        "snapshot retained as a drift control and not counted among them.")
+        "snapshot retained as a drift control and not counted among them. A "
+        "15-clip supplementary Yoruba-English farm tier from a second Nigerian "
+        "speaker, recorded after the freeze, is reported separately in section 8c.")
     add("")
     for note in data.get("notes", []):
         add(f"> **Note:** {note}")
@@ -1083,8 +1085,11 @@ def render() -> Path:
         "Zimbabwean female speaker, each recorded on their own device in their "
         "own room, so **language is confounded with speaker, microphone and "
         "acoustic environment**, and no cross-tier comparison here isolates the "
-        "language. Sahara failures are reported unedited: the claim under test "
-        "is downstream safety, not vendor perfection.")
+        "language. The supplementary Yoruba-English farm tier (section 8c) adds a "
+        "second Nigerian speaker (adult female), recorded outside the frozen "
+        "corpus; it is the only comparison across speakers here, and the ranking "
+        "did not carry over to it. Sahara failures are reported unedited: the "
+        "claim under test is downstream safety, not vendor perfection.")
     add("- **Retired model.** `whisper-small` appeared in our August workshop "
         "benchmark as a placeholder for a frontier model we had no key for. With "
         "frontier ASR available it is replaced by MAI-Transcribe-2 rather than "
