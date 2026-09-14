@@ -1,6 +1,6 @@
 # Shona / English mix: USD (integer CENTS: "five dollars fifty" = 550)
 # NATIVE-CORRECTED 2026-09-02: every transaction form below comes from the
-# validator's corrected recording script (packs/sh-ZW-recording-script.md).
+# validator's corrected recording script.
 # She chose US dollars and English numbers throughout: the pack encodes
 # what she actually wrote, nothing invented. Recordings pending; the pack
 # does NOT ship to production until her clips pass the frozen test tier.

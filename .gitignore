@@ -54,3 +54,12 @@ bench/corpus-supplementary/*/raw/
 # private submission paperwork: kept locally, never pushed
 submission/FORM-ANSWERS.md
 submission/CHECKLIST.md
+
+# internal notes and working documents: kept locally, not public
+demo/
+bench/PHASE-G-NOTES.md
+bench/VOICE_NOTES.md
+bench/PRODUCT_EVALUATION.md
+CONSTRAINTS.md
+static/UI-CONTRACT.md
+packs/sh-ZW-recording-script.md

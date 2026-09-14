@@ -10,8 +10,7 @@ Winner, Indaba 2026 MLC (Africa) × Intron workshop challenge.
 **Submission docs:** [SOLUTION](submission/SOLUTION.md) ·
 [ETHICS](submission/ETHICS.md) ·
 [benchmark report](bench/results/REPORT.md) ·
-[demo script](demo/script-phase2.md) ·
-[product evaluation & explorer](bench/PRODUCT_EVALUATION.md)
+[dataset card](bench/DATASET.md)
 
 A trader says *"I don sell three derica of rice five thousand five"*: Pidgin
 grammar, Yoruba numerals, market units, money slang, and the agent logs
@@ -55,7 +54,7 @@ storage on the device itself, sync on reconnect, and a local speech
 engine for voice. `SaharaOfflineAsr` is the marked swap point for that
 last piece; the rest is unbuilt.
 
-Two rules from [CONSTRAINTS.md](CONSTRAINTS.md) hold in **both** modes,
+Two rules hold in **both** modes,
 and are properties of the code rather than promises:
 
 1. **Sharing is explicit.** Audio, TTS reply text and hosted-fallback utterances
@@ -109,8 +108,7 @@ python -m sautiledger.phone   # HTTPS on your LAN, for a phone's mic
 
 (`make test` / `make chat` / `make demo` / `make phone` with make.)
 Copy `.env.example` to `.env` and add `SAHARA_API_KEY` for cloud ASR;
-without it the app runs fully offline. The 90-second demo walkthrough is
-in [demo/script.md](demo/script.md); `python -m sautiledger.demo
+without it the app runs fully offline. `python -m sautiledger.demo
 --seed-demo` pre-loads two clearly-marked rows for screenshots.
 
 ## Add your language in an afternoon
@@ -255,7 +253,7 @@ built during the freeze.
   keys include the phrase, language, accent and gender. `SAUTI_TTS=auto` with
   cloud mode and `SAHARA_API_KEY` enables it; `SAUTI_TTS=browser` keeps local
   device playback. Cloud failures leave the full readback visible for retry,
-  without silently switching voices. [Voice implementation notes](bench/VOICE_NOTES.md).
+  without silently switching voices.
 - **Offline ASR is a stub** until Sahara's on-device engine is dropped
   into `SaharaOfflineAsr`. Offline mode today uses typed input / fixture
   audio: the rest of the stack runs offline.

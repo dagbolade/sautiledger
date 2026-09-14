@@ -3,8 +3,8 @@
     "sh-ZW normaliser test spec, SEPARATE from the frozen normaliser_tests.json.",
     "Amounts are integer CENTS (USD): 'five dollars fifty' = 550.",
     "PROVENANCE: utterances drafted by an AI assistant from the pcm-yo-NG case",
-    "pattern and CORRECTED by a native Shona speaker on 2026-09-02 (see",
-    "packs/sh-ZW-recording-script.md). Texts below are her corrected wording",
+    "pattern and CORRECTED by a native Shona speaker on 2026-09-02 (from",
+    "the recording script sent to her). Texts below are her corrected wording",
     "verbatim (punctuation dropped; 'Zvinyre' kept as she typed it).",
     "Her recordings of these same sentences become the frozen sh-ZW audio tier;",
     "the pack does not ship until those clips pass."

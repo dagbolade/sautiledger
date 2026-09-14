@@ -489,7 +489,7 @@ def render() -> Path:
     add("## 5. A prediction registered in advance: Shona")
     add("")
     add("Before running this benchmark we recorded a falsifiable prediction "
-        "(`bench/PHASE-G-NOTES.md`, committed 3 September, before any Shona audio "
+        "(recorded in commit `de4d314` on 3 September, before any Shona audio "
         "existed): Sahara's documentation lists Shona (`sn`) as a supported STT "
         "language **and** a supported TTS voice, but Shona is *not* among its 12 "
         "documented code-switching pairs. Our Shona validator's utterances are "

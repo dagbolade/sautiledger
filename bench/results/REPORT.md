@@ -159,7 +159,7 @@ Two readings are consistent with the evidence and we cannot distinguish them fro
 
 ## 5. A prediction registered in advance: Shona
 
-Before running this benchmark we recorded a falsifiable prediction (`bench/PHASE-G-NOTES.md`, committed 3 September, before any Shona audio existed): Sahara's documentation lists Shona (`sn`) as a supported STT language **and** a supported TTS voice, but Shona is *not* among its 12 documented code-switching pairs. Our Shona validator's utterances are heavily code-mixed by design ("Ndatengesa three cups dze rice nefive dollars fifty"). We therefore predicted degraded performance on tier-sh relative to tier-a, and said so before we could see the result.
+Before running this benchmark we recorded a falsifiable prediction (recorded in commit `de4d314` on 3 September, before any Shona audio existed): Sahara's documentation lists Shona (`sn`) as a supported STT language **and** a supported TTS voice, but Shona is *not* among its 12 documented code-switching pairs. Our Shona validator's utterances are heavily code-mixed by design ("Ndatengesa three cups dze rice nefive dollars fifty"). We therefore predicted degraded performance on tier-sh relative to tier-a, and said so before we could see the result.
 
 | Model | tier-a WER | tier-sh WER | tier-sh transaction exact | **tier-sh amount corrupted** |
 |---|---|---|---|---|
