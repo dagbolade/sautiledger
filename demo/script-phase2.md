@@ -1,150 +1,172 @@
-# SautiLedger: Phase 2 demo video script (~2:45)
+# SautiLedger: Phase 2 demo video script (~2:50)
 
 **Form rules:** max 5 minutes · public or **unlisted** YouTube · must show
-code-switching. This script runs about 2 minutes 45 seconds.
+code-switching.
 
-**Every spoken line below was rehearsed on 13 September through the same
-code that is deployed**, and the app's reply is written under it. If
-the app says something different on camera, the speech recogniser heard
-you differently. Keep the take: an honest clarifying question is part of
-the story.
+**This is a new demo, not the workshop one.** None of the workshop lines are
+reused (no derica of rice, no "two two fifty" garri, no "garri finish", no
+"how much I don make", no pure water). The story is an egg trader's day and
+what Phase 2 added: credit, corrections that keep the audit trail, asking
+for a missing price, profit and best-seller questions, English replies, the
+lender statement, and the seven-system benchmark.
+
+**Every line below was tested on 14 September**: spoken by both of Sahara's
+Pidgin voices, transcribed by Sahara, and run on the live app. The reply
+under each line is what the live app returned. If a take mishears you, keep
+it; the app asking instead of guessing is part of the story.
 
 Shoot on a **phone** against the live app
-`https://sautiledger-production.up.railway.app` (added to the home screen,
-so no browser bar). Volume up: the spoken read-back is part of the demo.
+`https://sautiledger-production.up.railway.app` (added to the home screen).
+Volume up: the spoken read-back is part of the demo.
 
 **Before you start**
 - Language menu (top of the book): **English / Pidgin / Yoruba → Pidgin**.
-- Start from an empty day, so the totals on screen match what you say.
-- Landscape, phone propped. Quiet room.
+- Use a fresh, empty book (private browser window), so the totals match.
+- Landscape, phone propped, quiet room.
+
+**How to say amounts (tested):** say single thousands the way traders do,
+"four thousand", "eight thousand", "six thousand naira". Sahara drops the
+"thousand" in bigger compound amounts such as "ten thousand" (heard as
+1000) or "five thousand five hundred" (heard as 500), so this script avoids
+them.
 
 ---
 
 ## 0:00-0:15 · The problem
 
-*On camera or voiceover, over a shot of a stall or stock:*
+*On camera, or voiceover over eggs or a stall:*
 
-> "A market trader sells forty times a morning with her hands full. Her
-> books live in her head, so when a bank asks what the business earns,
-> there's nothing to show. Not because the business is small, but because
-> nobody built a book she could keep while trading."
+> "My sister sells eggs. Some customers pay later, prices change by the
+> crate, and all of it lives in her head. When a lender asks what the
+> business earns, there's nothing to show."
 
 ---
 
-## 0:15-0:50 · The core loop, in her language
+## 0:15-0:40 · A sale on credit, in her language
 
 Hold the mic and say:
 
-> **"I don sell three derica of rice five thousand five"**
+> **"I don sell two crate of egg four thousand each"**
 
-App (spoken aloud): *"Logged sale: 3 derica of rice, five thousand five
-hundred naira. Correct?"* → say **"yes"** → *"Noted. Ledger correct."*
+App (spoken aloud): *"Logged sale: 2 crate of egg, four thousand naira each,
+eight thousand naira total. Correct?"*
 
-*Voiceover while it plays:*
+Then, straight away:
 
-> "One sentence, three languages: Pidgin, English, and derica, a Nigerian
-> market measure. The voice didn't just become text. It wrote a row, and
-> it read the row back so she can check it by ear."
+> **"that one na credit, she go pay on Friday"**
 
-> **"customer take two paint rubber of garri two two fifty"**
+App: *"Noted: last entry na credit, she go pay friday. I dey watch am."*
 
-App: *"Logged sale: 2 paint rubber of garri, two hundred fifty naira each,
-five hundred naira total. Correct?"* → **"yes"**
+*Voiceover:*
 
-> "'Two two fifty' means two hundred and fifty each. Every trader knows
-> that. We only know it because a native speaker corrected us, and that
-> correction is now a rule in the language pack."
+> "Pidgin, English numbers, a market unit, and the app works out the total.
+> Credit is recorded with the day it's due, because that's how traders
+> actually sell."
 
 ---
 
-## 0:50-1:20 · It's an agent, not a dictaphone
+## 0:40-1:05 · A mistake, fixed on the record
 
-> **"wetin remain"**
+> **"I buy fuel for eight thousand naira"**
 
-App: *"You sell six thousand naira, you spend zero naira, wetin remain na
-six thousand naira."*
+App: *"Logged expense: fuel, eight thousand naira. Correct?"*
 
-> **"I buy fuel ten thousand naira"** → App: *"Logged expense: fuel, ten
-> thousand naira. Correct?"*
+> **"no, I buy fuel five thousand naira"**
 
-> **"no, I buy fuel five thousand naira"** → App: *"Logged expense: fuel,
-> five thousand naira. Correct?"* → **"yes"**
+App: *"Logged expense: fuel, five thousand naira. Correct?"* → **"yes"**
 
-Point at the entries: the ₦10,000 row is **voided and still visible**, and
-the ₦5,000 row replaces it.
+Point at the entries: the ₦8,000 row shows **Voided** and stays visible; the
+₦5,000 row replaces it.
 
-> "A correction doesn't erase anything. The book shows that a mistake was
-> made and fixed, which is exactly what a lender needs in order to trust it."
-
-Use the full sentence for a clear demo, and rehearse the shorter correction forms too.
+> "Nothing is erased. The book shows the mistake and the fix, which is what
+> a lender needs to trust it."
 
 ---
 
-## 1:20-1:50 · It refuses to guess
+## 1:05-1:30 · It won't guess your money
 
-> **"I don sell garri finish"**, a sale with no price.
+> **"I sell one bag of beans"**, no price.
 
-App: *"How much you sell the garri?"* Nothing is written.
-Say **"five thousand"** → *"Logged sale: garri, five thousand naira.
-Correct?"* → **"yes"**
+App: *"How much you sell the beans?"* Nothing is written yet.
 
-*Voiceover, the heart of the video:*
+> **"six thousand naira"**
 
-> "On the 27th of August a real user said 'five thousand seven hundred'.
-> The speech model heard five hundred and seventy thousand and seven, and
-> the entry reached her ledger wrong by a factor of a hundred. It's still
-> in her book, voided, on the record. We closed that path everywhere: an
-> amount with a strange shape is now read back before anything is written.
-> A ledger that guesses is worse than no ledger."
+App: *"Logged sale: 1 bag of beans, six thousand naira. Correct?"* →
+**"yes"**
 
----
+*Voiceover:*
 
-## 1:50-2:00 · Other languages (no speaking needed)
-
-Just open the language menu at the top of the book and let the camera see
-the options. Don't switch: the Shona book uses US dollars, and the app
-blocks changing currency in a book that already has entries.
-
-> "The same app also takes Shona and English, priced in US dollars. A
-> native Shona speaker wrote and recorded our Shona test set. Adding a
-> language meant adding data, not rewriting the app."
+> "In August a real user said five thousand seven hundred, and the speech
+> model heard five hundred and seventy thousand. We closed that path: an
+> amount the app isn't sure of is asked for or read back, never guessed."
 
 ---
 
-## 2:00-2:20 · Privacy you can see
+## 1:30-1:50 · Ask the book
 
-Tap the **Privacy ↗** strip above the book and point at the transmission list.
+> **"wetin be my profit today"**
 
-> "Audio and readback text go to Sahara. When the grammar cannot parse an utterance, this hosted demo can send its text to Hugging Face. Every such call is listed here as agent fallback, hosted model. Retaining clips is optional and off by default. This demo stores the book on our server; self-hosting stores it on the machine running the app."
+App: *"You sell fourteen thousand naira, you spend five thousand naira,
+wetin remain na nine thousand naira."*
+
+> **"wetin I sell pass this week"**
+
+App: *"Your best seller today na egg, eight thousand naira."*
 
 ---
 
-## 2:20-2:35 · Why a bank cares
+## 1:50-2:05 · Same book, English replies
+
+Open the language menu and choose **English / Pidgin / Yoruba → English**.
+
+> **"what are my sales today"**
+
+App: *"Sales today: fourteen thousand naira from 2 sales."*
+
+While the menu is open, let the camera see the **Shona / English · USD**
+option too (don't select it; a book with entries can't change currency).
+
+> "Replies in Pidgin or English, and the same app runs Shona and English in
+> US dollars. A native Shona speaker recorded our Shona test set."
+
+---
+
+## 2:05-2:20 · What a lender sees
 
 Tap **Trading statement**.
 
-> "Totals, net position, average daily takings, and how many days actually
-> had sales: the consistency a lender asks about. It says plainly that it's
-> a transaction history, not a credit score."
+> "Sales, spend, what's owed on credit and how many days had trading. It
+> says plainly that it's a transaction history, not a credit score."
 
 ---
 
-## 2:35-2:45 · Close
+## 2:20-2:35 · What leaves the phone
 
-> "Pidgin, Yoruba, English and Shona. Built on Sahara, benchmarked against
-> six other speech systems on whether the money survives, not just the
-> words, and tested on real phones."
+Tap the **Privacy ↗** strip and point at the list.
+
+> "Every transmission is listed. Audio and the read-back text go to Sahara;
+> on this hosted demo, a sentence the grammar can't parse may go to a
+> Hugging Face model, and it's listed too. Keeping voice clips is off unless
+> she turns it on."
 
 ---
 
-## Correction rehearsal
+## 2:35-2:50 · Why Sahara, measured
 
-Rehearse amount-only and item-plus-amount expense corrections on the deployed build before filming. They must preserve expense type; amount corrections must leave the old row voided. Local regression tests cover these paths; live ASR may still change the words.
+Open `https://sautiledger-production.up.railway.app/static/benchmark/index.html`.
+
+> "We tested seven speech systems on whether the money survives, not just
+> the words, on Pidgin, Shona and Yoruba speech recorded for the benchmark. No
+> system wins everywhere, so we built a ledger that stays safe whatever the
+> speech model hears. Report and dataset are public."
+
+---
 
 ## Practical notes
 
-- If a take mishears you, keep it. A clarifying question on camera shows
-  the agent asking instead of inventing.
-- Don't talk over the read-back. Let the app's voice be heard clearly at
-  least once.
+- Speak at normal market pace; say "four thousand", not "four k".
+- Don't talk over the read-back. The first read-back can take up to about
+  6 seconds; later repeated replies are instant.
+- If a take mishears you, keep it. A clarifying question on camera shows the
+  agent asking instead of inventing.
 - Upload **unlisted**; paste the link into the form.
