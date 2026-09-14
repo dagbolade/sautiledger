@@ -1,7 +1,7 @@
-# SautiLedger: Phase 2 demo video script (~3:00)
+# SautiLedger: Phase 2 demo video script (~2:45)
 
 **Form rules:** max 5 minutes · public or **unlisted** YouTube · must show
-code-switching. This script runs about 3 minutes.
+code-switching. This script runs about 2 minutes 45 seconds.
 
 **Every spoken line below was rehearsed on 13 September through the same
 code that is deployed**, and the app's reply is written under it. If
@@ -99,31 +99,19 @@ Correct?"* → **"yes"**
 
 ---
 
-## 1:50-2:15 · Shona, same app
+## 1:50-2:00 · Other languages (no speaking needed)
 
-Open a separate empty book in a private browser session (prepare it before filming), then select **Shona / English → English · USD**. Keep the naira book in the original session; switching currency in a populated book is intentionally blocked.
+Just open the language menu at the top of the book and let the camera see
+the options. Don't switch: the Shona book uses US dollars, and the app
+blocks changing currency in a book that already has entries.
 
-> **"Ndatengesa matomatisi ethree dollars"**
-
-App: *"Logged sale: matomatisi, three dollars. Correct?"* → **"yes"**
-
-> **"Ndatengesa three cups dze rice nefive dollars fifty"**
-
-App: *"Logged sale: 3 cup of rice, five dollars fifty cents. Correct?"* →
-**"yes"**
-
-> "Shona and English, in US dollars and cents, because that's how
-> Zimbabwean traders price. A native Shona speaker wrote and recorded
-> these phrases for our benchmark. Adding a language meant adding data,
-> not rewriting the app."
-
-*(If your Shona pronunciation gets misheard, that is fine to show: the app
-asks instead of guessing. Or play one of her recorded clips from a second
-device into the mic.)*
+> "The same app also takes Shona and English, priced in US dollars. A
+> native Shona speaker wrote and recorded our Shona test set. Adding a
+> language meant adding data, not rewriting the app."
 
 ---
 
-## 2:15-2:35 · Privacy you can see
+## 2:00-2:20 · Privacy you can see
 
 Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
@@ -131,7 +119,7 @@ Tap the **Privacy ↗** strip above the book and point at the transmission list.
 
 ---
 
-## 2:35-2:50 · Why a bank cares
+## 2:20-2:35 · Why a bank cares
 
 Tap **Trading statement**.
 
@@ -141,7 +129,7 @@ Tap **Trading statement**.
 
 ---
 
-## 2:50-3:00 · Close
+## 2:35-2:45 · Close
 
 > "Pidgin, Yoruba, English and Shona. Built on Sahara, benchmarked against
 > six other speech systems on whether the money survives, not just the

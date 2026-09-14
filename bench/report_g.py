@@ -368,6 +368,40 @@ def render() -> Path:
         "benchmark against this API is reproducible, and no regression is "
         "attributable. That is why §9 asks for one.")
     add("")
+    rerun_files = sorted(RESULTS_DIR.glob("rerun-*.json"))
+    if rerun_files:
+        rr = json.loads(rerun_files[-1].read_text(encoding="utf-8"))
+        add(f"### Re-run on {rr['date']}: is this still what the services return?")
+        add("")
+        add("The morning of 14 September, after Intron made a language parameter "
+            "mandatory on every request, we sent the same 70 frozen clips to the "
+            "five cloud systems again (`python -m bench.rerun`). New transcripts "
+            "were cached separately; nothing above was re-scored. The local models "
+            "have fixed weights and were not re-run.")
+        add("")
+        add("| System | Transcripts changed | WER, Pidgin market (before → after) | Transaction exact, Pidgin market | WER, Shona |")
+        add("|---|---|---|---|---|")
+        for sysrow in rr["systems"]:
+            t = sysrow["tiers"]
+            changed = sum(v["transcripts_changed"] for v in t.values())
+            total = sum(v["clips"] for v in t.values())
+            a, sh = t.get("sautiledger-clips"), t.get("sh-clips")
+            add(f"| {_name(sysrow['model'])} | {changed}/{total} "
+                f"| {a['wer'][0]:.3f} → {a['wer'][1]:.3f} "
+                f"| {a['exact'][0]:.0%} → {a['exact'][1]:.0%} "
+                f"| {sh['wer'][0]:.3f} → {sh['wer'][1]:.3f} |")
+        add("")
+        add("**Sahara, Chirp-3 and Parakeet returned byte-identical transcripts**, so "
+            "the mandatory-language change did not alter Sahara's output and the "
+            "frozen results still describe it. MAI changed 2 broadcast clips. "
+            "**GPT-4o-transcribe changed 60 of 70**: its output varies from run to run "
+            "on identical audio. One Pidgin transaction flipped (*\"I don sell three "
+            "derica of rice five thousand five\"* came back as *\"A don sell three "
+            "derica of rice 5,500\"*), taking it from 53% to 47% exact, level with "
+            "Sahara. A single run of a non-deterministic system is a sample, not a "
+            "measurement, which strengthens the §1 caution that these transaction "
+            "gaps are not significant.")
+    add("")
     add("**A caveat on WER for financial speech.** Sahara transcribes spoken "
         "\"five thousand five\" as \"5,500\": semantically exact, but every such "
         "token counts as a word error against a spoken-form reference. WER "

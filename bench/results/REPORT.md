@@ -114,6 +114,20 @@ We hold cached Sahara transcripts for the same frozen audio from **5 August** an
 
 Broadcast speech improved clearly. Our native market tier is more mixed: aggregate WER improved slightly while **numeric accuracy went down**, and individual clips regressed, `"I don sell 3 derica of rice 5,500."` in August became `"I don sell 3 of rice 500"` in September, losing both the unit and a factor of ten. We report this without complaint: models are retrained, and improving the average while regressing a subset is normal. The problem is that **an integrator cannot tell**. Without a version identifier in the response, no benchmark against this API is reproducible, and no regression is attributable. That is why §9 asks for one.
 
+### Re-run on 2026-09-14: is this still what the services return?
+
+The morning of 14 September, after Intron made a language parameter mandatory on every request, we sent the same 70 frozen clips to the five cloud systems again (`python -m bench.rerun`). New transcripts were cached separately; nothing above was re-scored. The local models have fixed weights and were not re-run.
+
+| System | Transcripts changed | WER, Pidgin market (before → after) | Transaction exact, Pidgin market | WER, Shona |
+|---|---|---|---|---|
+| `sahara-v2.5` | 0/70 | 0.574 → 0.574 | 47% → 47% | 0.566 → 0.566 |
+| `mai-transcribe-2` | 2/70 | 0.663 → 0.663 | 60% → 60% | 0.869 → 0.869 |
+| `gpt-4o-transcribe` | 60/70 | 0.652 → 0.628 | 53% → 47% | 1.018 → 0.959 |
+| `chirp-3` | 0/68 | 0.778 → 0.778 | 29% → 29% | 0.900 → 0.900 |
+| `parakeet-tdt` | 0/70 | 0.651 → 0.651 | 33% → 33% | 1.131 → 1.131 |
+
+**Sahara, Chirp-3 and Parakeet returned byte-identical transcripts**, so the mandatory-language change did not alter Sahara's output and the frozen results still describe it. MAI changed 2 broadcast clips. **GPT-4o-transcribe changed 60 of 70**: its output varies from run to run on identical audio. One Pidgin transaction flipped (*"I don sell three derica of rice five thousand five"* came back as *"A don sell three derica of rice 5,500"*), taking it from 53% to 47% exact, level with Sahara. A single run of a non-deterministic system is a sample, not a measurement, which strengthens the §1 caution that these transaction gaps are not significant.
+
 **A caveat on WER for financial speech.** Sahara transcribes spoken "five thousand five" as "5,500": semantically exact, but every such token counts as a word error against a spoken-form reference. WER penalises the model for being *more* useful downstream. This is precisely why the task-completion metric in §1 leads this report.
 
 ## 3. Performance disparity across speaker groups
